@@ -8,7 +8,7 @@ general formalism: all sites map to all the different
 degrees of freedom of the system
 '''
 
-from transport import fci_mod
+from code import fci_mod
 
 import numpy as np
 
@@ -85,7 +85,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
         T = G_0sigma0[-n_loc_dof+sigmai]*np.conj(G_0sigma0[-n_loc_dof+sigmai])*v_R[sigmai]*v_L[sigma0];
         
         # R given in my manuscript as Eq 21
-        R = (complex(0,-1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*np.conj(complex(0,-1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*v_L[sigmai]/v_L[sigma0];   
+        R = (complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*np.conj(complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*v_L[sigmai]/v_L[sigma0];   
 
         # benchmarking
         if(verbose > 1):

@@ -2,7 +2,7 @@
 utils for wave function matching
 '''
 
-from transport import fci_mod
+from code import fci_mod
 
 import numpy as np
 

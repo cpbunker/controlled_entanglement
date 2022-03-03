@@ -13,8 +13,8 @@ Following cicc, imp spins are confined to single sites, separated by x0
     since this is discrete, separate by x0 = N0 a lattice spacings
 '''
 
-from transport import wfm
-from transport.wfm import utils
+from code import wfm
+from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,13 +23,11 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import sys
 
 # top level
-plt.style.use('seaborn-dark-palette');
 np.set_printoptions(precision = 4, suppress = True);
 verbose = 5
 
-
 ##################################################################################
-#### data and plots for cicc Fig 2b (transparency)
+#### transparency / detection
     
 if False: # original version of 2b (varying x0 by varying N)
 
@@ -349,195 +347,7 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
     raise(Exception);
 
 
-# still in dimer case, compare T vs rho J a peak under resonant
-if True: # cicc fig 6 (N = 2 still)
-
-    # siam inputs
-    tl = 1.0;
-    Jeff = 0.1;
-
-    # choose boundary condition
-    source = np.zeros(8); # incident up, imps = down, down
-    source[4] = 1;
-    spinstate = "baa"
-
-    # iter over rhoJ, getting T
-    Tvals, Rvals = [], [];
-    xlims = 0.05, 4.0
-    rhoJvals = np.linspace(xlims[0], xlims[1], 99)
-    for rhoJa in rhoJvals:
-
-        # energy and K fixed by J, rhoJ
-        E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                # this E is measured from bottom of band !!!
-        k_rho = np.arccos((E_rho-2*tl)/(-2*tl));
-        print("E, E - 2t, J, E/J = ",E_rho, E_rho -2*tl, Jeff, E_rho/Jeff);
-        print("ka = ",k_rho);
-        print("rhoJa = ", (Jeff/np.pi)/np.sqrt(E_rho*tl));
-        E_rho = E_rho - 2*tl; # measure from mu
-        
-        # location of impurities, fixed by kx0 = pi
-        kx0 = 0*np.pi;
-        N0 = max(1,int(kx0/(k_rho)));
-        assert(N0 == 1);
-
-        # construct hams
-        # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
-        i1, i2 = 1, 1+N0;
-        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2);
-        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-
-        # get T from this setup
-        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E_rho , source));
-        Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E_rho , source, reflect = True));
-
-    # plot
-    fig, ax = plt.subplots();
-    Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-    ax.plot(rhoJvals, Tvals[:,4], label = "$|i\,>$", color = "darkblue", linewidth = 2);
-    ax.plot(rhoJvals, Tvals[:,1]+Tvals[:,2], label = "$|+>$", color = "darkgreen", linestyle = "dashed", linewidth = 2);
-    totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-    ax.plot(rhoJvals, totals, color="red");
-    #ax.scatter(rhoJvals, Rvals[:,1]+Rvals[:,2]);
-    #ax.scatter(rhoJvals, Rvals[:,4]);
-    
-    # inset
-    if True:
-        rhoEvals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl);
-        axins = inset_axes(ax, width="50%", height="50%");
-        #axins.plot(rhoEvals,Tvals[:,4], color = "black"); # i state
-        axins.plot(rhoEvals,Tvals[:,1]+Tvals[:,2], color = "darkgreen", linestyle = "dashed", linewidth = 2); # + state
-        axins.set_xlim(0,0.4);
-        axins.set_xticks([0,0.4]);
-        axins.set_xlabel("$E+2t_l$", fontsize = "x-large");
-        axins.set_ylim(0,0.2);
-        axins.set_yticks([0,0.2]);
-
-    # format
-    ax.set_xlim(*xlims);
-    ax.set_xticks([0,1,2,3,4]);
-    ax.set_xlabel("$J/\pi \sqrt{tE}$", fontsize = "x-large");
-    ax.set_ylim(0,1.0);
-    ax.set_yticks([0,1]);
-    ax.set_ylabel("$T$", fontsize = "x-large");
-    plt.show();
-    raise(Exception);
 
 
-if plot_6_resonant: # add fig 6 data at switching resonance (Jz = 0)
 
-    # tight binding params
-    tl = 1.0;
-    Jeff = 0.4;
-
-    # cicc inputs
-    rhoJa = 0.5; # integer that cicc param rho*J is set equal to
-    E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                            # this E is measured from bottom of band !!!
-    k_rho = np.arccos((E_rho - 2*tl)/(-2*tl)); # input E measured from 0 by -2*tl
-    assert(abs((E_rho - 2*tl) - -2*tl*np.cos(k_rho)) <= 1e-8 ); # check by getting back energy measured from bottom of band
-    print("E = ",E_rho,"\nka = ",k_rho,"\nE/J = ",E_rho/Jeff,"\nrho*J = ", (Jeff/np.pi)/np.sqrt(E_rho*tl));
-
-    Omega = k_rho*Jeff/(2*E_rho);
-    Jtau = np.arccos(np.power(1+Omega*Omega,-1/2));
-    print("Omega = ",Omega,"\nJtau = ",Jtau);
-
-    # modulate N, with both imps on all sites in SR, in the old way
-    if not plot_6_resonant:
-        
-        # choose boundary condition
-        source = np.zeros(8);
-        source[4] = 1; # down up up
-        
-        # mesh of x0s (= N0s * alat)
-        kx0max = 1.0*np.pi;
-        N0max = int(kx0max/(k_rho)); # a = 1
-        print("N0max = ",N0max);
-        N0vals = np.linspace(0, N0max, 49, dtype = int); # always integer
-
-        # iter over all the differen impurity spacings, get transmission
-        Tvals = []
-        for N0 in N0vals:
-
-            # construct hams
-            # hacked = no Jz
-            # when dimer=False, puts both imp hams on all SR sites, as in old way
-            hblocks, tblocks = wfm.utils.h_cicc_hacked(Jeff, tl, N0+2, dimer = False);
-            
-            # get T from this setup
-            Tvals.append(wfm.kernel(hblocks, tblocks, tl, E_rho , source));
-
-        # plot
-        Tvals = np.array(Tvals);
-        fig, axes = plt.subplots(2);
-        axes[0].plot(N0vals, Tvals[:,4], label = "$|i\,>$");
-        axes[0].plot(N0vals, Tvals[:,1]+Tvals[:,2], label = "$|+>$");
-        axes[0].set_xlabel("$k(N-1)a/\pi$");
-        #axes[1].plot(np.arccos(np.power(1+np.power(k_rho,2),-1/2)), Tvals[:,1]+Tvals[:,2]);
-        plt.legend();
-        plt.show();
-
-        del hblocks, tblocks;
-
-    # siam inputs
-    tl = 1.0;
-    Jeff = 0.1;
-
-    # choose boundary condition
-    source = np.zeros(8); # incident up, imps = down, down
-    source[4] = 1;
-    spinstate = "baa"
-
-    # iter over rhoJ, getting T
-    Tvals = [];
-    rhoJvals = np.linspace(0.05,2.5,40)
-    for rhoJa in rhoJvals:
-
-        # energy and K fixed by J, rhoJ
-        E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                # this E is measured from bottom of band !!!
-        k_rho = np.arccos((E_rho-2*tl)/(-2*tl));
-        print("E, E - 2t, J, E/J = ",E_rho, E_rho -2*tl, Jeff, E_rho/Jeff);
-        print("ka = ",k_rho);
-        print("rhoJa = ", (Jeff/np.pi)/np.sqrt(E_rho*tl));
-        E_rho = E_rho - 2*tl; # measure from mu
-        
-        # location of impurities, fixed by kx0 = pi
-        kx0 = 0*np.pi;
-        N0 = max(1,int(kx0/(k_rho)));
-        if verbose: print("N0 = ",N0);
-
-        # construct hams
-        i1, i2 = 1, 1+N0;
-        Nsites = i2+2; # 1 lead site on each side
-        hblocks, tblocks = wfm.utils.h_cicc_hacked(Jeff, tl, Nsites, dimer = True);
-
-        # get T from this setup
-        Tvals.append(wfm.kernel(hblocks, tblocks, tl, E_rho , source));
-
-    # plot with and without Jz against rhoJa to compare
-    if not plot_6_resonant:
-        fig, ax = plt.subplots();
-        axins = inset_axes(ax, width="50%", height="50%");
-    Tvals = np.array(Tvals);
-    ax.plot(rhoJvals, Tvals[:,4], color = "y", linestyle = "dashed");
-    ax.plot(rhoJvals, Tvals[:,1]+Tvals[:,2], color = "indigo", linestyle = "dashed");
-    ax.legend(loc = "upper left", fontsize = "large");
-
-    # inset
-    rhoEvals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl);
-    axins.plot(rhoEvals,Tvals[:,1], color = "indigo", linestyle = "dashed");
-    axins.set_xlabel("$E+2t_l$", fontsize = "x-large");
-    xlim, ylim = (0,0.01), (0.05,0.15);
-    axins.set_xlim(*xlim);
-    axins.set_xticks([*xlim]);
-    axins.set_ylim(*ylim);
-    axins.set_yticks([*ylim]);
-
-    # format
-    ax.set_xlabel("$\\rho\,J a$", fontsize = "x-large");
-    ax.set_ylabel("$T$", fontsize = "x-large");
-    ax.set_xlim(0.05,2.5);
-    ax.set_ylim(0,1.05);
-    plt.show();
     
