@@ -42,7 +42,7 @@ if False: # compare T vs rhoJa for N not fixed
 
     # iter over rhoJ, getting T
     Tvals, Rvals = [], [];
-    xlims = 0.02, 4.0
+    xlims = 0.05, 4.0
     rhoJvals = np.linspace(xlims[0], xlims[1], 99)
     for rhoJa in rhoJvals:
 
@@ -85,7 +85,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if True: # compare T vs rhoJa for N=2 fixed
+if False: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -114,9 +114,10 @@ if True: # compare T vs rhoJa for N=2 fixed
         
         # location of impurities, fixed by kx0 = pi
         kx0 = 1*np.pi;
-        Vg = E_rho; # gate voltage
+        Vg = E_rho - 2*tl; # gate voltage
         kpa = np.arccos((E_rho-Vg)/(-2*tl));
         N0 = int(np.pi/(kpa));
+        print(kpa);
         print(N0)
         assert(N0 == 1);
 
@@ -160,7 +161,8 @@ print("- shape Tvals = ", np.shape(Tvals));
 print("- shape Rvals = ", np.shape(Rvals));
 
 # plot
-fig, ax = plt.subplots();
+fig, ax = plt.subplots()
+#fig, (ax, axbelow) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [7,1]})
 ax.plot(rhoJvals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
 ax.plot(rhoJvals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
 totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
@@ -168,11 +170,11 @@ ax.plot(rhoJvals, totals, color="red");
 
 # inset
 if True:
-    rhoEvals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl);
+    Evals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
     axins = inset_axes(ax, width="50%", height="50%");
-    axins.plot(rhoEvals-2*tl,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-    axins.set_xlim(-2.05,0);
-    axins.set_xticks([-2,0]);
+    axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
+    axins.set_xlim(min(Evals)-0.01,-1.6) #max(Evals));
+    axins.set_xticks([-2.0,-1.6]);
     axins.set_xlabel("$E/t$", fontsize = "x-large");
     axins.set_ylim(0,0.2);
     axins.set_yticks([0,0.2]);

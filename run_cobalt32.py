@@ -8,8 +8,8 @@ Cobalt dimer modeled as two spin-3/2 impurities mo
 Spin interaction parameters calculated from dft, Jie-Xiang's Co dimer manuscript
 '''
 
-from transport import fci_mod, wfm
-from transport.wfm import utils
+from code import fci_mod, wfm
+from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,12 +43,6 @@ Jz = 0.124/Ha2meV;
 DO = 0.674/Ha2meV;
 DT = 0.370/Ha2meV;
 An = 0
-
-if False:
-    Jx = 0/Ha2meV;
-    Jz = 0/Ha2meV;
-    DO = 0/Ha2meV;
-    DT = 0/Ha2meV;
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -88,14 +82,15 @@ for i in range(len(source)): # force diag
             if(abs(hSR_JK0_diag[i,j]) >= 0 and abs(hSR_JK0_diag[i,j]) < 1e-10):
                 hSR_JK0_diag[i,j] = 0;
             else: raise(Exception("Not diagonal "+str(hSR_JK0_diag[i,j])));
+            
 #########################################################
 #### generation
 
 if True: # fig 6 ie T vs rho J a
 
     # plot at diff DeltaK
-    DeltaKvals = DO*np.array([-5,0,5]);
-    for DeltaK in DeltaKvals:
+    for dummy in [1]:
+        
         # 2 site SR
         fig, ax = plt.subplots();
         hblocks = [np.copy(hSR_JK0_diag)];
@@ -103,8 +98,8 @@ if True: # fig 6 ie T vs rho J a
 
             # define all physical params
             JKO, JKT = 0, 0;
-            if Coi == 0: JKO = 5*DO+DeltaK/2; # J S dot sigma is onsite only
-            else: JKT = 5*DO-DeltaK/2;
+            if Coi == 0: JKO = 1*DO # J S dot sigma is onsite only
+            else: JKT = 1*DO
             params = Jx, Jx, Jz, DO, DT, An, JKO, JKT;
             h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
 
@@ -154,19 +149,17 @@ if True: # fig 6 ie T vs rho J a
             
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(rhoJvals, Tvals[:,sourcei], label = "$|i\,>$", color = "darkblue", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[0]], label = "$|+>$", color = "darkgreen", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[1]], label = "$|->$", color = "darkred", linestyle = "dotted", linewidth = 2);
+        ax.plot(rhoJvals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(rhoJvals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJvals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
         ax.plot(rhoJvals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
         # inset
         if False:
-            rhoEvals = JK*JK/(rhoJvals*rhoJvals*np.pi*np.pi*tl);
+            Evals = JK*JK/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
             axins = inset_axes(ax, width="50%", height="50%");
-            axins.plot(rhoEvals,Tvals[:,pair[0]], color = "darkgreen", linestyle = "dashed", linewidth = 2); # + state
-            axins.set_xlim(0,tl);
-            axins.set_xticks([0,tl]);
-            axins.set_xlabel("$E+2t_l$", fontsize = "x-large");
+            axins.plot(Evals,Tvals[:,pair[0]], color = "darkgreen", linestyle = "dashed", linewidth = 2); # + state
+            axins.set_xlabel("$E/t$", fontsize = "x-large");
             axins.set_ylim(0,0.2);
             axins.set_yticks([0,0.2]);
 
@@ -174,7 +167,7 @@ if True: # fig 6 ie T vs rho J a
         ax.set_xlim(min(rhoJvals),max(rhoJvals));
         ax.set_xticks([0,1]);
         ax.set_xlabel("$D_O/\pi \sqrt{tE}$", fontsize = "x-large");
-        ax.set_ylim(0,0.2);
+        ax.set_ylim(0,1.0);
         ax.set_yticks([0,0.2]);
         ax.set_ylabel("$T$", fontsize = "x-large");
         #plt.legend();
