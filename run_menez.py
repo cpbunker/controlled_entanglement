@@ -26,12 +26,12 @@ verbose = 5;
 analytical = True; # whether to compare to menezes' calc
 reflect = False; # whether to get R or T
 
-if False: # S dot S, with or without delta
+if True: # S dot S, with or without delta
 
     # tight binding params
     tl = 1.0;
     th = 1.0;
-    Delta = 0.0; # zeeman splitting on imp
+    Delta = 0.05; # zeeman splitting on imp
 
     fig, ax = plt.subplots();
     Jeffs = [0.1,0.2,0.4];
@@ -90,7 +90,7 @@ if False: # S dot S, with or without delta
                 
         # plot Tvals vs E
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(np.real(Evals),Tvals[:,flipi], color = colors[Ji], linestyle = "dashed", linewidth = 2);
+        ax.plot(np.real(Evals)[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         ax.plot(np.real(Evals), totals, color="red", label = "total ");
 
@@ -109,7 +109,7 @@ if False: # S dot S, with or without delta
     plt.show();
 
 
-if True: # full 2 site hubbard treatment (downfolds to S dot S)
+if False: # full 2 site hubbard treatment (downfolds to S dot S)
 
     fig, ax = plt.subplots();
     epsilons = [-27.5,-11.3,-5.3];
