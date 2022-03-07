@@ -190,8 +190,8 @@ if False: # plot fig 2b data
     fig, axes = plt.subplots();
     axes = [axes];
     datafs = sys.argv[1:];
-    colors = ["darkblue","darkgreen","darkred"]
-    styles = ["solid","solid","solid"];
+    colors = ["black","black","black"]
+    styles = ["dashdot","dashed","solid"];
     for fi in range(len(datafs)):
 
         # unpack
@@ -210,9 +210,10 @@ if False: # plot fig 2b data
 
     # format and show
     axes[0].set_xlim(0.0,2.1);
-    axes[0].set_ylim(0.0,1);
     axes[0].set_xticks([0,1,2]);
     axes[0].set_xlabel("$ka(N-1)/\pi$", fontsize = "x-large");
+    axes[0].set_ylim(0.0,1);
+    axes[0].set_yticks([0,0.5,1]);
     axes[0].set_ylabel("$T$", fontsize = "x-large");
     plt.show();
     raise(Exception);
@@ -221,7 +222,7 @@ if False: # plot fig 2b data
 ##################################################################################
 #### molecular dimer regime (N = 2 fixed)
 
-if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
+if True: # vary k'x0 by varying Vg for low energy detection, t', th != t;
 
     # incident state
     theta_param = 3*np.pi/4;
@@ -233,12 +234,11 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
 
     # tight binding params
     tl = 1.0; # norm convention, -> a = a0/sqrt(2) = 0.37 angstrom
+    tp = 1.0;
     Jeff = 0.1; # eff heisenberg
-    th = 0.7
-    tp = 0.7
     N_SR = 2;
 
-    factor = 99;
+    factor = 198;
     ka0 =  np.pi/(N_SR - 1)/factor; # free space wavevector, should be << pi
                                     # increasing just broadens the Vg peak
     kpa0 = np.pi/(N_SR - 1)/factor; # wavevector in gated SR
@@ -257,7 +257,7 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
     kpalims = (0.0*kpa0,(factor/2)*kpa0); # k'a in first 1/2 of the zone
     kpavals = np.linspace(*kpalims, 99);
     Vgvals =  -2*tl*np.cos(ka0) + 2*tp*np.cos(kpavals);
-    Tvals = [];
+    Tvals, Rvals = [], []
     for Vg in Vgvals:
 
         # construct blocks of hamiltonian
@@ -265,8 +265,8 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
         hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tp, 0, N_SR-1, N_SR); # start with SR
         hblocks = np.append([np.zeros_like(hblocks[0])], hblocks, axis = 0); # LL block
         hblocks = np.append(hblocks, [np.zeros_like(hblocks[0])], axis = 0); # RL block
-        tnn = np.append([-th*np.eye(np.shape(hblocks)[1])], tnn, axis = 0); # coupling to LL
-        tnn = np.append(tnn,[-th*np.eye(np.shape(hblocks)[1])], axis = 0); # coupling to LL
+        tnn = np.append([-tl*np.eye(np.shape(hblocks)[1])], tnn, axis = 0); # coupling to LL
+        tnn = np.append(tnn,[-tl*np.eye(np.shape(hblocks)[1])], axis = 0); # coupling to LL
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # add gate voltage in SR
@@ -276,13 +276,15 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
                 
         # get data
         Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, -2*tl*np.cos(ka0), source));
+        Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, -2*tl*np.cos(ka0), source, reflect = True));
     
-    Tvals = np.array(Tvals);
-    Ttotals = np.sum(Tvals, axis = 1);
+    Tvals, Rvals = np.array(Tvals), np.array(Rvals);
+    Ttotals, Rtotals = np.sum(Tvals, axis = 1), np.sum(Rvals, axis = 1);
 
     # plot
     fig, axes = plt.subplots(2)
     axes[0].plot(kpavals/np.pi, Ttotals);
+    axes[0].plot(kpavals/np.pi, Ttotals + Rtotals, color = "red");
     axes[1].plot(Vgvals, Ttotals);
     axes[0].set_xlabel("$k'a/\pi$", fontsize = "x-large");
     axes[0].set_ylabel("$T$", fontsize = "x-large");
@@ -292,11 +294,10 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
 
     #### vary theta, phi
     #### -> detection !
-    if((th == tl) and (tp == tl)):
-        myVg = -2*tl*np.cos(ka0) + 2*tl; # ???
-    else:
-        myVg = -0.80;
-    print(">>> myVg = ",myVg);
+    if(tp == tl):
+        myVg =0# -2*tp*np.cos(ka0); # Vg = E
+        kpa = np.arccos((-2*tp*np.cos(ka0)-myVg)/(-2*tl));
+    print(">>> myVg, k'a = ",myVg, kpa); 
     thetavals = np.linspace(0, np.pi, 49);
     phivals = np.linspace(0, np.pi, 49);
     Ttotals = np.zeros((len(thetavals), len(phivals)));
@@ -306,8 +307,8 @@ if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
     hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tp, 0, N_SR-1, N_SR);
     hblocks = np.append([np.zeros_like(hblocks[0])], hblocks, axis = 0); # LL block
     hblocks = np.append(hblocks, [np.zeros_like(hblocks[0])], axis = 0); # RL block
-    tnn = np.append([-th*np.eye(np.shape(hblocks)[1])], tnn, axis = 0); # couple to LL
-    tnn = np.append(tnn,[-th*np.eye(np.shape(hblocks)[1])], axis = 0); # couple to RL
+    tnn = np.append([-tl*np.eye(np.shape(hblocks)[1])], tnn, axis = 0); # couple to LL
+    tnn = np.append(tnn,[-tl*np.eye(np.shape(hblocks)[1])], axis = 0); # couple to RL
     tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
     # add gate voltage in SR

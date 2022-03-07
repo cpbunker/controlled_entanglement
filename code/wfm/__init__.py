@@ -50,6 +50,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
     for sigmai in range(len(Ajsigma)): # find incident spin channel and check that there is only one
         if(Ajsigma[sigmai] != 0):
             if(sigma0 != -1): # then there was already a nonzero element, bad
+                #pass;
                 raise(Exception("Ajsigma has too many nonzero elements:\n"+str(Ajsigma)));
             else: sigma0 = sigmai;
     assert(sigma0 != -1);

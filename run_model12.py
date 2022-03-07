@@ -110,12 +110,12 @@ if False: # compare T vs rhoJa for N=2 fixed
             print("E, E - 2t, J, E/J = ",E_rho, E_rho -2*tl, Jeff, E_rho/Jeff);
             print("ka = ",k_rho);
             print("rhoJa = ", (Jeff/np.pi)/np.sqrt(E_rho*tl));
-        E_rho = E_rho - 2*tl; # measure from mu
+        Energy = E_rho - 2*tl; # regular energy
         
         # location of impurities, fixed by kx0 = pi
         kx0 = 1*np.pi;
-        Vg = E_rho - 2*tl; # gate voltage
-        kpa = np.arccos((E_rho-Vg)/(-2*tl));
+        Vg = Energy - 2*tl; # gate voltage
+        kpa = np.arccos((Energy-Vg)/(-2*tl));
         N0 = int(np.pi/(kpa));
         print(kpa);
         print(N0)
@@ -128,8 +128,8 @@ if False: # compare T vs rhoJa for N=2 fixed
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # get T from this setup
-        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E_rho , source));
-        Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E_rho , source, reflect = True));
+        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source));
+        Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, reflect = True));
 
     # save data to .npy
     Tvals, Rvals = np.array(Tvals), np.array(Rvals);
@@ -183,7 +183,7 @@ if True:
 # format
 ax.set_xlim(min(rhoJvals),max(rhoJvals));
 ax.set_xticks([0,1,2,3,4]);
-ax.set_xlabel("$J/\pi \sqrt{tE}$", fontsize = "x-large");
+ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
 ax.set_ylim(0,1.0);
 ax.set_yticks([0,1]);
 ax.set_ylabel("$T$", fontsize = "x-large");
