@@ -18,7 +18,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 #### top level
 #np.set_printoptions(precision = 4, suppress = True);
-plt.style.use("seaborn-dark-palette");
+colors = ["darkblue","darkgreen","darkred", "darkmagenta"]
 verbose = 5;
 
 #### setup
@@ -57,19 +57,22 @@ if(verbose):
 tl = 1; # lead hopping, in Hartree
 tp = 1;  # hopping between imps
 J = 0.1;
-D = 0.05;
+#D = 0.01;
 
             
 #########################################################
 #### generation
 
 if True: # fig 6 ie T vs rho J a
-
+    
     # plot at diff DeltaK
-    for dummy in [1]:
+    fig, ax = plt.subplots();
+    axins = inset_axes(ax, width="50%", height="50%");
+    Dvals = J*np.array([0,0.1,0.2,0.5])
+    for Di in range(len(Dvals)):
+        D = Dvals[Di];
         
         # 2 site SR
-        fig, ax = plt.subplots();
         hblocks = [];
         impis = [1,2];
         for j in range(4): # LL, imp 1, imp 2, RL
@@ -86,30 +89,27 @@ if True: # fig 6 ie T vs rho J a
                 
             # transform to eigenbasis
             hSR_diag = wfm.utils.entangle(hSR, *pair);
-            
+            hblocks.append(np.copy(hSR_diag));
+
             if(verbose):
                 print("\nJK1, JK2 = ",JK1, JK2);
                 print(" - ham:\n", np.real(hSR));
                 print(" - transformed ham:\n", np.real(hSR_diag));
-            
-            # add to blocks list
-            hblocks.append(np.copy(hSR_diag));
 
         # finish hblocks
-        hblocks.append(hSR_JK0_diag);
         hblocks = np.array(hblocks);
         E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
         for hb in hblocks:
             hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
 
         # hopping
-        tnn = np.array([-th*np.eye(len(source)),-tp*np.eye(len(source)),-th*np.eye(len(source))]);
+        tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJvals = np.linspace(0.01,1.0,99);
-        Erhovals = DO*DO/(rhoJvals*rhoJvals*np.pi*np.pi*tl); # measured from bottom of band
+        rhoJvals = np.linspace(0.05,4.0,99);
+        Erhovals = J*J/(rhoJvals*rhoJvals*np.pi*np.pi*tl); # measured from bottom of band
         for rhoi in range(len(rhoJvals)):
 
             # energy
@@ -128,31 +128,30 @@ if True: # fig 6 ie T vs rho J a
             
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(rhoJvals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
+        #ax.plot(rhoJvals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(rhoJvals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
+        #ax.plot(rhoJvals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
         ax.plot(rhoJvals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
         # inset
-        if False:
-            Evals = JK*JK/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
-            axins = inset_axes(ax, width="50%", height="50%");
-            axins.plot(Evals,Tvals[:,pair[0]], color = "darkgreen", linestyle = "dashed", linewidth = 2); # + state
+        if True:
+            Evals = Erhovals - 2*tl;
+            axins.plot(Evals,Tvals[:,pair[0]], color = colors[Di], linestyle = "dashed", linewidth = 2); # + state
+            axins.set_xlim(min(Evals)-0.01,max(Evals));
+            axins.set_xticks([-2,-1.6]);
             axins.set_xlabel("$E/t$", fontsize = "x-large");
-            axins.set_ylim(0,0.2);
-            axins.set_yticks([0,0.2]);
+            axins.set_ylim(0,0.15);
+            axins.set_yticks([0,0.15]);
+            axins.set_ylabel("$T$");
 
-        # format and show
-        ax.set_xlim(min(rhoJvals),max(rhoJvals));
-        ax.set_xticks([0,1]);
-        ax.set_xlabel("$D_O/\pi \sqrt{tE}$", fontsize = "x-large");
-        ax.set_ylim(0,1.0);
-        #ax.set_yticks([0,0.2]);
-        ax.set_ylabel("$T$", fontsize = "x-large");
-        #plt.legend();
-        plt.show();
-
-    # end sweep over JK
-    raise(Exception);
+    # format and show
+    ax.set_xlim(min(rhoJvals),max(rhoJvals));
+    ax.set_xticks([0,1,2,3,4]);
+    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_ylim(0,0.15);
+    ax.set_yticks([0,0.15]);
+    ax.set_ylabel("$T$", fontsize = "x-large");
+    #plt.legend();
+    plt.show();
 
 

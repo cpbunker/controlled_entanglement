@@ -74,10 +74,11 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
     Avector = np.zeros(np.shape(G)[0], dtype = complex); # go from spin space to spin+site space
     for sigmai in range(n_loc_dof):
         Avector[sigmai] = Ajsigma[sigmai]; # fill from spin space
+    
     G_0sigma0 = np.dot(G, Avector); # G contracted with incident amplitude
                                     # picks out matrix elements of incident
                                     # still has 1 free spatial, spin index for transmitted
-    if(verbose): print(G_0sigma0);
+
     # compute reflection and transmission coeffs
     coefs = np.zeros(n_loc_dof, dtype = float); 
     for sigmai in range(n_loc_dof): # iter over spin dofs
@@ -86,15 +87,13 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
         T = G_0sigma0[-n_loc_dof+sigmai]*np.conj(G_0sigma0[-n_loc_dof+sigmai])*v_R[sigmai]*v_L[sigma0];
         
         # R given in my manuscript as Eq 21
-        R = (complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*np.conj(complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*v_L[sigmai]/v_L[sigma0];   
+        R = (complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*np.conj(complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigma0] - Ajsigma[sigmai])*v_L[sigmai]/v_L[sigma0];  
 
         # benchmarking
         if(verbose > 1):
             print(" - sigmai = ",sigmai,", T = ",T,", R = ",R);
-            myvar = complex(0,1)*G_0sigma0[0+sigmai]*v_L[sigmai] - Ajsigma[sigmai]
-            print(myvar, myvar*np.conj(myvar));
-        #if( abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real"));
-        #if( abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
+        if( abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real"));
+        if( abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
 
         # return var
         if(reflect): # want R
@@ -185,6 +184,8 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
     for Vi in range(n_loc_dof): # iters over all bcs
         V = h[0][Vi,Vi];
         lamL = (E-V)/(-2*tl); 
+        assert( abs(np.imag(lamL)) < 1e-10);
+        lamL = np.real(lamL); # makes sure sign of SigmaL is correctly assigned
         LambdaLminus = lamL - np.lib.scimath.sqrt(lamL*lamL - 1); # reflected
         SigmaL = -tl/LambdaLminus; 
         Hp[Vi,Vi] += SigmaL;
@@ -196,6 +197,8 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
     for Vi in range(n_loc_dof): # iters over all bcs
         V = h[-1][Vi,Vi];     
         lamR = (E-V)/(-2*tl);
+        assert( abs(np.imag(lamR)) < 1e-10);
+        lamR = np.real(lamR); # makes sure sign of SigmaL is correctly assigned
         LambdaRplus = lamR + np.lib.scimath.sqrt(lamR*lamR - 1); # transmitted
         SigmaR = -tl*LambdaRplus;
         Hp[Vi-n_loc_dof,Vi-n_loc_dof] += SigmaR;
@@ -215,6 +218,7 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
         v_R = 2*tl*np.sin(ka_R);
         for sigmai in range(len(ka_L)):
             print(" - sigmai = ",sigmai,", v_L = ", v_L[sigmai],"v_R = ",v_R[sigmai]);
+            print(" - sigmai = ",sigmai,", Sigma_L = ", SigmaLs[sigmai],"Sigma_R = ",SigmaRs[sigmai]);
         if False:
             print(" - sigmai = ",sigmai,", ka_L = ", ka_L[sigmai],", KE_L = ", 2*tl-2*tl*np.cos(ka_L[sigmai]),", Sigma_L = ", SigmaLs[sigmai]);
             print(" - sigmai = ",sigmai,", ka_R = ", ka_R[sigmai],", KE_R = ", 2*tl-2*tl*np.cos(ka_R[sigmai]),", Sigma_R = ", SigmaRs[sigmai]);              #

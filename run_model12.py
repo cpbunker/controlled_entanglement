@@ -173,7 +173,7 @@ if True:
     Evals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
     axins = inset_axes(ax, width="50%", height="50%");
     axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-    axins.set_xlim(min(Evals)-0.01,-1.6) #max(Evals));
+    axins.set_xlim(min(Evals)-0.01,max(Evals));
     axins.set_xticks([-2.0,-1.6]);
     axins.set_xlabel("$E/t$", fontsize = "x-large");
     axins.set_ylim(0,0.2);
