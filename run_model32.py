@@ -227,20 +227,26 @@ if False: # T vs E
 #### symmetry breaking
 
 if True:
-    
-    DeltaVvals = -J*np.array([20]);
-    for DeltaV in DeltaVvals:
 
-        # symmetry breaking
-        D = 0.5*J;
-        DeltaD = 0.1*J;
-        D1 = D + DeltaD/2;
-        D2 = D - DeltaD/2;
-        del D;
+    fig, ax = plt.subplots();
+    axins = inset_axes(ax, width="50%", height="50%");
+    
+    DeltaVvals = -J*np.array([0]);
+    DeltaV = 0
+    # symmetry breaking
+    D = 0.5*J;
+    DeltaD = 0.1*J;
+    D1 = D + DeltaD/2;
+    D2 = D - DeltaD/2;
+    #J12 = J # -2*D/3;
+    J12vals = DeltaD*np.array([0.2,1,2,5]);
+    colors = ["darkblue","darkgreen","darkred","darkmagenta"];
+    for J12i in range(len(J12vals)):
+        J12 = J12vals[J12i];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,0.1,19);
+        rhoJavals = np.linspace(0.05,2.0,99);
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -250,13 +256,25 @@ if True:
             Energy = E_rho - 2*tl; # regular energy
 
             # JK=0 matrix for ref
-            h1e_0, g2e_0 = wfm.utils.h_dimer_2q((0,0,0,0, 0, 0, 1, 1));
+            h1e_0, g2e_0 = wfm.utils.h_dimer_2q((J12,J12,J12,D1,D2, 0, 0, 0));
             hSR_0 = fci_mod.single_to_det(h1e_0, g2e_0, species, states, dets_interest = dets52);
             hSR_0 = wfm.utils.entangle(hSR_0, *pair);
-            print(hSR_0);
-            assert False;
+            #print(hSR_0);
+            #assert False;
             _, Udiag = np.linalg.eigh(hSR_0);
-            del h1e_0, g2e_0, hSR_0;
+            #del h1e_0, g2e_0, hSR_0;
+
+            # von Neumann entropy
+            if False:
+                vals, vecs = np.linalg.eigh(hSR_0)
+                minus_prime = vecs[1];
+                rhoT = np.outer(minus_prime, minus_prime);
+                print(rhoT);
+                # project onto imp 1
+                rho1 = np.array([[rhoT[0,0],0],[0,rhoT[-1,-1]]]);
+                VNE = -np.trace(rho1*np.log2(rho1));
+                print(">>> VNE = ",VNE);
+                assert False 
 
             # construct hblocks
             hblocks = [];
@@ -266,7 +284,7 @@ if True:
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = J;
                 elif(j == impis[1]): JK2 = J;
-                params = 0, 0, 0, D1, D2, 0, JK1, JK2;
+                params = J12, J12, J12, D1, D2, 0, JK1, JK2;
                 h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);
@@ -276,6 +294,9 @@ if True:
                 # transform to eigenbasis
                 hSR_ent = wfm.utils.entangle(hSR, *pair);
                 hSR_diag = np.dot( np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
+                # force diagonal
+                if((j not in impis) and True):
+                    hSR_diag = np.diagflat(np.diagonal(hSR_diag));
                 hblocks.append(np.copy(hSR_diag));
                 if(verbose > 3 and rhoJa == rhoJavals[0]):
                     print("\nJK1, JK2 = ",JK1, JK2);
@@ -298,31 +319,26 @@ if True:
          
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        fig, ax = plt.subplots();
-        axins = inset_axes(ax, width="50%", height="50%");
-        ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[J12i], linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|->$", color = colors[J12i], linestyle = "dashdot", linewidth = 2);
         ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
         # inset
-        if True:
-            Evals = J*J/(rhoJavals*rhoJavals*np.pi*np.pi*tl) - 2*tl;
-            axins.plot(Evals,Tvals[:,pair[0]], color = "black", linestyle = "dashed", linewidth = 2); # + state
-            #axins.set_xlim(min(Evals)-0.01,max(Evals));
-            #axins.set_xticks([-2,-1.6]);
-            axins.set_xlabel("$E/t$", fontsize = "x-large");
-            axins.set_ylim(0,0.15);
-            axins.set_yticks([0,0.15]);
-            axins.set_ylabel("$T$");
-
-        # format and show
-        #ax.set_xlim(min(rhoJavals),max(rhoJavals));
-        #ax.set_xticks([0,1,2,3,4]);
-        ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
-        ax.set_ylim(0,0.15);
-        ax.set_yticks([0,0.15]);
-        ax.set_ylabel("$T$", fontsize = "x-large");
-        plt.show();
+        if True:           
+            axins.plot(rhoJavals,Tvals[:,pair[0]]/Tvals[:,pair[1]], color = colors[J12i], linestyle = "solid", linewidth = 2); # + state
+            
+    # format and show
+    ax.set_xlim(min(rhoJavals),max(rhoJavals));
+    ax.set_xticks([0,1,2]);
+    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_ylim(0,0.15);
+    ax.set_yticks([0,0.15]);
+    ax.set_ylabel("$T$", fontsize = "x-large");
+    axins.set_xlim(min(rhoJavals),max(rhoJavals));
+    axins.set_xticks([0,1,2]);
+    axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    #axins.set_ylim(min(Tvals[:,pair[0]]/Tvals[:,pair[1]]), 1.2*max(Tvals[:,pair[0]]/Tvals[:,pair[1]]) );
+    axins.set_ylabel("$T_+/T_-$", fontsize = "x-large");
+    plt.show();
 
 
