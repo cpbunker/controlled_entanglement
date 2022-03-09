@@ -92,8 +92,8 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
         # benchmarking
         if(verbose > 1):
             print(" - sigmai = ",sigmai,", T = ",T,", R = ",R);
-        if( abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real"));
-        if( abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
+        #if( abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real"));
+        #if( abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
 
         # return var
         if(reflect): # want R
