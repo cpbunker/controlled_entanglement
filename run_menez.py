@@ -78,7 +78,7 @@ if True: # S dot S, with or without delta
         # sweep over range of energies
         # def range
         Emin, Emax = -1.995*tl, -1.99*tl+0.2*tl;
-        Evals = np.linspace(Emin, Emax, 99, dtype = complex);
+        Evals = np.linspace(Emin, Emax, 99, dtype = float);
         Tvals, Rvals = [], [];
         for E in Evals:
             if(E in Evals[:3]): # verbose
@@ -90,13 +90,13 @@ if True: # S dot S, with or without delta
                 
         # plot Tvals vs E
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(np.real(Evals)[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
+        ax.plot(Evals[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-        ax.plot(np.real(Evals), totals, color="red", label = "total ");
+        ax.plot(Evals, totals, color="red", label = "total ");
 
         # menezes prediction in the continuous case
         if(analytical):
-            ax.plot(np.real(Evals), Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = colors[Ji], linewidth = 2);
+            ax.plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = colors[Ji], linewidth = 2);
 
     # format and plot
     ax.set_xlim(-2,-1.8);

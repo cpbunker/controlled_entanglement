@@ -238,7 +238,7 @@ if True: # vary k'x0 by varying Vg for low energy detection, t', th != t;
     Jeff = 0.1; # eff heisenberg
     N_SR = 2;
 
-    factor = 198;
+    factor = 988;
     ka0 =  np.pi/(N_SR - 1)/factor; # free space wavevector, should be << pi
                                     # increasing just broadens the Vg peak
     kpa0 = np.pi/(N_SR - 1)/factor; # wavevector in gated SR
@@ -294,10 +294,9 @@ if True: # vary k'x0 by varying Vg for low energy detection, t', th != t;
 
     #### vary theta, phi
     #### -> detection !
-    if(tp == tl):
-        myVg =0# -2*tp*np.cos(ka0); # Vg = E
-        kpa = np.arccos((-2*tp*np.cos(ka0)-myVg)/(-2*tl));
-    print(">>> myVg, k'a = ",myVg, kpa); 
+    myVg =0.0# -2*tp*np.cos(ka0); # Vg = E
+    kpa = np.arccos((-2*tl*np.cos(ka0)-myVg)/(-2*tl));
+    print(">>> myVg, k'a/pi = ",myVg, kpa/np.pi); 
     thetavals = np.linspace(0, np.pi, 49);
     phivals = np.linspace(0, np.pi, 49);
     Ttotals = np.zeros((len(thetavals), len(phivals)));

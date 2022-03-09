@@ -13,20 +13,19 @@ wfm.py
 - in SR the spin degrees of freedom of the incoming electron and spin impurities are coupled 
 '''
 
-from transport import wfm, fci_mod, ops
-from transport.wfm import utils
+from code import wfm, fci_mod, ops
+from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 # top level
-plt.style.use("seaborn-dark-palette");
 np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # tight binding params
 tl = 1.0;
-Vb = -0.5; # barrier
+Vb = 0.1; # barrier
 
 # blocks and inter block hopping
 hLL = np.array([[0]]);
@@ -42,15 +41,21 @@ source = np.zeros(np.shape(hSR)[0]);
 source[0] = 1;
 
 # sweep over range of energies
-Elims = np.array([-2*tl+0.001,-2*tl+1.0]);
-Es = np.linspace(Elims[0], Elims[1], 20, dtype = complex);
+Elims = np.array([-2*tl+0.001,-2*tl+3.0]);
+Es = np.linspace(Elims[0], Elims[1], 100, dtype = float);
 Esplus = np.real(Es + 2*tl);
 
 # test main wfm kernel
 Tvals, Rvals = [], [];
 for E in Es:
-    if( E in Es or E in Es[9:12]): # verbose
-        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose));
+    if(E+2 > 0.4 and E+2 < 0.41): # verbose
+        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose)); 
+        # analytical comparison
+        dum1 = E/(-2*tl);
+        Sigma = -tl*(dum1 + np.sqrt(dum1*dum1 - 1));
+        Ginv = np.array([[E-Sigma, tl, 0],[tl, E-Vb, tl],[0,tl,E-Vb-Sigma]]);
+        Gmat = np.linalg.inv(Ginv);
+        print(">>> G = \n", Gmat);
     else:
         Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
     Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));

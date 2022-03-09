@@ -85,7 +85,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N=2 fixed
+if True: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -99,33 +99,29 @@ if False: # compare T vs rhoJa for N=2 fixed
     # iter over rhoJ, getting T
     Tvals, Rvals = [], [];
     xlims = 0.05, 4.0
-    rhoJvals = np.linspace(xlims[0], xlims[1], 99)
-    for rhoJa in rhoJvals:
+    rhoJavals = np.linspace(xlims[0], xlims[1], 99)
+    for rhoJa in rhoJavals:
 
         # energy and K fixed by J, rhoJ
         E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
                                                 # this E is measured from bottom of band !!!
-        k_rho = np.arccos((E_rho-2*tl)/(-2*tl));
-        if(verbose > 5):
-            print("E, E - 2t, J, E/J = ",E_rho, E_rho -2*tl, Jeff, E_rho/Jeff);
-            print("ka = ",k_rho);
-            print("rhoJa = ", (Jeff/np.pi)/np.sqrt(E_rho*tl));
         Energy = E_rho - 2*tl; # regular energy
         
-        # location of impurities, fixed by kx0 = pi
-        kx0 = 1*np.pi;
-        Vg = Energy - 2*tl; # gate voltage
+        # optical distances, N = 2 fixed
+        ka = np.arccos((Energy)/(-2*tl));
+        Vg = Energy + 2*tl; # gate voltage
         kpa = np.arccos((Energy-Vg)/(-2*tl));
-        N0 = int(np.pi/(kpa));
-        print(kpa);
-        print(N0)
-        assert(N0 == 1);
+        N0 = 1;
+        print(ka, kpa, Vg);
 
         # construct hams
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
         i1, i2 = 1, 1+N0;
         hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2);
+        hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+        hblocks[2] += Vg*np.eye(len(source));
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+        if(verbose > 3 and rhoJa == rhoJavals[0]): print(hblocks);
 
         # get T from this setup
         Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source));
@@ -133,10 +129,10 @@ if False: # compare T vs rhoJa for N=2 fixed
 
     # save data to .npy
     Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-    data = np.zeros((2+2*len(source),len(rhoJvals)));
+    data = np.zeros((2+2*len(source),len(rhoJavals)));
     data[0,0] = tl;
     data[0,1] = Jeff;
-    data[1,:] = rhoJvals;
+    data[1,:] = rhoJavals;
     data[2:10,:] = Tvals.T;
     data[10:,:] = Rvals.T;
     fname = "data/model12/N2";
@@ -153,27 +149,27 @@ print("Loading data from "+dataf);
 data = np.load(dataf);
 tl = data[0,0];
 Jeff = data[0,1];
-rhoJvals = data[1];
+rhoJavals = data[1];
 Tvals = data[2:10];
 Rvals = data[10:];
-print("- shape rhoJvals = ", np.shape(rhoJvals));
+print("- shape rhoJvals = ", np.shape(rhoJavals));
 print("- shape Tvals = ", np.shape(Tvals));
 print("- shape Rvals = ", np.shape(Rvals));
 
 # plot
 fig, ax = plt.subplots()
 #fig, (ax, axbelow) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [7,1]})
-ax.plot(rhoJvals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
-ax.plot(rhoJvals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+ax.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
+ax.plot(rhoJavals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
 totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-ax.plot(rhoJvals, totals, color="red");
+ax.plot(rhoJavals, totals, color="red");
 
 # inset
 if True:
-    Evals = Jeff*Jeff/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
+    Evals = Jeff*Jeff/(rhoJavals*rhoJavals*np.pi*np.pi*tl)-2*tl;
     axins = inset_axes(ax, width="50%", height="50%");
     axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-    axins.set_xlim(min(Evals)-0.01,-1.6) #max(Evals));
+    axins.set_xlim(min(Evals)-0.01,max(Evals));
     axins.set_xticks([-2.0,-1.6]);
     axins.set_xlabel("$E/t$", fontsize = "x-large");
     axins.set_ylim(0,0.2);
@@ -181,7 +177,7 @@ if True:
     axins.set_ylabel("$T$", fontsize = "x-large");
 
 # format
-ax.set_xlim(min(rhoJvals),max(rhoJvals));
+ax.set_xlim(min(rhoJavals),max(rhoJavals));
 ax.set_xticks([0,1,2,3,4]);
 ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
 ax.set_ylim(0,1.0);
