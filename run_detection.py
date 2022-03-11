@@ -209,7 +209,7 @@ if False: # plot fig 2b data
         axes[0].plot(kNavals/np.pi, Ttotals, linewidth = 2, linestyle = styles[fi], color = colors[fi], label = "$\\rho  \, J a= $"+str(int(rhoJa)));
 
     # format and show
-    axes[0].set_xlim(0.0,2.1);
+    axes[0].set_xlim(-0.01,2.1);
     axes[0].set_xticks([0,1,2]);
     axes[0].set_xlabel("$ka(N-1)/\pi$", fontsize = "x-large");
     axes[0].set_ylim(0.0,1);
@@ -222,7 +222,7 @@ if False: # plot fig 2b data
 ##################################################################################
 #### molecular dimer regime (N = 2 fixed)
 
-if True: # vary k'x0 by varying Vg for low energy detection, t', th != t;
+if False: # vary k'x0 by varying Vg for low energy detection, t', th != t;
 
     # incident state
     theta_param = 3*np.pi/4;

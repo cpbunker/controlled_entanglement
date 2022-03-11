@@ -239,7 +239,7 @@ if True:
     D1 = D + DeltaD/2;
     D2 = D - DeltaD/2;
     #J12 = J # -2*D/3;
-    J12vals = DeltaD*np.array([0.2,1,2,5]);
+    J12vals = DeltaD*np.array([0.2,1,5]);
     colors = ["darkblue","darkgreen","darkred","darkmagenta"];
     for J12i in range(len(J12vals)):
         J12 = J12vals[J12i];
@@ -254,6 +254,7 @@ if True:
             E_rho = J*J/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
                                                     # this E is measured from bottom of band !!!
             Energy = E_rho - 2*tl; # regular energy
+            Vg = Energy + 2*tl; # gate voltage
 
             # JK=0 matrix for ref
             h1e_0, g2e_0 = wfm.utils.h_dimer_2q((J12,J12,J12,D1,D2, 0, 0, 0));
@@ -266,15 +267,17 @@ if True:
 
             # von Neumann entropy
             if False:
-                vals, vecs = np.linalg.eigh(hSR_0)
-                minus_prime = vecs[1];
-                rhoT = np.outer(minus_prime, minus_prime);
-                print(rhoT);
+                dummy = 2*DeltaD/(3*J12)
+                alpha = (1+np.sqrt(1+dummy*dummy));
+                beta = dummy;
+                aval = (alpha + beta)/np.sqrt(2)/np.sqrt(alpha*np.conj(alpha) + beta*np.conj(beta));
+                bval = (alpha - beta)/np.sqrt(2)/np.sqrt(alpha*np.conj(alpha) + beta*np.conj(beta));
                 # project onto imp 1
-                rho1 = np.array([[rhoT[0,0],0],[0,rhoT[-1,-1]]]);
-                VNE = -np.trace(rho1*np.log2(rho1));
+                rho1 = np.array([[aval*np.conj(aval),0],[0,bval*np.conj(bval)]]);
+                rho1_log2 = np.diagflat(np.log2(np.diagonal(rho1))); # since it is diagonal, log operation can be vectorized
+                VNE = -np.trace(np.dot(rho1,rho1_log2));
                 print(">>> VNE = ",VNE);
-                assert False 
+                #assert False 
 
             # construct hblocks
             hblocks = [];
@@ -305,6 +308,8 @@ if True:
 
             # finish hblocks
             hblocks = np.array(hblocks);
+            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+            hblocks[2] += Vg*np.eye(len(source));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
@@ -339,6 +344,10 @@ if True:
     axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
     #axins.set_ylim(min(Tvals[:,pair[0]]/Tvals[:,pair[1]]), 1.2*max(Tvals[:,pair[0]]/Tvals[:,pair[1]]) );
     axins.set_ylabel("$T_+/T_-$", fontsize = "x-large");
+    plt.show();
+
+    fig, ax = plt.subplots();
+    ax.plot(rhoJavals,Tvals[:,pair[0]]/Tvals[:,pair[1]]);
     plt.show();
 
 
