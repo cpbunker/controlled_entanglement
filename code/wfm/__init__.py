@@ -38,8 +38,8 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
     for hi in [0, -1]: # LL, RL
         isdiag = h[hi] - np.diagflat(np.diagonal(h[hi])); # subtract off diag
         if( np.any(isdiag)): # True if there are nonzero off diag terms
-            #pass
-            raise Exception("Not diagonal\n"+str(h[hi]))
+            pass
+            #raise Exception("Not diagonal\n"+str(h[hi]))
     for i in range(len(Ajsigma)): # always set incident mu = 0
         if(Ajsigma[i] != 0):
             assert(h[0,i,i] == 0);

@@ -85,7 +85,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if True: # compare T vs rhoJa for N=2 fixed
+if False: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -150,40 +150,71 @@ data = np.load(dataf);
 tl = data[0,0];
 Jeff = data[0,1];
 rhoJavals = data[1];
+Evals = Jeff*Jeff/(rhoJavals*rhoJavals*np.pi*np.pi*tl)-2*tl;
 Tvals = data[2:10];
 Rvals = data[10:];
 print("- shape rhoJvals = ", np.shape(rhoJavals));
 print("- shape Tvals = ", np.shape(Tvals));
 print("- shape Rvals = ", np.shape(Rvals));
 
-# plot
-fig, ax = plt.subplots()
-#fig, (ax, axbelow) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [7,1]})
-ax.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
-ax.plot(rhoJavals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-ax.plot(rhoJavals, totals, color="red");
+if False: # E big, 1/E inset
+    
+    # plot
+    fig, ax = plt.subplots()
+    ax.plot(Evals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
+    ax.plot(Evals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    ax.plot(Evals, totals, color="red");
 
-# inset
-if True:
-    Evals = Jeff*Jeff/(rhoJavals*rhoJavals*np.pi*np.pi*tl)-2*tl;
-    axins = inset_axes(ax, width="50%", height="50%");
-    axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-    axins.set_xlim(min(Evals)-0.01,max(Evals));
-    axins.set_xticks([-2.0,-1.6]);
-    axins.set_xlabel("$E/t$", fontsize = "x-large");
-    axins.set_ylim(0,0.2);
-    axins.set_yticks([0,0.2]);
-    axins.set_ylabel("$T$", fontsize = "x-large");
+    # inset
+    if True:
+        axins = inset_axes(ax, width="50%", height="50%");
+        axins.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
+        axins.plot(rhoJavals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
+        axins.set_xlim(min(rhoJavals)-0.01,max(rhoJavals));
+        axins.set_xticks([0,1,2,3,4]);
+        axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+        axins.set_ylim(0,0.5);
+        axins.set_yticks([0,0.5]);
+        axins.set_ylabel("$T$", fontsize = "x-large");
 
-# format
-ax.set_xlim(min(rhoJavals),max(rhoJavals));
-ax.set_xticks([0,1,2,3,4]);
-ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
-ax.set_ylim(0,1.0);
-ax.set_yticks([0,1]);
-ax.set_ylabel("$T$", fontsize = "x-large");
-plt.show();
+    # format
+    ax.set_xlim(min(Evals),max(Evals));
+    ax.set_xticks([-2,-1.6]);
+    ax.set_xlabel("$E/t$", fontsize = "x-large");
+    ax.set_ylim(0,1.0);
+    ax.set_yticks([0,1.0]);
+    ax.set_ylabel("$T$", fontsize = "x-large");
+    plt.show();
+
+else: # 1/E big, E inset
+    
+    # plot
+    fig, ax = plt.subplots()
+    ax.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
+    ax.plot(rhoJavals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    ax.plot(rhoJavals, totals, color="red");
+
+    # inset
+    if True:
+        axins = inset_axes(ax, width="50%", height="50%");
+        axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
+        axins.set_xlim(min(Evals)-0.01,max(Evals));
+        axins.set_xticks([-2.0,-1.6]);
+        axins.set_xlabel("$E/t$", fontsize = "x-large");
+        axins.set_ylim(0,0.2);
+        axins.set_yticks([0,0.2]);
+        axins.set_ylabel("$T$", fontsize = "x-large");
+
+    # format
+    ax.set_xlim(min(rhoJavals),max(rhoJavals));
+    ax.set_xticks([0,1,2,3,4]);
+    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_ylim(0,1.0);
+    ax.set_yticks([0,1]);
+    ax.set_ylabel("$T$", fontsize = "x-large");
+    plt.show();
 
 
 
