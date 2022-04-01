@@ -207,20 +207,19 @@ if False: # fig 6 ie T vs rho J a
     ax.set_ylabel("$T_+$", fontsize = "x-large");
     plt.show();
 
-if False: # T vs E
+if True: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();
-    Dvals = J*np.array([0,0.1]); # ,0.2,0.4])
+    Dvals = J*np.array([0,0.1,0.2,0.4])
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over Energy, getting T
         Tvals, Rvals = [], [];
         rhoJalims = np.array([0.05,4.0]);
-        #Evals = np.linspace(-2+0.0001,-2+0.1,9);
         Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], 9); 
+        Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
         for Ei in range(len(Evals)):
 
             # energy
@@ -230,7 +229,7 @@ if False: # T vs E
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
             kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Vg)
+            print(ka, kpa, Energy)
 
             # construct hblocks
             hblocks = [];
@@ -267,7 +266,7 @@ if False: # T vs E
         # plot T vs E
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
         #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(Evals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
+        ax.plot(Evals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "solid", linewidth = 2);
         #ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
         ax.plot(Evals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
@@ -281,8 +280,7 @@ if False: # T vs E
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        #print(Elims,"\n",rhoJalims); assert False
-        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], len(Evals)); # switched !
+        rhoJavals = np.linspace(rhoJalims[0], rhoJalims[-1], len(Evals));
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -292,7 +290,7 @@ if False: # T vs E
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
             kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Vg)
+            print(ka, kpa, Energy)
 
             # construct hblocks
             hblocks = [];
@@ -328,22 +326,22 @@ if False: # T vs E
 
         # plot T vs rhoJa in inset
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        axins.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
+        axins.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "solid", linewidth = 2);
 
     axins.set_xlim(0,4);
     axins.set_xticks([0,2,4]);
     axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
-    axins.set_ylim(0,0.25);
-    axins.set_yticks([0,0.25]);
-    axins.set_ylabel("$T$", fontsize = "x-large");
+    axins.set_ylim(0,0.15);
+    axins.set_yticks([0,0.15]);
+    axins.set_ylabel("$T_+$", fontsize = "x-large");
 
     # format and show
     ax.set_xlim(-2,-1.6);
     ax.set_xticks([-2,-1.8,-1.6]);
     ax.set_xlabel("$E/t$", fontsize = "x-large");
-    ax.set_ylim(0,0.25);
-    ax.set_yticks([0,0.25]);
-    ax.set_ylabel("$T$", fontsize = "x-large");
+    ax.set_ylim(0,0.15);
+    ax.set_yticks([0,0.15]);
+    ax.set_ylabel("$T_+$", fontsize = "x-large");
     plt.show();
 
 

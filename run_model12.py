@@ -157,34 +157,28 @@ print("- shape rhoJvals = ", np.shape(rhoJavals));
 print("- shape Tvals = ", np.shape(Tvals));
 print("- shape Rvals = ", np.shape(Rvals));
 
-if False: # E big, 1/E inset
+if True: # plot E, 1/E two separate axes
     
-    # plot
-    fig, ax = plt.subplots()
-    ax.plot(Evals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
-    ax.plot(Evals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+    # plot vs E
+    fig, axes = plt.subplots(2)
+    axes[0].plot(Evals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "solid", linewidth = 2);
     totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-    ax.plot(Evals, totals, color="red");
+    axes[0].plot(Evals, totals, color="red");
+    axes[0].set_xlim(-2.0,-1.6);
+    axes[0].set_xticks([-2,-1.8,-1.6]);
+    axes[0].set_xlabel("$E/t$", fontsize = "x-large");
+    axes[0].set_ylim(0,0.25);
+    axes[0].set_yticks([0,0.25]);
+    axes[0].set_ylabel("$T_+$", fontsize = "x-large");
 
-    # inset
-    if True:
-        axins = inset_axes(ax, width="50%", height="50%");
-        axins.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
-        axins.plot(rhoJavals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-        axins.set_xlim(min(rhoJavals)-0.01,max(rhoJavals));
-        axins.set_xticks([0,1,2,3,4]);
-        axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
-        axins.set_ylim(0,0.5);
-        axins.set_yticks([0,0.5]);
-        axins.set_ylabel("$T$", fontsize = "x-large");
-
-    # format
-    ax.set_xlim(min(Evals),max(Evals));
-    ax.set_xticks([-2,-1.6]);
-    ax.set_xlabel("$E/t$", fontsize = "x-large");
-    ax.set_ylim(0,1.0);
-    ax.set_yticks([0,1.0]);
-    ax.set_ylabel("$T$", fontsize = "x-large");
+    # plot vs 1/E
+    axes[1].plot(rhoJavals,Tvals[1]+Tvals[2], color = "black", linestyle = "solid", linewidth = 2); # + state
+    axes[1].set_xlim(0,4);
+    axes[1].set_xticks([0,2,4]);
+    axes[1].set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    axes[1].set_ylim(0,0.25);
+    axes[1].set_yticks([0,0.25]);
+    axes[1].set_ylabel("$T_+$", fontsize = "x-large");
     plt.show();
 
 else: # 1/E big, E inset
