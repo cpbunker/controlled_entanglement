@@ -166,7 +166,7 @@ if True: # fig 6 ie T vs rho J a
         # format and show
         ax.set_xlim(min(rhoJvals),max(rhoJvals));
         ax.set_xticks([0,1]);
-        ax.set_xlabel("$D_O/\pi \sqrt{tE_b}$", fontsize = "x-large");
+        ax.set_xlabel("$D_O/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
         ax.set_ylim(0,1.0);
         ax.set_yticks([0,0.2]);
         ax.set_ylabel("$T$", fontsize = "x-large");

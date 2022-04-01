@@ -175,7 +175,7 @@ if True: # plot E, 1/E two separate axes
     axes[1].plot(rhoJavals,Tvals[1]+Tvals[2], color = "black", linestyle = "solid", linewidth = 2); # + state
     axes[1].set_xlim(0,4);
     axes[1].set_xticks([0,2,4]);
-    axes[1].set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    axes[1].set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     axes[1].set_ylim(0,0.25);
     axes[1].set_yticks([0,0.25]);
     axes[1].set_ylabel("$T_+$", fontsize = "x-large");
@@ -204,7 +204,7 @@ else: # 1/E big, E inset
     # format
     ax.set_xlim(min(rhoJavals),max(rhoJavals));
     ax.set_xticks([0,1,2,3,4]);
-    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     ax.set_ylim(0,1.0);
     ax.set_yticks([0,1]);
     ax.set_ylabel("$T$", fontsize = "x-large");

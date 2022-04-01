@@ -62,16 +62,17 @@ J = 0.1;
 #########################################################
 #### generation
 
-if False: # fig 6 ie T vs rho J a
+if True: # fig 6 ie T vs rho J a
     
     fig, ax = plt.subplots();
+    J12 = 0.1;
     Dvals = J*np.array([0,0.1,0.2,0.4]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,4.0,99);
+        rhoJavals = np.linspace(0.05,4.0,9);
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -94,8 +95,8 @@ if False: # fig 6 ie T vs rho J a
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = J;
                 elif(j == impis[1]): JK2 = J;
-                params = 0, 0, 0, D, D, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
+                params = J12, J12, J12, D, D, 0, JK1, JK2;
+                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
                 # transform to eigenbasis
@@ -164,7 +165,7 @@ if False: # fig 6 ie T vs rho J a
                 if(j == impis[0]): JK1 = J;
                 elif(j == impis[1]): JK2 = J;
                 params = 0, 0, 0, D, D, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
+                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
                 # transform to eigenbasis
@@ -201,13 +202,13 @@ if False: # fig 6 ie T vs rho J a
     # format and show
     ax.set_xlim(0,4);
     ax.set_xticks([0,2,4]);
-    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     ax.set_ylim(0,0.15);
     ax.set_yticks([0,0.15]);
     ax.set_ylabel("$T_+$", fontsize = "x-large");
     plt.show();
 
-if True: # T vs E
+if False: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();
@@ -330,7 +331,7 @@ if True: # T vs E
 
     axins.set_xlim(0,4);
     axins.set_xticks([0,2,4]);
-    axins.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    axins.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     axins.set_ylim(0,0.15);
     axins.set_yticks([0,0.15]);
     axins.set_ylabel("$T_+$", fontsize = "x-large");
@@ -458,7 +459,7 @@ if False:
     # format and show
     ax.set_xlim(min(rhoJavals),max(rhoJavals));
     ax.set_xticks([0,1,2]);
-    ax.set_xlabel("$J/\pi \sqrt{tE_b}$", fontsize = "x-large");
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     ax.set_ylim(0,0.15);
     ax.set_yticks([0,0.15]);
     ax.set_ylabel("$T$", fontsize = "x-large");
