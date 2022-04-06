@@ -31,81 +31,82 @@ if True: # S dot S, with or without delta
     # tight binding params
     tl = 1.0;
     th = 1.0;
-    Delta = 0.05; # zeeman splitting on imp
+    fig, axes = plt.subplots(1,2, sharey = True);
+    Deltavals = [0,0.05];
+    for axi in range(len(axes)):
+        Delta = Deltavals[axi];
+        Jeffs = [0.1,0.2,0.4];
+        for Ji in range(len(Jeffs)):
+            Jeff = Jeffs[Ji];
 
-    fig, ax = plt.subplots();
-    Jeffs = [0.1,0.2,0.4];
-    for Ji in range(len(Jeffs)):
-        Jeff = Jeffs[Ji];
+            # 2nd qu'd operator for S dot s
+            h1e = np.zeros((4,4))
+            g2e = wfm.utils.h_kondo_2e(Jeff, 0.5); # J, spin
+            states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
+            hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
 
-        # 2nd qu'd operator for S dot s
-        h1e = np.zeros((4,4))
-        g2e = wfm.utils.h_kondo_2e(Jeff, 0.5); # J, spin
-        states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
-        hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
+            # zeeman splitting
+            hzeeman = np.array([[Delta, 0, 0, 0],
+                            [0,0, 0, 0],
+                            [0, 0, Delta, 0], # spin flip gains PE delta
+                            [0, 0, 0, 0]]);
+            hSR += hzeeman;
 
-        # zeeman splitting
-        hzeeman = np.array([[Delta, 0, 0, 0],
-                        [0,0, 0, 0],
-                        [0, 0, Delta, 0], # spin flip gains PE delta
-                        [0, 0, 0, 0]]);
-        hSR += hzeeman;
+            # truncate to coupled channels
+            hSR = hSR[1:3,1:3];
+            hzeeman = hzeeman[1:3,1:3];
 
-        # truncate to coupled channels
-        hSR = hSR[1:3,1:3];
-        hzeeman = hzeeman[1:3,1:3];
+            # leads
+            hLL = np.copy(hzeeman);
+            hRL = np.copy(hzeeman)
 
-        # leads
-        hLL = np.copy(hzeeman);
-        hRL = np.copy(hzeeman)
+            # source = up electron, down impurity
+            sourcei, flipi = 0,1
+            source = np.zeros(np.shape(hSR)[0]);
+            source[sourcei] = 1;
 
-        # source = up electron, down impurity
-        sourcei, flipi = 0,1
-        source = np.zeros(np.shape(hSR)[0]);
-        source[sourcei] = 1;
+            # package together hamiltonian blocks
+            hblocks = [hLL,hSR];
+            hblocks.append(hRL);
+            hblocks = np.array(hblocks);
 
-        # package together hamiltonian blocks
-        hblocks = [hLL,hSR];
-        hblocks.append(hRL);
-        hblocks = np.array(hblocks);
+            # hopping
+            tnn = [-th*np.eye(*np.shape(hSR)),-th*np.eye(*np.shape(hSR))]; # on and off imp
+            tnn = np.array(tnn);
+            tnnn = np.zeros_like(tnn)[:-1];
+            if(verbose and Jeff == 0.1): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
 
-        # hopping
-        tnn = [-th*np.eye(*np.shape(hSR)),-th*np.eye(*np.shape(hSR))]; # on and off imp
-        tnn = np.array(tnn);
-        tnnn = np.zeros_like(tnn)[:-1];
-        if(verbose and Jeff == 0.1): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
+            # sweep over range of energies
+            # def range
+            Emin, Emax = -1.999*tl, -1.999*tl+0.2*tl;
+            Evals = np.linspace(Emin, Emax, 99, dtype = float);
+            Tvals, Rvals = [], [];
+            for E in Evals:
+                if(E in Evals[:3]): # verbose
+                    Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose));
+                    Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
+                else:
+                    Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
+                    Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
+                    
+            # plot Tvals vs E
+            Tvals, Rvals = np.array(Tvals), np.array(Rvals);
+            axes[axi].plot(Evals[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
+            totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
+            axes[axi].plot(Evals, totals, color="red", label = "total ");
 
-        # sweep over range of energies
-        # def range
-        Emin, Emax = -1.995*tl, -1.99*tl+0.2*tl;
-        Evals = np.linspace(Emin, Emax, 99, dtype = float);
-        Tvals, Rvals = [], [];
-        for E in Evals:
-            if(E in Evals[:3]): # verbose
-                Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose));
-                Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
-            else:
-                Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
-                Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
-                
-        # plot Tvals vs E
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(Evals[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
-        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-        ax.plot(Evals, totals, color="red", label = "total ");
+            # menezes prediction in the continuous case
+            if(analytical):
+                axes[axi].plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = colors[Ji], linewidth = 2);
 
-        # menezes prediction in the continuous case
-        if(analytical):
-            ax.plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = colors[Ji], linewidth = 2);
-
-    # format and plot
-    ax.set_xlim(-2,-1.8);
-    ax.set_xticks([-2,-1.9,-1.8]);
-    ax.set_xlabel("$E/t$", fontsize = "x-large");
-    ax.set_ylim(0,0.2);
-    ax.set_yticks([0,0.1,0.2]);
-    if(reflect): ax.set_ylabel("$R_{flip}$", fontsize = "x-large");
-    else: ax.set_ylabel("$T_{flip}$", fontsize = "x-large");
+        # format and plot
+        axes[axi].set_xlim(-2,-1.8);
+        axes[axi].set_xticks([-2,-1.9,-1.8]);
+        axes[axi].set_xlabel("$E/t$", fontsize = "x-large");
+        axes[axi].set_ylim(0,0.4);
+        axes[axi].set_yticks([0,0.2,0.4]);
+        if(reflect): axes[axi].set_ylabel("$R_{flip}$", fontsize = "x-large");
+        else: axes[axi].set_ylabel("$T_{flip}$", fontsize = "x-large");
     plt.show();
 
 
