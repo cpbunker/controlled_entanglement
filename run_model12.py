@@ -144,20 +144,50 @@ if False: # compare T vs rhoJa for N=2 fixed
 #### plot data
 
 # open command line file
-dataf = sys.argv[1];
-print("Loading data from "+dataf);
-data = np.load(dataf);
-tl = data[0,0];
-Jeff = data[0,1];
-rhoJavals = data[1];
-Evals = Jeff*Jeff/(rhoJavals*rhoJavals*np.pi*np.pi*tl)-2*tl;
-Tvals = data[2:10];
-Rvals = data[10:];
-print("- shape rhoJvals = ", np.shape(rhoJavals));
-print("- shape Tvals = ", np.shape(Tvals));
-print("- shape Rvals = ", np.shape(Rvals));
+datafs = sys.argv[1:];
+fig, axes = plt.subplots(len(datafs), sharex = True);
+if( len(datafs)== 1): axes = [axes];
+for fi in range(len(datafs)):
+    dataf = datafs[fi];
+    print("Loading data from "+dataf);
+    data = np.load(dataf);
+    tl = data[0,0];
+    Jeff = data[0,1];
+    rhoJavals = data[1];
+    Evals = Jeff*Jeff/(rhoJavals*rhoJavals*np.pi*np.pi*tl)-2*tl;
+    Tvals = data[2:10];
+    Rvals = data[10:];
+    print("- shape rhoJvals = ", np.shape(rhoJavals));
+    print("- shape Tvals = ", np.shape(Tvals));
+    print("- shape Rvals = ", np.shape(Rvals));
 
-if True: # plot E, 1/E two separate axes
+    # plot
+    axes[fi].plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
+    axes[fi].plot(rhoJavals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    axes[fi].plot(rhoJavals, totals, color="red");
+    axes[fi].set_ylim(0,1.0);
+    axes[fi].set_yticks([0,1]);
+    axes[fi].set_ylabel("$T$", fontsize = "x-large");
+
+    # inset
+    if False:
+        axins = inset_axes(ax, width="50%", height="50%");
+        axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
+        axins.set_xlim(min(Evals)-0.01,max(Evals));
+        axins.set_xticks([-2.0,-1.6]);
+        axins.set_xlabel("$E/t$", fontsize = "x-large");
+        axins.set_ylim(0,0.2);
+        axins.set_yticks([0,0.2]);
+        axins.set_ylabel("$T$", fontsize = "x-large");
+
+# format
+axes[fi].set_xlim(min(rhoJavals),max(rhoJavals));
+axes[fi].set_xticks([0,1,2,3,4]);
+axes[fi].set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
+plt.show();
+
+if False: # plot E, 1/E two separate axes
     
     # plot vs E
     fig, axes = plt.subplots(2)
@@ -179,35 +209,6 @@ if True: # plot E, 1/E two separate axes
     axes[1].set_ylim(0,0.25);
     axes[1].set_yticks([0,0.25]);
     axes[1].set_ylabel("$T_+$", fontsize = "x-large");
-    plt.show();
-
-else: # 1/E big, E inset
-    
-    # plot
-    fig, ax = plt.subplots()
-    ax.plot(rhoJavals, Tvals[4], label = "$|i\,>$", color = "black", linewidth = 2);
-    ax.plot(rhoJavals, Tvals[1]+Tvals[2], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-    ax.plot(rhoJavals, totals, color="red");
-
-    # inset
-    if True:
-        axins = inset_axes(ax, width="50%", height="50%");
-        axins.plot(Evals,Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2); # + state
-        axins.set_xlim(min(Evals)-0.01,max(Evals));
-        axins.set_xticks([-2.0,-1.6]);
-        axins.set_xlabel("$E/t$", fontsize = "x-large");
-        axins.set_ylim(0,0.2);
-        axins.set_yticks([0,0.2]);
-        axins.set_ylabel("$T$", fontsize = "x-large");
-
-    # format
-    ax.set_xlim(min(rhoJavals),max(rhoJavals));
-    ax.set_xticks([0,1,2,3,4]);
-    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-    ax.set_ylim(0,1.0);
-    ax.set_yticks([0,1]);
-    ax.set_ylabel("$T$", fontsize = "x-large");
     plt.show();
 
 
