@@ -38,13 +38,24 @@ source[sourcei] = 1;
 # entangled pair
 pair = (0,1); # |up, 1/2, 3/2 > and |up, 3/2, 1/2 >
 
-# tight binding params in cm^-1
-tl = 1; # lead hopping, in Hartree
-tp = 1;  # hopping between imps
-convert = 8
-J = 0.8/convert
-J12 = 0.025/convert;
-Di = 0.22/convert;
+# params, all in units meV
+tl = 100;
+tp = 100;
+th = tl/5;
+Ucharge = 1000;
+J = 8*th*th/Ucharge;
+
+# Jie Xiang paper results in cm^-1. Convert immediately to meV
+cm2meV = 1/8.06;
+J12 = 0.025*cm2meV; # converts from cm^-1 to meV to Ha
+Di = -0.22*cm2meV;
+J12, Di = 0, 0;
+print("\n>>>params:\n",tl, tp, th, J, J12, Di); 
+
+# convert all meVs to Ha
+Ha2meV = 27.211386*1000;
+tl, tp, th, J, J12, Di = tl/Ha2meV, tp/Ha2meV, th/Ha2meV, J/Ha2meV, J12/Ha2meV, Di/Ha2meV;
+#tl, tp, th, J, J12, Di = tl/tl, tp/tl, th/Ha2meV, J/tl, J12/tl, Di/tl
 
 # constructing the hamiltonian
 def reduced_ham(params, S=6):
@@ -60,18 +71,18 @@ def reduced_ham(params, S=6):
 #########################################################
 #### generation
 
-if True: # T vs E
+if False: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();
-    dummyvals = [0]
+    dummyvals = [0];
     for dummyi in dummyvals:
 
         # iter over Energy, getting T
         Tvals, Rvals = [], [];
-        rhoJalims = np.array([0.05,4.0]);
+        rhoJalims = np.array([0.05,4.0]); # even tho we compare to E, this dimensionless construction is best
         Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], 99); # switch
+        Evals = np.linspace(Elims[1], Elims[0], 99); # switch
         for Ei in range(len(Evals)):
 
             # energy
@@ -80,7 +91,6 @@ if True: # T vs E
             # optical distances, N = 2 fixed
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
 
             # construct hblocks
             hblocks = [];
@@ -115,21 +125,30 @@ if True: # T vs E
          
         # plot T vs E
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(Evals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(Evals, Tvals[:,pair[0]], label = "$|+>$", color = colors[dummyi], linestyle = "dashed", linewidth = 2);
-        ax.plot(Evals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
-        
-    # now do T vs rhoJa inset plot
-    if True:
-        axins = inset_axes(ax, width="50%", height="50%");
-    else:
-        dummyvals = [];
+        #ax.plot(Evals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(Evals/tl, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+        #ax.plot(Evals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+
+    # format
+    #ax.set_xlim(-2,-1.6);
+    #ax.set_xticks([-2,-1.8,-1.6]);
+    ax.set_xlabel("$E/t$", fontsize = "x-large");
+    #ax.set_ylim(0,0.25);
+    #ax.set_yticks([0,0.25]);
+    ax.set_ylabel("$T$", fontsize = "x-large");
+    plt.show();
+
+if True: # T vs rhoJa
+
+    # main plot T vs E
+    fig, ax = plt.subplots();
+    dummyvals = [0];
     for dummyi in dummyvals:
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-
-        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], len(Evals)); # switched !
+        rhoJalims = np.array([0.05,4.0]);
+        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 99);
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -138,7 +157,6 @@ if True: # T vs E
             # optical distances, N = 2 fixed
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
 
             # construct hblocks
             hblocks = [];
@@ -173,21 +191,15 @@ if True: # T vs E
 
         # plot T vs rhoJa in inset
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        axins.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[dummyi], linestyle = "dashed", linewidth = 2);
-        axins.plot(rhoJavals, Tvals[:,sourcei], label = "", color = "black", linestyle = "solid", linewidth = 2);
-        axins.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[dummyi], linestyle = "dashed", linewidth = 2);
-
-        #axins.set_xlim(0,4);
-        #axins.set_xticks([0,2,4]);
-        axins.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-        #axins.set_ylim(0,0.25);
-        #axins.set_yticks([0,0.25]);
-        axins.set_ylabel("$T$", fontsize = "x-large");
+        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,sourcei], label = "", color = "black", linestyle = "solid", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = "blue", linestyle = "solid", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
 
     # format and show
-    #ax.set_xlim(-2,-1.6);
-    #ax.set_xticks([-2,-1.8,-1.6]);
-    ax.set_xlabel("$E/t$", fontsize = "x-large");
+    #ax.set_xlim(0,4);
+    #ax.set_xticks([0,2,4]);
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     #ax.set_ylim(0,0.25);
     #ax.set_yticks([0,0.25]);
     ax.set_ylabel("$T$", fontsize = "x-large");

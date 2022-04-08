@@ -84,8 +84,6 @@ if True: # fig 6 ie T vs rho J a
             # optical distances, N = 2 fixed
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Vg)
 
             # construct hblocks
             hblocks = [];
@@ -131,9 +129,10 @@ if True: # fig 6 ie T vs rho J a
         ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
 
     # now do T vs E inset plot
-    if True:
+    if False:
         axins = inset_axes(ax, width="50%", height="50%");
     else:
+        axins = inset_axes(ax, width="0%", height="0%");
         Dvals = [];
 
     rhoJalims = np.array([rhoJavals[0], rhoJavals[-1]]);

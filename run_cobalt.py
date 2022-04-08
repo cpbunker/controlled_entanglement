@@ -33,7 +33,6 @@ dets52 = [[0,2,7],[0,3,6],[1,2,6]]; # total spin 5/2 subspace
 
 # tight binding params
 tl = 0.0056; # lead hopping, in Hartree
-th = 0.0056; # SR hybridization
 tp = 0.0056;  # hopping between imps
 
 # Ab initio params, in meV:
@@ -42,7 +41,8 @@ Jx = 0.209/Ha2meV; # convert to hartree
 Jz = 0.124/Ha2meV;
 DO = 0.674/Ha2meV;
 DT = 0.370/Ha2meV;
-An = 0
+JK = 4*DO;
+Jx, Jz = 0,0
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -65,83 +65,67 @@ if(verbose):
         pair_str += ">";
         print(pair_str);
         pair_strs.append(pair_str);
-
-# lead eigenstates (JKO = JKT = 0)
-h1e_JK0, g2e_JK0 = wfm.utils.h_dimer_2q((Jx, Jx, Jz, DO, DT, An, 0,0)); 
-hSR_JK0 = fci_mod.single_to_det(h1e_JK0, g2e_JK0, species, states, dets_interest=dets52);
-print("\nNon-diagonal real JK = 0 hamiltonian, in meV\n",Ha2meV*np.real(hSR_JK0)); # |i> decoupled when A=0
-leadEs, Udiag = np.linalg.eigh(hSR_JK0);
-print("\n eigenstates:");
-for coli in range(len(leadEs)): print(np.real(Udiag.T[coli]), Ha2meV*leadEs[coli]);
-hSR_JK0_diag = np.dot( np.linalg.inv(Udiag), np.dot(hSR_JK0, Udiag));
-print("\nDiagonal real JK = 0 hamiltonian, in meV\n",Ha2meV*np.real(hSR_JK0_diag)); # Udiag -> lead eigenstate basis
-#print("\n",Ha2meV*np.real(wfm.utils.entangle(hSR_JK0_diag, *pair)));
-for i in range(len(source)): # force diag
-    for j in range(len(source)):
-        if(i != j):
-            if(abs(hSR_JK0_diag[i,j]) >= 0 and abs(hSR_JK0_diag[i,j]) < 1e-10):
-                hSR_JK0_diag[i,j] = 0;
-            else: raise(Exception("Not diagonal "+str(hSR_JK0_diag[i,j])));
             
 #########################################################
 #### generation
 
 if True: # fig 6 ie T vs rho J a
 
-    # plot at diff DeltaK
+    fig, ax = plt.subplots();
     for dummy in [1]:
-        
-        # 2 site SR
-        fig, ax = plt.subplots();
-        hblocks = [np.copy(hSR_JK0_diag)];
-        for Coi in range(2): # iter over imps
-
-            # define all physical params
-            JKO, JKT = 0, 0;
-            if Coi == 0: JKO = 1*DO # J S dot sigma is onsite only
-            else: JKT = 1*DO
-            params = Jx, Jx, Jz, DO, DT, An, JKO, JKT;
-            h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
-
-            # construct h_SR (determinant basis)
-            hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);
-                
-            # transform to eigenbasis
-            hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR, Udiag));
-            if(verbose):
-                print("\nJKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
-                print(" - ham:\n", Ha2meV*np.real(hSR));
-                print(" - transformed ham:\n", Ha2meV*np.real(hSR_diag));
-            
-            # add to blocks list
-            hblocks.append(np.copy(hSR_diag));
-
-        # finish hblocks
-        hblocks.append(hSR_JK0_diag);
-        hblocks = np.array(hblocks);
-        E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-        for hb in hblocks:
-            hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
-        # hopping
-        tnn = np.array([-th*np.eye(len(source)),-tp*np.eye(len(source)),-th*np.eye(len(source))]);
-        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJvals = np.linspace(0.01,1.0,99);
-        Erhovals = DO*DO/(rhoJvals*rhoJvals*np.pi*np.pi*tl); # measured from bottom of band
-        for rhoi in range(len(rhoJvals)):
+        rhoJalims = np.array([0.05,4.0]);
+        Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
+        Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
+        for rhoi in range(len(Evals)):
 
             # energy
-            rhoJa = rhoJvals[rhoi];
-            Energy = Erhovals[rhoi] - 2*tl; # measure from mu
-            k_rho = np.arccos(Energy/(-2*tl));
-            if(False):
-                print("\nCiccarello inputs");
-                print("E/t, JK/t, Erho/JK1 = ",Energy/tl + 2, JK/tl, (Energy + 2*tl)/JK);
-                print("ka = ",k_rho);
-                print("rhoJa = ", abs(JK/np.pi)/np.sqrt((Energy+2*tl)*tl));
+            #rhoJa = rhoJavals[rhoi];
+            #Energy = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl) - 2*tl; # measure from mu
+            Energy = Evals[rhoi];
+            ka = np.arccos(Energy/(-2*tl));
+            Vg = Energy + 2*tl;
+
+            # construct hblocks
+            hblocks = [];
+            impis = [1,2];
+            Udiag = 0; # dummy for later
+            for j in range(4): # iter over imps
+                # define all physical params
+                JKO, JKT = 0, 0;
+                if (j == impis[0]): JKO = JK # J S dot sigma is onsite only
+                elif(j == impis[1]): JKT = JK
+                params = Jx, Jx, Jz, DO, DT, 0, JKO, JKT;
+                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
+                # construct h_SR (determinant basis)
+                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
+                # entangle, ie basis {|+>, |->, |sigma0>}
+                hSR_ent = wfm.utils.entangle(hSR, *pair);
+                # make leads diagonal in this basis
+                if(j==0): _, Udiag = np.linalg.eigh(hSR_ent); # diagonalization is in leads only
+                hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
+                if(verbose > 3 and rhoi == 0 and j == 0):
+                    print("\nJKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
+                    print(" - ham:\n", Ha2meV*np.real(hSR));
+                    print(" - ent ham:\n", Ha2meV*np.real(hSR_ent));
+                    print(" - ent hame should be: ",Ha2meV*np.real(DO-DT),Ha2meV*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2));
+                    print(" - diag ham:\n", Ha2meV*np.real(hSR_diag));
+                # add to blocks list
+                hblocks.append(np.copy(hSR_diag));
+
+            # finish hblocks
+            hblocks = np.array(hblocks);
+            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+            hblocks[2] += Vg*np.eye(len(source));
+            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
+            for hb in hblocks:
+                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
+
+            # hopping
+            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
+            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # T (Energy from 0)
             Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
@@ -149,10 +133,10 @@ if True: # fig 6 ie T vs rho J a
             
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(rhoJvals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
-        ax.plot(rhoJvals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
+        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(Evals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
+        ax.plot(Evals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
+        #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
         # inset
         if False:
@@ -164,13 +148,12 @@ if True: # fig 6 ie T vs rho J a
             axins.set_yticks([0,0.2]);
 
         # format and show
-        ax.set_xlim(min(rhoJvals),max(rhoJvals));
-        ax.set_xticks([0,1]);
-        ax.set_xlabel("$D_O/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-        ax.set_ylim(0,1.0);
-        ax.set_yticks([0,0.2]);
+        #ax.set_xticks([0,1]);
+        ax.set_xlabel("$J_K/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
+        #ax.set_ylim(0,1.0);
+        #ax.set_yticks([0,0.2]);
         ax.set_ylabel("$T$", fontsize = "x-large");
-        #plt.legend();
+        plt.legend();
         plt.show();
 
 
