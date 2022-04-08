@@ -50,12 +50,12 @@ cm2meV = 1/8.06;
 J12 = 0.025*cm2meV; # converts from cm^-1 to meV to Ha
 Di = -0.22*cm2meV;
 J12, Di = 0, 0;
-print("\n>>>params:\n",tl, tp, th, J, J12, Di); 
 
 # convert all meVs to Ha
+print("\n>>>params:\n",tl, tp, th, J, J12, Di); 
+del th, Ucharge;
 Ha2meV = 27.211386*1000;
-tl, tp, th, J, J12, Di = tl/Ha2meV, tp/Ha2meV, th/Ha2meV, J/Ha2meV, J12/Ha2meV, Di/Ha2meV;
-#tl, tp, th, J, J12, Di = tl/tl, tp/tl, th/Ha2meV, J/tl, J12/tl, Di/tl
+tl, tp, J, J12, Di = tl/Ha2meV, tp/Ha2meV, J/Ha2meV, J12/Ha2meV, Di/Ha2meV;
 
 # constructing the hamiltonian
 def reduced_ham(params, S=6):

@@ -53,10 +53,18 @@ if(verbose):
         print(pair_str);
         pair_strs.append(pair_str);
 
-# tight binding params
-tl = 1; # lead hopping, in Hartree
-tp = 1;  # hopping between imps
-J = 0.1;
+# tight binding params, in meV
+tl = 100; # lead hopping
+tp = 100;  # hopping between imps
+th = tl/5;
+Ucharge = 1000;
+JK = 8*th*th/Ucharge;
+J12 = JK/50; # rough cobalt order of magnitude
+D0 = JK/10;
+print("\n>>>params, in meV:\n",tl, tp, JK,J12, D0); 
+del th, Ucharge;
+Ha2meV = 27.211386*1000;
+tl, tp, JK, J12, D0 = tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, J12/Ha2meV, D0/Ha2meV; # convert all to Ha
 
             
 #########################################################
@@ -65,19 +73,18 @@ J = 0.1;
 if True: # fig 6 ie T vs rho J a
     
     fig, ax = plt.subplots();
-    J12 = 0.1;
-    Dvals = J*np.array([0,0.1,0.2,0.4]);
+    Dvals = D0*np.array([0,1,2,4]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,4.0,9);
+        rhoJavals = np.linspace(0.05,8.0,99);
         for rhoi in range(len(rhoJavals)):
 
             # energy
             rhoJa = rhoJavals[rhoi];
-            E_rho = J*J/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
+            E_rho = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
                                                     # this E is measured from bottom of band !!!
             Energy = E_rho - 2*tl; # regular energy
             
@@ -91,8 +98,8 @@ if True: # fig 6 ie T vs rho J a
             for j in range(4): # LL, imp 1, imp 2, RL
                 # define all physical params
                 JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = J;
-                elif(j == impis[1]): JK2 = J;
+                if(j == impis[0]): JK1 = JK;
+                elif(j == impis[1]): JK2 = JK;
                 params = J12, J12, J12, D, D, 0, JK1, JK2;
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
@@ -100,7 +107,7 @@ if True: # fig 6 ie T vs rho J a
                 # transform to eigenbasis
                 hSR_diag = wfm.utils.entangle(hSR, *pair);
                 hblocks.append(np.copy(hSR_diag));
-                if(verbose > 3 and rhoJa == rhoJavals[0]):
+                if(verbose > 5 and rhoJa == rhoJavals[0]):
                     print("\nJK1, JK2 = ",JK1, JK2);
                     print(" - ham:\n", np.real(hSR));
                     print(" - transformed ham:\n", np.real(hSR_diag));
@@ -123,24 +130,29 @@ if True: # fig 6 ie T vs rho J a
          
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "solid", linewidth = 2);
-        #ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = colors[Di], linestyle = "solid", linewidth = 2);
+        #ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = colors[Di], linestyle = "solid", linewidth = 2);
+        #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+
+    # format and show
+    #ax.set_xlim(0,4);
+    #ax.set_xticks([0,2,4]);
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
+    #ax.set_ylim(0,0.15);
+    #ax.set_yticks([0,0.15]);
+    ax.set_ylabel("$T_+/T_{\sigma_0}$", fontsize = "x-large");
+    plt.show();
 
     # now do T vs E inset plot
     if False:
         axins = inset_axes(ax, width="50%", height="50%");
-    else:
-        axins = inset_axes(ax, width="0%", height="0%");
-        Dvals = [];
 
-    rhoJalims = np.array([rhoJavals[0], rhoJavals[-1]]);
-    Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-    Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
-    #print(">>>", rhoJalims, "\n>>>", Evals); assert False;
-    for Di in range(len(Dvals)):
-        D = Dvals[Di];
+        rhoJalims = np.array([rhoJavals[0], rhoJavals[-1]]);
+        Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
+        Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
+        #print(">>>", rhoJalims, "\n>>>", Evals); assert False;
+        D = Dvals[0];
 
         # iter over E, getting T
         Tvals, Rvals = [], [];
@@ -191,21 +203,12 @@ if True: # fig 6 ie T vs rho J a
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
         axins.plot(Evals,Tvals[:,pair[0]], color = colors[Di], linestyle = "solid", linewidth = 2); # + state
     
-    axins.set_xlim(-2,-1.6);
-    axins.set_xticks([-2,-1.8,-1.6]);
-    axins.set_xlabel("$E/t$", fontsize = "x-large");
-    axins.set_ylim(0,0.15);
-    axins.set_yticks([0,0.15]);
-    axins.set_ylabel("$T_+$", fontsize = "x-large");
-
-    # format and show
-    ax.set_xlim(0,4);
-    ax.set_xticks([0,2,4]);
-    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-    ax.set_ylim(0,0.15);
-    ax.set_yticks([0,0.15]);
-    ax.set_ylabel("$T_+$", fontsize = "x-large");
-    plt.show();
+        axins.set_xlim(-2,-1.6);
+        axins.set_xticks([-2,-1.8,-1.6]);
+        axins.set_xlabel("$E/t$", fontsize = "x-large");
+        axins.set_ylim(0,0.15);
+        axins.set_yticks([0,0.15]);
+        axins.set_ylabel("$T_+$", fontsize = "x-large");
 
 if False: # T vs E
 

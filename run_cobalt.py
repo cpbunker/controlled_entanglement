@@ -32,17 +32,29 @@ state_strs = ["0.5_","-0.5_","1.5_","0.5_","-0.5_","-1.5_","1.5_","0.5_","-0.5_"
 dets52 = [[0,2,7],[0,3,6],[1,2,6]]; # total spin 5/2 subspace
 
 # tight binding params
-tl = 0.0056; # lead hopping, in Hartree
-tp = 0.0056;  # hopping between imps
+#tl = 0.0056; # lead hopping, in Hartree
+#tp = 0.0056;  # hopping between imps
+
+# params, all in units meV
+tl = 100;
+tp = 100;
+th = tl/5;
+Ucharge = 1000;
+JK = 8*th*th/Ucharge;
 
 # Ab initio params, in meV:
 Ha2meV = 27.211386*1000; # 1 hartree is 27 eV
-Jx = 0.209/Ha2meV; # convert to hartree
-Jz = 0.124/Ha2meV;
-DO = 0.674/Ha2meV;
-DT = 0.370/Ha2meV;
-JK = 4*DO;
-Jx, Jz = 0,0
+Jx = 0.209; # convert to hartree
+Jz = 0.124;
+DO = 0.674;
+DT = 0.370;
+Jz = 0 # necessary, but why?
+
+# convert to Ha
+print("\n>>>params, in meV:\n",tl, tp, JK, Jx, DO, DT); 
+del th, Ucharge;
+Ha2meV = 27.211386*1000;
+tl, tp, JK, Jx, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, DO/Ha2meV, DT/Ha2meV;
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -69,22 +81,23 @@ if(verbose):
 #########################################################
 #### generation
 
-if True: # fig 6 ie T vs rho J a
+if True: # fig 6 ie T vs rho J a, with T vs E inset optional
 
     fig, ax = plt.subplots();
-    for dummy in [1]:
+    dummyvals = [0];
+    for dummyi in range(len(dummyvals)):
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJalims = np.array([0.05,4.0]);
+        rhoJalims = np.array([0.05,16.0]);
+        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 99);
         Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
         Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
-        for rhoi in range(len(Evals)):
+        for rhoi in range(len(rhoJavals)):
 
             # energy
-            #rhoJa = rhoJavals[rhoi];
-            #Energy = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl) - 2*tl; # measure from mu
-            Energy = Evals[rhoi];
+            rhoJa = rhoJavals[rhoi];
+            Energy = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl) - 2*tl; # measure from mu
             ka = np.arccos(Energy/(-2*tl));
             Vg = Energy + 2*tl;
 
@@ -133,10 +146,11 @@ if True: # fig 6 ie T vs rho J a
             
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
-        ax.plot(Evals, Tvals[:,pair[0]], label = "$|+>$", color = "black", linestyle = "dashed", linewidth = 2);
-        ax.plot(Evals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
-        #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
+        ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+'>$", color = "black", linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|-'>$", color = "black", linestyle = "dashdot", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
+        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = "blue", linestyle = "solid", linewidth = 2);
 
         # inset
         if False:
@@ -330,102 +344,6 @@ if False:
     # end sweep over JK
     raise(Exception);   
 
-
-
-#########################################################
-#### detection for N_SR = 2 regime
-
-# peak for psi^- state
-# vary kx0 by varying Vgate
-if False: 
-    
-    # tight binding params
-    tl = 1.0; # norm convention, -> a = a0/sqrt(2) = 0.37 angstrom
-
-    # cicc quantitites
-    N_SR = 200;
-    ka0 = np.pi/(N_SR - 1); # a' is length defined by hopping t' btwn imps
-                            # ka' = ka'0 = ka0 when t' = t so a' = a
-    E_rho = 2*tl-2*tl*np.cos(ka0); # energy of ka0 wavevector, which determines rhoJa
-                                    # measured from bottom of the band!!
-    rhoJa = JK/(np.pi*np.sqrt(tl*E_rho));
-
-    # diagnostic
-    if(verbose):
-        print("\nCiccarello inputs")
-        print(" - E, J, E/J = ",E_rho, JK, E_rho/JK);
-        print(" - ka0 = ",ka0);
-        print("- rho*J*a = ", rhoJa);
-        
-    # Psi^- boundary condition
-    source = np.zeros(3);
-    sourcei = 1;
-    source[sourcei] = 1;
-    spinstate = "psimin"
-
-    # construct LL
-    hLL = np.copy(hSR_JK0);
-    hLL += (-1)*hLL[sourcei,sourcei]*np.eye(np.shape(hLL)[0]); # const shift to set mu_LL = 0
-    hblocks, tblocks = [hLL], [-th*np.eye(np.shape(hLL)[0])];
-    if(verbose):
-        print("LL hamiltonian\n", hLL);
-
-    # construct SR
-    for Coi in range(1,N_SR+1): # add SR blocks as octo, tetra impurities
-
-        # define all physical params
-        JKO, JKT = 0, 0;
-        if Coi == 1: JKO = JK; # J S dot sigma is onsite only
-        elif Coi == N_SR: JKT = JK;     # so do JKO, then JKT
-        params = Jx, Jx, Jz, DO, DT, An, JKO, JKT;
-        
-        # construct second quantized ham
-        h1e, g2e = wfm.utils.h_dimer_2q(params); 
-
-        # construct h_SR (determinant basis)
-        h_SR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);
-        h_SR = wfm.utils.entangle(h_SR, *pair);
-        hblocks.append(np.copy(h_SR));
-
-        # hopping between impurities
-        if(Coi > 1): tblocks.append(-tp*np.eye(np.shape(h_SR)[0]));
-
-    # construct RL
-    hRL = np.copy(hLL);
-    hblocks.append(hRL);
-    tblocks.append(-th*np.eye(np.shape(hLL)[0]));
-    hblocks, tblocks = np.array(hblocks), np.array(tblocks);
-    if(verbose):
-        print("RL hamiltonian\n", hRL);
-
-    # get data
-    kalims = (0.0*ka0,2.1*ka0);
-    kavals = np.linspace(*kalims, 299);
-    Vgvals = -2*tl*np.cos(ka0) + 2*tl*np.cos(kavals);
-    Tvals = [];
-    for Vg in Vgvals:              
-        for blocki in range(len(hblocks)): # add Vg in SR
-            if(blocki > 0 and blocki < N_SR + 1): # ie if in SR
-                hblocks[blocki] += Vg*np.eye(np.shape(hblocks[0])[0])
-                
-        # get data
-        Energy = -2*tl*np.cos(ka0);
-        Tvals.append(wfm.kernel(hblocks, tblocks, tl, Energy, source));
-    Tvals = np.array(Tvals);
-
-    # package into one array
-    if(verbose): print("shape(Tvals) = ",np.shape(Tvals));
-    info = np.zeros_like(kavals);
-    info[0], info[1], info[2], info[3] = tl, JK, rhoJa, ka0; # save info we need
-    data = [info, kavals*(N_SR-1)];
-    for Ti in range(np.shape(Tvals)[1]):
-        data.append(Tvals[:,Ti]); # data has columns of kaval, corresponding T vals
-    # save data
-    fname = "dat/dimer/"+spinstate+"/";
-    fname +="Vg_rhoJa"+str(int(rhoJa))+".npy";
-    np.save(fname,np.array(data));
-    if verbose: print("Saved data to "+fname);
-    raise(Exception);
 
 
 
