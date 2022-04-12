@@ -54,32 +54,39 @@ if(verbose):
         pair_strs.append(pair_str);
 
 # tight binding params, in meV
-tl = 100; # lead hopping
-tp = 100;  # hopping between imps
-th = tl/5;
-Ucharge = 1000;
-JK = 8*th*th/Ucharge;
-J12 = JK/50; # rough cobalt order of magnitude
-D0 = JK/10;
-print("\n>>>params, in meV:\n",tl, tp, JK,J12, D0); 
-del th, Ucharge;
-Ha2meV = 27.211386*1000;
-tl, tp, JK, J12, D0 = tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, J12/Ha2meV, D0/Ha2meV; # convert all to Ha
+if False:
+    tl = 100; # lead hopping
+    tp = 100;  # hopping between imps
+    th = tl/5;
+    Ucharge = 1000;
+    JK = 8*th*th/Ucharge;
+    J12 = JK/50; # rough cobalt order of magnitude
+    D0 = JK/10;
+    print("\n>>>params, in meV:\n",tl, tp, JK,J12, D0); 
+    del th, Ucharge;
+    Ha2meV = 27.211386*1000;
+    tl, tp, JK, J12, D0 = tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, J12/Ha2meV, D0/Ha2meV; # convert all to Ha
 
+else:
+    tl = 1.0;
+    tp = 1.0;
+    JK = 0.1;
+    J12 = JK/10;
+    D0 = JK/10;
             
 #########################################################
 #### generation
 
-if True: # fig 6 ie T vs rho J a
+if True: # T/Tvs rho J a at diff D
     
     fig, ax = plt.subplots();
-    Dvals = D0*np.array([0,1,2,4]);
+    Dvals = D0*np.array([-0.1,0,1,4]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,8.0,99);
+        rhoJavals = np.linspace(0.05,4.0,99);
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -136,11 +143,11 @@ if True: # fig 6 ie T vs rho J a
         #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
 
     # format and show
-    #ax.set_xlim(0,4);
-    #ax.set_xticks([0,2,4]);
+    ax.set_xlim(0,4);
+    ax.set_xticks([0,2,4]);
     ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-    #ax.set_ylim(0,0.15);
-    #ax.set_yticks([0,0.15]);
+    ax.set_ylim(0,4);
+    ax.set_yticks([0,2,4]);
     ax.set_ylabel("$T_+/T_{\sigma_0}$", fontsize = "x-large");
     plt.show();
 
@@ -210,18 +217,95 @@ if True: # fig 6 ie T vs rho J a
         axins.set_yticks([0,0.15]);
         axins.set_ylabel("$T_+$", fontsize = "x-large");
 
+if False: # T/T vs rho J a at diff J12x
+    
+    fig, ax = plt.subplots();
+    J12vals = J12*np.array([2,2.2,2.4,-100]);
+    for Di in range(len(J12vals)):
+        J12x = J12vals[Di];
+        J12z = J12;
+
+        # iter over rhoJ, getting T
+        Tvals, Rvals = [], [];
+        rhoJavals = np.linspace(0.05,4.0,9);
+        for rhoi in range(len(rhoJavals)):
+
+            # energy
+            rhoJa = rhoJavals[rhoi];
+            E_rho = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
+                                                    # this E is measured from bottom of band !!!
+            Energy = E_rho - 2*tl; # regular energy
+            
+            # optical distances, N = 2 fixed
+            ka = np.arccos((Energy)/(-2*tl));
+            Vg = Energy + 2*tl; # gate voltage
+
+            # construct hblocks
+            hblocks = [];
+            impis = [1,2];
+            for j in range(4): # LL, imp 1, imp 2, RL
+                # define all physical params
+                JK1, JK2 = 0, 0;
+                if(j == impis[0]): JK1 = JK;
+                elif(j == impis[1]): JK2 = JK;
+                params = J12x, J12x, J12z, D0, D0, 0, JK1, JK2;
+                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
+                # construct h_SR (determinant basis)
+                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
+                # transform to eigenbasis
+                hSR_diag = wfm.utils.entangle(hSR, *pair);
+                hblocks.append(np.copy(hSR_diag));
+                if(verbose > 5 and rhoJa == rhoJavals[0]):
+                    print("\nJK1, JK2 = ",JK1, JK2);
+                    print(" - ham:\n", np.real(hSR));
+                    print(" - transformed ham:\n", np.real(hSR_diag));
+
+            # finish hblocks
+            hblocks = np.array(hblocks);
+            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+            hblocks[2] += Vg*np.eye(len(source));
+            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
+            for hb in hblocks:
+                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
+            if(rhoi == 0): print("E_+ - E_sigma0 : ",hblocks[0][0,0] - hblocks[0][2,2]);
+            
+            # hopping
+            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
+            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+
+            # T
+            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
+            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
+         
+        # plot
+        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
+        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = colors[Di], linestyle = "solid", linewidth = 2);
+        #ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = colors[Di], linestyle = "solid", linewidth = 2);
+        #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+
+    # format and show
+    ax.set_xlim(0,4);
+    ax.set_xticks([0,2,4]);
+    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
+    ax.set_ylim(0,4);
+    ax.set_yticks([0,2,4]);
+    ax.set_ylabel("$T_+/T_{\sigma_0}$", fontsize = "x-large");
+    plt.show();
+    
+
 if False: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();
-    Dvals = J*np.array([0,0.1,0.2,0.4])
+    Dvals = D0*np.array([0,1,2,4])
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over Energy, getting T
         Tvals, Rvals = [], [];
         rhoJalims = np.array([0.05,4.0]);
-        Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
+        Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
         Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
         for Ei in range(len(Evals)):
 
@@ -231,8 +315,6 @@ if False: # T vs E
             # optical distances, N = 2 fixed
             ka = np.arccos((Energy)/(-2*tl));
             Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Energy)
 
             # construct hblocks
             hblocks = [];
@@ -240,10 +322,10 @@ if False: # T vs E
             for j in range(4): # LL, imp 1, imp 2, RL
                 # define all physical params
                 JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = J;
-                elif(j == impis[1]): JK2 = J;
+                if(j == impis[0]): JK1 = JK;
+                elif(j == impis[1]): JK2 = JK;
                 params = 0, 0, 0, D, D, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
+                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
                 # transform to eigenbasis
@@ -273,70 +355,6 @@ if False: # T vs E
         #ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|->$", color = "black", linestyle = "dashdot", linewidth = 2);
         ax.plot(Evals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
 
-    # now do T vs rhoJa inset plot
-    if True:
-        axins = inset_axes(ax, width="50%", height="50%");
-    else:
-        Dvals = [];
-    for Di in range(len(Dvals)):
-        D = Dvals[Di];
-
-        # iter over rhoJ, getting T
-        Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(rhoJalims[0], rhoJalims[-1], len(Evals));
-        for rhoi in range(len(rhoJavals)):
-
-            # energy
-            Energy = J*J/(rhoJavals[rhoi]*rhoJavals[rhoi]*np.pi*np.pi*tl) - 2*tl;
-
-            # optical distances, N = 2 fixed
-            ka = np.arccos((Energy)/(-2*tl));
-            Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Energy)
-
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = J;
-                elif(j == impis[1]): JK2 = J;
-                params = 0, 0, 0, D, D, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_dimer_2q(params); # construct ham
-                # construct h_SR (determinant basis)
-                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-
-            # T
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
-
-        # plot T vs rhoJa in inset
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        axins.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "solid", linewidth = 2);
-
-    axins.set_xlim(0,4);
-    axins.set_xticks([0,2,4]);
-    axins.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-    axins.set_ylim(0,0.15);
-    axins.set_yticks([0,0.15]);
-    axins.set_ylabel("$T_+$", fontsize = "x-large");
 
     # format and show
     ax.set_xlim(-2,-1.6);

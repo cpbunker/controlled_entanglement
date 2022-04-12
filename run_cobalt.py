@@ -48,13 +48,12 @@ Jx = 0.209; # convert to hartree
 Jz = 0.124;
 DO = 0.674;
 DT = 0.370;
-Jz = 0 # necessary, but why?
 
 # convert to Ha
 print("\n>>>params, in meV:\n",tl, tp, JK, Jx, DO, DT); 
 del th, Ucharge;
 Ha2meV = 27.211386*1000;
-tl, tp, JK, Jx, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, DO/Ha2meV, DT/Ha2meV;
+tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -89,10 +88,10 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJalims = np.array([0.05,16.0]);
+        rhoJalims = np.array([0.05,4.0]);
         rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 99);
         Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
+        Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -123,7 +122,7 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
                     print("\nJKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
                     print(" - ham:\n", Ha2meV*np.real(hSR));
                     print(" - ent ham:\n", Ha2meV*np.real(hSR_ent));
-                    print(" - ent hame should be: ",Ha2meV*np.real(DO-DT),Ha2meV*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2));
+                    print(" - ent hame should be: ",Ha2meV*np.real(DO-DT),Ha2meV*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2 + 1.5*1.5*Jz - 1.5*(Jz-Jx)));
                     print(" - diag ham:\n", Ha2meV*np.real(hSR_diag));
                 # add to blocks list
                 hblocks.append(np.copy(hSR_diag));
@@ -135,7 +134,9 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
+            if(rhoi == 0): print("E_1 - E_sigma0 : ",(hblocks[0][0,0] - hblocks[0][2,2])*Ha2meV);
+            if(rhoi == 0): print("E_2 - E_sigma0 : ",(hblocks[0][1,1] - hblocks[0][2,2])*Ha2meV);
+            
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -146,11 +147,12 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
             
         # plot
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = "black", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|\sigma_0>$", color = "black", linewidth = 2);
         ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+'>$", color = "black", linestyle = "dashed", linewidth = 2);
         ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|-'>$", color = "black", linestyle = "dashdot", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red")
-        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = "blue", linestyle = "solid", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+        ax.plot(rhoJavals, Tvals[:,pair[1]]/Tvals[:,sourcei], label = "$T_{+'}/T_{\sigma_0}$", color = "darkred", linestyle = "dashed", linewidth = 2);
+        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "$T_{-'}/T_{\sigma_0}$", color = "darkred", linestyle = "dashdot", linewidth = 2);
 
         # inset
         if False:
@@ -162,10 +164,11 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
             axins.set_yticks([0,0.2]);
 
         # format and show
-        #ax.set_xticks([0,1]);
-        ax.set_xlabel("$J_K/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-        #ax.set_ylim(0,1.0);
-        #ax.set_yticks([0,0.2]);
+        ax.set_xlim(0,4);
+        ax.set_xticks([0,2,4]);
+        ax.set_xlabel("$J/ \pi \sqrt{t(E+2t)}$", fontsize = "x-large");
+        ax.set_ylim(0,1);
+        ax.set_yticks([0,0.5,1]);
         ax.set_ylabel("$T$", fontsize = "x-large");
         plt.legend();
         plt.show();
