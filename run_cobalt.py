@@ -54,6 +54,8 @@ print("\n>>>params, in meV:\n",tl, tp, JK, Jx, DO, DT);
 del th, Ucharge;
 Ha2meV = 27.211386*1000;
 tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
+tl, tp, JK, Jx, Jz, DO, DT= tl/tl, tp/tl, JK/tl, Jx/tl, Jz/tl, DO/tl, DT/tl;
+print("\n>>>params, in tl:\n",tl, tp, JK, Jx, Jz, DO, DT);
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -88,8 +90,8 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJalims = np.array([0.05,4.0]);
-        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 99);
+        rhoJalims = np.array([0.01,4.0]);
+        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 9);
         Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
         Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
         for rhoi in range(len(rhoJavals)):
@@ -114,9 +116,12 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
                 # entangle, ie basis {|+>, |->, |sigma0>}
-                hSR_ent = wfm.utils.entangle(hSR, *pair);
+                #hSR_ent = wfm.utils.entangle(hSR, *pair);
+                hSR_ent = hSR
                 # make leads diagonal in this basis
-                if(j==0): _, Udiag = np.linalg.eigh(hSR_ent); # diagonalization is in leads only
+                if(j==0): _, Udiag = np.linalg.eigh(hSR_ent); 
+                print(_);
+                print(Udiag[:,0],"\n", Udiag[:,1],"\n", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); assert False; # diagonalization is in leads only
                 hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
                 if(verbose > 3 and rhoi == 0 and j == 0):
                     print("\nJKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
@@ -151,8 +156,7 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
         ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+'>$", color = "black", linestyle = "dashed", linewidth = 2);
         ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|-'>$", color = "black", linestyle = "dashdot", linewidth = 2);
         ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
-        ax.plot(rhoJavals, Tvals[:,pair[1]]/Tvals[:,sourcei], label = "$T_{+'}/T_{\sigma_0}$", color = "darkred", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "$T_{-'}/T_{\sigma_0}$", color = "darkred", linestyle = "dashdot", linewidth = 2);
+        ax.plot(rhoJavals, (Tvals[:,pair[0]]+Tvals[:,pair[1]])/Tvals[:,sourcei], label = "$(T_{+'}+T_{-'})/T_0$", color = "darkblue", linestyle = "solid", linewidth = 2);
 
         # inset
         if False:
@@ -170,7 +174,7 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
         ax.set_ylim(0,1);
         ax.set_yticks([0,0.5,1]);
         ax.set_ylabel("$T$", fontsize = "x-large");
-        plt.legend();
+        #plt.legend();
         plt.show();
 
 

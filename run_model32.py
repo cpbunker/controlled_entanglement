@@ -18,7 +18,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 #### top level
 #np.set_printoptions(precision = 4, suppress = True);
-colors = ["darkblue","darkgreen","darkred", "darkmagenta"]
+colors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"]
 verbose = 5;
 
 #### setup
@@ -72,21 +72,20 @@ else:
     tp = 1.0;
     JK = 0.1;
     J12 = JK/10;
-    D0 = JK/10;
             
 #########################################################
 #### generation
 
-if True: # T/Tvs rho J a at diff D
+if False: # T/Tvs rho J a at diff D
     
     fig, ax = plt.subplots();
-    Dvals = D0*np.array([-0.1,0,1,4]);
+    Dvals = JK*np.array([-1/100,0,1/100,1/10,1]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,4.0,99);
+        rhoJavals = np.linspace(0.05,4.0,9);
         for rhoi in range(len(rhoJavals)):
 
             # energy
@@ -126,7 +125,7 @@ if True: # T/Tvs rho J a at diff D
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
+            print("Delta E / J = ", (hblocks[0][0,0] - hblocks[0][2,2])/JK)
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -148,7 +147,7 @@ if True: # T/Tvs rho J a at diff D
     ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
     ax.set_ylim(0,4);
     ax.set_yticks([0,2,4]);
-    ax.set_ylabel("$T_+/T_{\sigma_0}$", fontsize = "x-large");
+    ax.set_ylabel("$T_+/T_0$", fontsize = "x-large");
     plt.show();
 
     # now do T vs E inset plot
@@ -294,11 +293,11 @@ if False: # T/T vs rho J a at diff J12x
     plt.show();
     
 
-if False: # T vs E
+if True: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();
-    Dvals = D0*np.array([0,1,2,4])
+    Dvals = JK*np.array([-1/100,0,1/100,1/10,1]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
@@ -306,7 +305,7 @@ if False: # T vs E
         Tvals, Rvals = [], [];
         rhoJalims = np.array([0.05,4.0]);
         Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], 99); # switched !
+        Evals = np.linspace(Elims[-1], Elims[0], 499); # switched !
         for Ei in range(len(Evals)):
 
             # energy
@@ -324,7 +323,7 @@ if False: # T vs E
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = JK;
                 elif(j == impis[1]): JK2 = JK;
-                params = 0, 0, 0, D, D, 0, JK1, JK2;
+                params = J12, J12, J12, D, D, 0, JK1, JK2;
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
@@ -339,7 +338,7 @@ if False: # T vs E
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
+            print("Delta E / J = ", (hblocks[0][0,0] - hblocks[0][2,2])/JK)
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -360,8 +359,8 @@ if False: # T vs E
     ax.set_xlim(-2,-1.6);
     ax.set_xticks([-2,-1.8,-1.6]);
     ax.set_xlabel("$E/t$", fontsize = "x-large");
-    ax.set_ylim(0,0.15);
-    ax.set_yticks([0,0.15]);
+    ax.set_ylim(0,0.2);
+    ax.set_yticks([0,0.1,0.2]);
     ax.set_ylabel("$T_+$", fontsize = "x-large");
     plt.show();
 
