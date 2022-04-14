@@ -27,7 +27,7 @@ reflect = False; # whether to get R or T
 
 # fig standardizing
 from matplotlib.font_manager import FontProperties
-myfontsize = 32;
+myfontsize = 24;
 myfont = FontProperties()
 myfont.set_family('serif')
 myfont.set_name('Times New Roman')
@@ -35,23 +35,29 @@ myprops = {'family':'serif','name':['Times New Roman'],
     'weight' : 'roman', 'size' : myfontsize*0.75}
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mystyles = ["solid", "dashed","dotted","dashdot"];
-mypanels = ["(a)","(b)"];
-mylinewidth = 2.5;
+mylinewidth = 2.0;
 
-if False: # S dot S, with or without delta
+# plotting
+# panels: (a) S dot S, Delta = 0 (b) S dot S, Delta \neq 0 (c) derived
 
-    # tight binding params
-    tl = 1.0;
-    th = 1.0;
-    fig, axes = plt.subplots(1,2, sharey = True);
-    fig.set_size_inches(12,6);
-    Deltavals = [0,0.05];
-    for axi in range(len(axes)):
+# tight binding params
+tl = 1.0;
+th = 1.0;
+fig, axes = plt.subplots(3, sharex = True);
+fig.set_size_inches(7/1.2,9/1.2);
+
+# iter over panels a, b, b
+mypanels = ["(a)","(b)","(c)"];
+Deltavals = [0,0.05];
+for axi in range(len(axes)):
+
+    # panels a and b
+    if(axi in range(len(Deltavals))):
         Delta = Deltavals[axi];
         Jeffs = [0.1,0.2,0.4];
         for Ji in range(len(Jeffs)):
             Jeff = Jeffs[Ji];
-
+            
             # 2nd qu'd operator for S dot s
             h1e = np.zeros((4,4))
             g2e = wfm.utils.h_kondo_2e(Jeff, 0.5); # J, spin
@@ -91,7 +97,7 @@ if False: # S dot S, with or without delta
 
             # sweep over range of energies
             # def range
-            Emin, Emax = -1.995*tl, -1.999*tl+0.2*tl;
+            Emin, Emax = -1.99999*tl, -1.999*tl+0.2*tl;
             Evals = np.linspace(Emin, Emax, 99, dtype = float);
             Tvals, Rvals = [], [];
             for E in Evals:
@@ -113,238 +119,98 @@ if False: # S dot S, with or without delta
                 axes[axi].plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = mycolors[Ji], linewidth = mylinewidth);
 
         # format panel
-        axes[axi].set_xlim(-2,-1.8);
-        axes[axi].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
-        axes[axi].set_xticklabels(axes[axi].get_xticks(), myprops);
-        axes[axi].set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
-        axes[axi].set_title(mypanels[axi], fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
-        
-    # format overall plot
-    axes[0].set_ylim(0,0.4);
-    axes[0].set_yticks([0,0.2,0.4]);
-    axes[0].set_yticklabels(axes[axi].get_yticks(), myprops);
-    if(reflect): axes[0].set_ylabel("$R_{flip}$", fontsize = "x-large");
-    else: axes[0].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
-    plt.tight_layout();
-    plt.show();
+        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+        axes[axi].set_ylim(0,0.4);
+        axes[axi].set_yticks([0,0.2,0.4]);
+        axes[axi].set_yticklabels(axes[axi].get_yticks(), myprops);
+        axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
+    # end iter over panels a and b
 
+    # panel c
+    else:
 
-if True: # full 2 site hubbard treatment (downfolds to S dot S)
+        epsilons = [-27.5,-11.3,-5.3];
+        for epsi in range(len(epsilons)):
+            epsilon = epsilons[epsi];
 
-    fig, ax = plt.subplots();
-    fig.set_size_inches(9,8);
-    epsilons = [-27.5,-11.3,-5.3];
-    for epsi in range(len(epsilons)):
-        epsilon = epsilons[epsi];
+            # tight binding parameters
+            tl = 1.0;
+            th = 1.0;
+            U2 = 100.0;
+            Jeff = 2*th*th*U2/((-epsilon)*(U2+epsilon)); # better for U >> Vg
+            print("Jeff = ",Jeff);
 
-        # tight binding parameters
-        tl = 1.0;
-        th = 1.0;
-        U2 = 100.0;
-        Jeff = 2*th*th*U2/((-epsilon)*(U2+epsilon)); # better for U >> Vg
-        print("Jeff = ",Jeff);
+            # SR physics: site 1 is in chain, site 2 is imp with large U
+            hSR = np.array([[0,-th,th,0], # up down, -
+                           [-th,epsilon, 0,-th], # up, down (source)
+                            [th, 0, epsilon, th], # down, up (flip)
+                            [0,-th,th,U2+2*epsilon]]); # -, up down
 
-        # SR physics: site 1 is in chain, site 2 is imp with large U
-        hSR = np.array([[0,-th,th,0], # up down, -
-                       [-th,epsilon, 0,-th], # up, down (source)
-                        [th, 0, epsilon, th], # down, up (flip)
-                        [0,-th,th,U2+2*epsilon]]); # -, up down
+            # source = up electron, down impurity
+            source = np.zeros(np.shape(hSR)[0]);
+            sourcei, flipi = 1,2;
+            source[sourcei] = 1;
 
-        # source = up electron, down impurity
-        source = np.zeros(np.shape(hSR)[0]);
-        sourcei, flipi = 1,2;
-        source[sourcei] = 1;
+            # lead physics
+            hLL = np.diagflat([0,epsilon, epsilon, 2*epsilon]);
+            hRL = np.diagflat([0,epsilon, epsilon, 2*epsilon]);
 
-        # lead physics
-        hLL = np.diagflat([0,epsilon, epsilon, 2*epsilon]);
-        hRL = np.diagflat([0,epsilon, epsilon, 2*epsilon]);
+            # package together hamiltonian blocks
+            hblocks = np.array([hLL, hSR, hRL]);
+            for hb in hblocks: hb += -epsilon*np.eye(len(source));  # shift by gate voltage so source is at zero
+            tnn_mat = -tl*np.array([[0,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,0]]);
+            tnn = np.array([np.copy(tnn_mat), np.copy(tnn_mat)]);
+            tnnn = np.zeros_like(tnn)[:-1];
+            #if verbose: print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn, "\ntnnn:", tnnn)
 
-        # package together hamiltonian blocks
-        hblocks = np.array([hLL, hSR, hRL]);
-        for hb in hblocks: hb += -epsilon*np.eye(len(source));  # shift by gate voltage so source is at zero
-        tnn_mat = -tl*np.array([[0,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,0]]);
-        tnn = np.array([np.copy(tnn_mat), np.copy(tnn_mat)]);
-        tnnn = np.zeros_like(tnn)[:-1];
-        #if verbose: print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn, "\ntnnn:", tnnn)
-
-        if True: # do the downfolding explicitly
-            matA = np.array([[0, 0],[0,0]]);
-            matB = np.array([[-th,-th],[th,th]]);
-            matC = np.array([[-th,th],[-th,th]]);
-            matD = np.array([[-epsilon, 0],[0,U2+epsilon]]);
-            mat_downfolded = matA - np.dot(matB, np.dot(np.linalg.inv(matD), matC))  
-            print("mat_df = \n",mat_downfolded);
-            Jeff = 2*abs(mat_downfolded[0,0]);
-            print(">>>Jeff = ",Jeff);
-            mat_downfolded += np.eye(2)*Jeff/4
-            print("mat_df = \n",mat_downfolded);
-        
-        # sweep over range of energies
-        # def range
-        Emin, Emax = -1.99999*tl, -2.0*tl+0.2*tl;
-        Evals = np.linspace(Emin, Emax, 99, dtype = complex);
-        Tvals, Rvals = [], [];
-        for E in Evals:
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
-
-        # plot Tvals vs E
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(Evals,Tvals[:,flipi], color = mycolors[epsi], linestyle = "dashed", linewidth = mylinewidth);
-        if True: # check that T+R = 1
-            totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-            ax.plot(Evals, totals, color="red");
-            #for Ti in range(np.shape(Tvals)[1]): ax.plot(Evals, Tvals[:,Ti], label = Ti)
-
-        # menezes prediction in the continuous case
-        if analytical:
-            ax.plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
-
-    # format and plot
-    ax.set_xlim(-2,-1.8);
-    ax.set_xticks([-2.0,-1.95,-1.9,-1.85,-1.8]);
-    ax.set_xticklabels(ax.get_xticks(), myprops);
-    ax.set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
-    ax.set_ylim(0,0.2);
-    ax.set_yticks([0,0.1,0.2]);
-    ax.set_yticklabels(ax.get_yticks(), myprops);
-    ax.set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
-    plt.tight_layout();
-    plt.show();
-
-
-if False: # benchmark R + T
-
-    fig, ax = plt.subplots();
-    for Jeff in [0.1]:
-
-        # 2nd qu'd operator for S dot s
-        h1e = np.zeros((4,4))
-        g2e = wfm.utils.h_kondo_2e(Jeff, 0.5); # J, spin
-        states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
-        hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
-
-        # zeeman splitting
-        hzeeman = np.array([[Delta, 0, 0, 0],
-                        [0,0, 0, 0],
-                        [0, 0, Delta, 0], # spin flip gains PE delta
-                        [0, 0, 0, 0]]);
-        hSR += hzeeman;
-
-        # truncate to coupled channels
-        hSR = hSR[1:3,1:3];
-        hzeeman = hzeeman[1:3,1:3];
-
-        # leads
-        hLL = np.copy(hzeeman);
-        hRL = np.copy(hzeeman)+Vb*np.eye(np.shape(hLL)[0]);
-
-        # source = up electron, down impurity
-        sourcei, flipi = 0,1
-        source = np.zeros(np.shape(hSR)[0]);
-        source[sourcei] = 1;
-
-        # package together hamiltonian blocks
-        hblocks = [hLL,hSR];
-        for x3i in range(Nx3): hblocks.append(np.zeros_like(hRL)); # vary imp to barrier distance
-        hblocks.append(hRL);
-        hblocks = np.array(hblocks);
-
-        # hopping
-        tnn = [-th*np.eye(*np.shape(hSR)),-th*np.eye(*np.shape(hSR))]; # on and off imp
-        for x3i in range(Nx3): tnn.append(-tl*np.eye(*np.shape(hSR))); # vary imp to barrier distance
-        tnn = np.array(tnn);
-        tnnn = np.zeros_like(tnn)[:-1];
-        if(verbose and Jeff == 0.1): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
-
-        # sweep over range of energies
-        # def range
-        Emin, Emax = -1.999*tl, -1.999*tl+0.2;
-        numE = 30;
-        Evals = np.linspace(Emin, Emax, numE, dtype = complex);
-        Tvals, Rvals = [], [];
-        for E in Evals:
-            if(E in Evals[:3]): # verbose
-                Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose));
-                Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
-            else:
+            if False: # do the downfolding explicitly
+                matA = np.array([[0, 0],[0,0]]);
+                matB = np.array([[-th,-th],[th,th]]);
+                matC = np.array([[-th,th],[-th,th]]);
+                matD = np.array([[-epsilon, 0],[0,U2+epsilon]]);
+                mat_downfolded = matA - np.dot(matB, np.dot(np.linalg.inv(matD), matC))  
+                print("mat_df = \n",mat_downfolded);
+                Jeff = 2*abs(mat_downfolded[0,0]);
+                print(">>>Jeff = ",Jeff);
+                mat_downfolded += np.eye(2)*Jeff/4
+                print("mat_df = \n",mat_downfolded);
+            
+            # sweep over range of energies
+            # def range
+            Emin, Emax = -1.99999*tl, -2.0*tl+0.2*tl;
+            Evals = np.linspace(Emin, Emax, 99, dtype = complex);
+            Tvals, Rvals = [], [];
+            for E in Evals:
                 Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
                 Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
-                
-        # plot Tvals vs E
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(np.real(Evals + 2*tl),Tvals[:,sourcei], label = "source T", color = "black");
-        ax.scatter(np.real(Evals + 2*tl),Tvals[:,flipi], label = "flip T", color = "black", marker = "s");
-        ax.plot(np.real(Evals + 2*tl),Rvals[:,sourcei], label = "source R", color = "darkblue",);
-        ax.plot(np.real(Evals + 2*tl),Rvals[:,flipi], label = "flip R", color = "darkgreen");
-        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-        ax.plot(np.real(Evals + 2*tl), totals-1, color="red", label = "total - 1");
 
-        # menezes prediction in the continuous case
-        if(analytical):
-            ax.plot(np.linspace(-1.9999*tl, Emax, 100)+2*tl, Jeff*Jeff/(16*(np.linspace(-1.9999*tl,Emax,100)+2*tl)));
+            # plot Tvals vs E
+            Tvals, Rvals = np.array(Tvals), np.array(Rvals);
+            axes[axi].plot(Evals,Tvals[:,flipi], color = mycolors[epsi], linestyle = "dashed", linewidth = mylinewidth);
+            if True: # check that T+R = 1
+                totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
+                axes[axi].plot(Evals, totals, color="red");
+                #for Ti in range(np.shape(Tvals)[1]): ax.plot(Evals, Tvals[:,Ti], label = Ti)
 
-    # format and plot
-    #ax.set_xlim(0,0.2);
-    #ax.set_xticks([0,0.1,0.2]);
-    ax.set_xlabel("$E+2t$", fontsize = "x-large");
-    #ax.set_ylim(0,0.2);
-    #ax.set_yticks([0,0.1,0.2]);
-    if(reflect): ax.set_ylabel("$R_{flip}$", fontsize = "x-large");
-    else: ax.set_ylabel("$T_{flip}$", fontsize = "x-large");
-    plt.legend();
-    plt.show();
+            # menezes prediction in the continuous case
+            if analytical:
+                axes[axi].plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
+
+        # format panel
+        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+        axes[axi].set_ylim(0,0.4);
+        axes[axi].set_yticks([0,0.2,0.4]);
+        axes[axi].set_yticklabels(axes[axi].get_yticks(), myprops);
+        axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
 
 
-if False: # truly one dimensional geometry
-
-    # add'l physical terms
-    Vg = -0.1;
-    U = 0.2;
-    Jeff = 2*(Vg+U);
-
-    # imp ham
-    hSR = np.array([[ Vg + U, Vg+U],
-                     [Vg+U, Vg + U]]);
-
-    # hybridization to imp
-    V_hyb = -th*np.array([[1,0],
-                          [0,1]]);   
-
-    # source = up electron, down impurity
-    source = np.zeros(np.shape(hSR)[0]);
-    source[0] = 1;
-
-    # package together hamiltonian blocks
-    hblocks = np.array([np.zeros_like(hSR), hSR, np.zeros_like(hSR)]);
-    tblocks = np.array([np.copy(V_hyb), np.copy(V_hyb)])
-    if verbose: print("\nhblocks:\n", hblocks, "\ntblocks:\n", tblocks); 
-
-    # sweep over range of energies
-    # def range
-    Emin, Emax = -1.999*tl, -1.5*tl
-    numE = 99;
-    Evals = np.linspace(Emin, Emax, numE, dtype = complex);
-    Tvals = [];
-    for E in Evals:
-        Tvals.append(wfm.kernel(hblocks, tblocks, tl, E, source));
-    Tvals = np.array(Tvals);
-    
-    # plot Tvals vs E
-    fig, ax = plt.subplots();
-    ax.plot(Evals + 2*tl,Tvals[:,0], label = "up");
-    ax.plot(Evals + 2*tl,Tvals[:,1], label = "down");
-
-    # menezes prediction in the continuous case
-    # all the definitions, vectorized funcs of E
-    kappa = np.lib.scimath.sqrt(Evals);
-    jprime = Jeff/(4*kappa);
-    ax.plot(Evals+2*tl, Jeff*Jeff/(16*(Evals+2*tl)), label = "$J/t$ = "+str(Jeff));
-
-    # format and show
-    ax.set_xlim(Emin+2*tl, Emax+2*tl);
-    plt.legend();
-    plt.show();
+# format overall
+axes[-1].set_xlim(-2,-1.8);
+axes[-1].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
+axes[-1].set_xticklabels(axes[axi].get_xticks(), myprops);
+axes[-1].set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
+plt.tight_layout();
+plt.show();
 
 
 
