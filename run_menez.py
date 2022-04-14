@@ -21,17 +21,30 @@ import matplotlib.pyplot as plt
 
 # top level
 np.set_printoptions(precision = 4, suppress = True);
-colors = ["darkblue","darkgreen","darkred"];
 verbose = 5;
 analytical = True; # whether to compare to menezes' calc
 reflect = False; # whether to get R or T
 
-if True: # S dot S, with or without delta
+# fig standardizing
+from matplotlib.font_manager import FontProperties
+myfontsize = 32;
+myfont = FontProperties()
+myfont.set_family('serif')
+myfont.set_name('Times New Roman')
+myprops = {'family':'serif','name':['Times New Roman'],
+    'weight' : 'roman', 'size' : myfontsize*0.75}
+mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
+mystyles = ["solid", "dashed","dotted","dashdot"];
+mypanels = ["(a)","(b)"];
+mylinewidth = 2.5;
+
+if False: # S dot S, with or without delta
 
     # tight binding params
     tl = 1.0;
     th = 1.0;
     fig, axes = plt.subplots(1,2, sharey = True);
+    fig.set_size_inches(12,6);
     Deltavals = [0,0.05];
     for axi in range(len(axes)):
         Delta = Deltavals[axi];
@@ -78,7 +91,7 @@ if True: # S dot S, with or without delta
 
             # sweep over range of energies
             # def range
-            Emin, Emax = -1.999*tl, -1.999*tl+0.2*tl;
+            Emin, Emax = -1.995*tl, -1.999*tl+0.2*tl;
             Evals = np.linspace(Emin, Emax, 99, dtype = float);
             Tvals, Rvals = [], [];
             for E in Evals:
@@ -91,28 +104,35 @@ if True: # S dot S, with or without delta
                     
             # plot Tvals vs E
             Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-            axes[axi].plot(Evals[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = colors[Ji], linestyle = "dashed", linewidth = 2);
+            axes[axi].plot(Evals[Evals+2*tl > Delta],Tvals[:,flipi][Evals +2*tl > Delta], color = mycolors[Ji], linestyle = "dashed", linewidth = mylinewidth);
             totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
             axes[axi].plot(Evals, totals, color="red", label = "total ");
 
             # menezes prediction in the continuous case
             if(analytical):
-                axes[axi].plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = colors[Ji], linewidth = 2);
+                axes[axi].plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = mycolors[Ji], linewidth = mylinewidth);
 
-        # format and plot
+        # format panel
         axes[axi].set_xlim(-2,-1.8);
-        axes[axi].set_xticks([-2,-1.9,-1.8]);
-        axes[axi].set_xlabel("$E/t$", fontsize = "x-large");
-        axes[axi].set_ylim(0,0.4);
-        axes[axi].set_yticks([0,0.2,0.4]);
-        if(reflect): axes[axi].set_ylabel("$R_{flip}$", fontsize = "x-large");
-        else: axes[axi].set_ylabel("$T_{flip}$", fontsize = "x-large");
+        axes[axi].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
+        axes[axi].set_xticklabels(axes[axi].get_xticks(), myprops);
+        axes[axi].set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
+        axes[axi].set_title(mypanels[axi], fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+        
+    # format overall plot
+    axes[0].set_ylim(0,0.4);
+    axes[0].set_yticks([0,0.2,0.4]);
+    axes[0].set_yticklabels(axes[axi].get_yticks(), myprops);
+    if(reflect): axes[0].set_ylabel("$R_{flip}$", fontsize = "x-large");
+    else: axes[0].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
+    plt.tight_layout();
     plt.show();
 
 
-if False: # full 2 site hubbard treatment (downfolds to S dot S)
+if True: # full 2 site hubbard treatment (downfolds to S dot S)
 
     fig, ax = plt.subplots();
+    fig.set_size_inches(9,8);
     epsilons = [-27.5,-11.3,-5.3];
     for epsi in range(len(epsilons)):
         epsilon = epsilons[epsi];
@@ -161,7 +181,7 @@ if False: # full 2 site hubbard treatment (downfolds to S dot S)
         
         # sweep over range of energies
         # def range
-        Emin, Emax = -1.995*tl, -1.99*tl+0.2*tl;
+        Emin, Emax = -1.99999*tl, -2.0*tl+0.2*tl;
         Evals = np.linspace(Emin, Emax, 99, dtype = complex);
         Tvals, Rvals = [], [];
         for E in Evals:
@@ -170,7 +190,7 @@ if False: # full 2 site hubbard treatment (downfolds to S dot S)
 
         # plot Tvals vs E
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(Evals,Tvals[:,flipi], color = colors[epsi], linestyle = "dashed", linewidth = 2);
+        ax.plot(Evals,Tvals[:,flipi], color = mycolors[epsi], linestyle = "dashed", linewidth = mylinewidth);
         if True: # check that T+R = 1
             totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
             ax.plot(Evals, totals, color="red");
@@ -178,15 +198,18 @@ if False: # full 2 site hubbard treatment (downfolds to S dot S)
 
         # menezes prediction in the continuous case
         if analytical:
-            ax.plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = colors[epsi], linewidth = 2);
+            ax.plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
 
     # format and plot
     ax.set_xlim(-2,-1.8);
-    ax.set_xticks([-2.0,-1.9,-1.8]);
-    ax.set_xlabel("$E/t$", fontsize = "x-large");
+    ax.set_xticks([-2.0,-1.95,-1.9,-1.85,-1.8]);
+    ax.set_xticklabels(ax.get_xticks(), myprops);
+    ax.set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
     ax.set_ylim(0,0.2);
     ax.set_yticks([0,0.1,0.2]);
-    ax.set_ylabel("$T_{flip}$", fontsize = "x-large");
+    ax.set_yticklabels(ax.get_yticks(), myprops);
+    ax.set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
+    plt.tight_layout();
     plt.show();
 
 
