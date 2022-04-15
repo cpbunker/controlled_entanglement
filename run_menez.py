@@ -122,7 +122,7 @@ for axi in range(len(axes)):
         axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
         axes[axi].set_ylim(0,0.4);
         axes[axi].set_yticks([0,0.2,0.4]);
-        axes[axi].set_yticklabels(axes[axi].get_yticks(), myprops);
+        axes[axi].set_yticklabels(axes[axi].get_yticks(), fontdict = myprops);
         axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
     # end iter over panels a and b
 
@@ -197,17 +197,17 @@ for axi in range(len(axes)):
                 axes[axi].plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
 
         # format panel
-        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont); 
         axes[axi].set_ylim(0,0.4);
         axes[axi].set_yticks([0,0.2,0.4]);
-        axes[axi].set_yticklabels(axes[axi].get_yticks(), myprops);
+        axes[axi].set_yticklabels(axes[axi].get_yticks(), fontdict = myprops);
         axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
 
 
 # format overall
 axes[-1].set_xlim(-2,-1.8);
 axes[-1].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
-axes[-1].set_xticklabels(axes[axi].get_xticks(), myprops);
+axes[-1].set_xticklabels(axes[axi].get_xticks(), fontdict = myprops);
 axes[-1].set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
 plt.tight_layout();
 plt.show();
