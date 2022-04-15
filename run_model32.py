@@ -13,13 +13,25 @@ from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import sys
 
 #### top level
 #np.set_printoptions(precision = 4, suppress = True);
 colors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"]
 verbose = 5;
+
+# fig standardizing
+from matplotlib.font_manager import FontProperties
+myfontsize = 24;
+myfont = FontProperties()
+myfont.set_family('serif')
+myfont.set_name('Times New Roman')
+myprops = {'family':'serif','name':['Times New Roman'],
+    'weight' : 'roman', 'size' : myfontsize*0.75}
+mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
+mystyles = ["solid", "dashed","dotted","dashdot"];
+mylinewidth = 2.0;
+mypanels = ["(a)","(b)","(c)"];
 
 #### setup
 
@@ -76,23 +88,20 @@ else:
 #########################################################
 #### generation
 
-if False: # T/Tvs rho J a at diff D
+if False: # T/T vs rho J a at diff D
     
-    fig, ax = plt.subplots();
     Dvals = JK*np.array([-1/100,0,1/100,1/10,1]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJavals = np.linspace(0.05,4.0,9);
-        for rhoi in range(len(rhoJavals)):
+        logElims = -4,-1
+        Evals = np.logspace(*logElims,199);
+        for Eval in Evals:
 
             # energy
-            rhoJa = rhoJavals[rhoi];
-            E_rho = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                    # this E is measured from bottom of band !!!
-            Energy = E_rho - 2*tl; # regular energy
+            Energy = Eval - 2*tl;
             
             # optical distances, N = 2 fixed
             ka = np.arccos((Energy)/(-2*tl));
@@ -134,87 +143,65 @@ if False: # T/Tvs rho J a at diff D
             Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
             Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
          
-        # plot
+        # save data to .npy
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        #ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|i\,>$", color = colors[Di], linestyle = "solid", linewidth = 2);
-        #ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+>$", color = colors[Di], linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[0]]/Tvals[:,sourcei], label = "", color = colors[Di], linestyle = "solid", linewidth = 2);
-        #ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
+        data = np.zeros((2+2*len(source),len(Evals)));
+        data[0,0] = tl;
+        data[0,1] = JK;
+        data[1,:] = Evals;
+        data[2:2+len(source),:] = Tvals.T;
+        data[2+len(source):2+2*len(source),:] = Rvals.T;
+        fname = "data/model32/D"+str(int(D*1000)/1000);
+        print("Saving data to "+fname);
+        np.save(fname, data);
 
-    # format and show
-    ax.set_xlim(0,4);
-    ax.set_xticks([0,2,4]);
-    ax.set_xlabel("$J/\pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-    ax.set_ylim(0,4);
-    ax.set_yticks([0,2,4]);
-    ax.set_ylabel("$T_+/T_0$", fontsize = "x-large");
-    plt.show();
+########################################################################
+#### plot data
+        
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+# open command line file
+datafs = sys.argv[1:];
+fig, axes = plt.subplots(2, sharex = True);
+fig.set_size_inches(7/1.2,6/1.2);
+for fi in range(len(datafs)):
+    dataf = datafs[fi];
+    print("Loading data from "+dataf);
+    data = np.load(dataf);
+    tl = data[0,0];
+    Jeff = data[0,1];
+    xvals = data[1];
+    Tvals = data[2:2+len(source)];
+    Rvals = data[2+len(source):2+2*len(source)];
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    print("- shape xvals = ", np.shape(xvals));
+    print("- shape Tvals = ", np.shape(Tvals));
+    print("- shape Rvals = ", np.shape(Rvals));
 
-    # now do T vs E inset plot
-    if False:
-        axins = inset_axes(ax, width="50%", height="50%");
+    # plot T vs logE
+    axes[0].plot(xvals, Tvals[pair[0]], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
+    axes[0].plot(xvals, totals, color="red");
+    axes[0].set_ylim(0,0.2);
+    axes[0].set_yticks([0,0.2]);
+    axes[0].set_yticklabels(axes[0].get_yticks(), fontdict = myprops);
+    axes[0].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont); 
 
-        rhoJalims = np.array([rhoJavals[0], rhoJavals[-1]]);
-        Elims = J*J/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
-        #print(">>>", rhoJalims, "\n>>>", Evals); assert False;
-        D = Dvals[0];
+    # plot T/T vs logE
+    axes[1].plot(xvals, Tvals[pair[0]]/Tvals[sourcei], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
+    #axes[1].plot(xvals, totals, color="red");
+    axes[1].set_ylim(0,2.0);
+    axes[1].set_yticks([0.0,2.0]);
+    axes[1].set_yticklabels(axes[1].get_yticks(), fontdict = myprops);
+    axes[1].set_ylabel('T_+/T_0', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont); 
 
-        # iter over E, getting T
-        Tvals, Rvals = [], [];
-        for Ei in range(len(Evals)):
+# format
+axes[0].set_title(mypanels[0], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+axes[1].set_title(mypanels[1], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+axes[-1].set_xscale('log');
+axes[-1].set_xlim(10**(-4), 10**(-1));
+axes[-1].set_xlabel('(E+2t)/t', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
+plt.tight_layout();
+plt.show();
 
-            # energy
-            Energy = Evals[Ei]
-            
-            # optical distances, N = 2 fixed
-            ka = np.arccos((Energy)/(-2*tl));
-            Vg = Energy + 2*tl; # gate voltage
-            kpa = np.arccos((Energy-Vg)/(-2*tl));
-            print(ka, kpa, Vg)
-
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = J;
-                elif(j == impis[1]): JK2 = J;
-                params = 0, 0, 0, D, D, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
-                # construct h_SR (determinant basis)
-                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-
-            # T
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
-            
-        # plot
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        axins.plot(Evals,Tvals[:,pair[0]], color = colors[Di], linestyle = "solid", linewidth = 2); # + state
-    
-        axins.set_xlim(-2,-1.6);
-        axins.set_xticks([-2,-1.8,-1.6]);
-        axins.set_xlabel("$E/t$", fontsize = "x-large");
-        axins.set_ylim(0,0.15);
-        axins.set_yticks([0,0.15]);
-        axins.set_ylabel("$T_+$", fontsize = "x-large");
 
 if False: # T/T vs rho J a at diff J12x
     
@@ -293,7 +280,7 @@ if False: # T/T vs rho J a at diff J12x
     plt.show();
     
 
-if True: # T vs E
+if False: # T vs E
 
     # main plot T vs E
     fig, ax = plt.subplots();

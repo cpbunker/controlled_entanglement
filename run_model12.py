@@ -22,7 +22,9 @@ import sys
 
 # top level
 np.set_printoptions(precision = 4, suppress = True);
-verbose = 5
+verbose = 5;
+pair = (1,2);
+sourcei = 4;
 
 # fig standardizing
 from matplotlib.font_manager import FontProperties
@@ -54,8 +56,8 @@ if False: # compare T vs rhoJa for N not fixed
     # iter over E, getting T
     Tvals, Rvals = [], [];
     #rhoJavals = np.linspace(xlims[0], xlims[1], 99);
-    logElims = -5,-1
-    Evals = np.logspace(*logElims,99);
+    logElims = -4,-1
+    Evals = np.logspace(*logElims,199);
     for Eval in Evals:
 
         # energy and K fixed by J, rhoJ
@@ -72,7 +74,7 @@ if False: # compare T vs rhoJa for N not fixed
         # construct hams
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
         i1, i2 = 1, 1+N0;
-        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2);
+        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # get T from this setup
@@ -106,8 +108,8 @@ if False: # compare T vs rhoJa for N=2 fixed
     # iter over E, getting T
     Tvals, Rvals = [], [];
     #rhoJavals = np.linspace(xlims[0], xlims[1], 99);
-    logElims = -5,-1
-    Evals = np.logspace(*logElims,99);
+    logElims = -4,-1
+    Evals = np.logspace(*logElims,199);
     for Eval in Evals:
 
         # energy and K fixed by J, rhoJ
@@ -123,7 +125,7 @@ if False: # compare T vs rhoJa for N=2 fixed
         # construct hams
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
         i1, i2 = 1, 1+N0;
-        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2);
+        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
         hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
         hblocks[2] += Vg*np.eye(len(source));
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -152,7 +154,7 @@ if False: # compare T vs rhoJa for N=2 fixed
 # open command line file
 datafs = sys.argv[1:];
 fig, axes = plt.subplots(len(datafs), sharex = True);
-fig.set_size_inches(7/1.2,9/1.2);
+fig.set_size_inches(7/1.2,6/1.2);
 if( len(datafs)== 1): axes = [axes];
 for fi in range(len(datafs)):
     dataf = datafs[fi];
@@ -163,24 +165,25 @@ for fi in range(len(datafs)):
     xvals = data[1];
     Tvals = data[2:10];
     Rvals = data[10:];
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
     print("- shape xvals = ", np.shape(xvals));
     print("- shape Tvals = ", np.shape(Tvals));
-    print("- shape Rvals = ", np.shape(Rvals));
+    print(np.max(Tvals[pair[0]]))
 
     # plot
-    axes[fi].set_title(mypanels[fi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
-    axes[fi].plot(xvals, Tvals[4],color = "black", linestyle = "solid",linewidth = mylinewidth);
-    axes[fi].plot(xvals, Tvals[1]+Tvals[2], color = "black", linestyle = "dashed", linewidth = 2);
-    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    axes[fi].set_title(mypanels[fi], x=0.05, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont); 
+    axes[fi].plot(xvals, Tvals[sourcei],color = "black", linestyle = "solid",linewidth = mylinewidth);
+    axes[fi].plot(xvals, Tvals[pair[0]], color = "black", linestyle = "dashed", linewidth = mylinewidth);
+    #axes[fi].plot(xvals, Tvals[pair[1]], color = "black", linestyle = "dotted", linewidth = mylinewidth);
     axes[fi].plot(xvals, totals, color="red");
     axes[fi].set_ylim(0,1.0);
     axes[fi].set_yticks([0,1]);
     axes[fi].set_yticklabels(axes[fi].get_yticks(), fontdict = myprops);
     axes[fi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);    
-
+    
 # format
 axes[-1].set_xscale('log');
-axes[-1].set_xlim(10**(-5), 10**(-1));
+axes[-1].set_xlim(10**(-4), 10**(-1));
 #axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)],labels = ["$10^{-5}$","b","c","d","e"]);
 #axes[-1].set_xticklabels(axes[-1].get_xticklabels(), fontdict = myprops);
 axes[-1].set_xlabel('(E+2t)/t', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);

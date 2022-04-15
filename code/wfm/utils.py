@@ -118,7 +118,7 @@ def sweep_param_space(ps, d, n):
 ##################################################################################
 #### functions specific to a model
 
-def h_cicc_eff(J, t, i1, i2, Nsites, Jz = True):
+def h_cicc_eff(J, t, i1, i2, Nsites, pair):
     '''
     Construct tight binding blocks (each block has many body dofs) to implement
     cicc model in quasi many body GF method
@@ -154,7 +154,8 @@ def h_cicc_eff(J, t, i1, i2, Nsites, Jz = True):
                         [0,0,0,0,0,1,0,0],
                         [0,0,0,2,0,0,-1,0],
                         [0,0,0,0,0,0,0,1] ]);
-
+    Se_dot_S1 = entangle(Se_dot_S1,*pair);
+    Se_dot_S2 = entangle(Se_dot_S2,*pair);
     # insert these local interactions
     h_cicc =[];
     for sitei in range(Nsites): # iter over all sites
