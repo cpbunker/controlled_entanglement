@@ -27,17 +27,12 @@ pair = (1,2);
 sourcei = 4;
 
 # fig standardizing
-from matplotlib.font_manager import FontProperties
-myfontsize = 24;
-myfont = FontProperties()
-myfont.set_family('serif')
-myfont.set_name('Times New Roman')
-myprops = {'family':'serif','name':['Times New Roman'],
-    'weight' : 'roman', 'size' : myfontsize*0.75}
+myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mystyles = ["solid", "dashed","dotted","dashdot"];
-mylinewidth = 2.0;
+mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -153,8 +148,8 @@ if False: # compare T vs rhoJa for N=2 fixed
 
 # open command line file
 datafs = sys.argv[1:];
-fig, axes = plt.subplots(len(datafs), sharex = True);
-fig.set_size_inches(7/1.2,6/1.2);
+fig, axes = plt.subplots(1,len(datafs), sharey = True);
+fig.set_size_inches(7/2,6/2);
 if( len(datafs)== 1): axes = [axes];
 for fi in range(len(datafs)):
     dataf = datafs[fi];
@@ -171,24 +166,21 @@ for fi in range(len(datafs)):
     print(np.max(Tvals[pair[0]]))
 
     # plot
-    axes[fi].set_title(mypanels[fi], x=0.05, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont); 
+    axes[fi].set_title(mypanels[fi], x=0.12, y = 0.88);
     axes[fi].plot(xvals, Tvals[sourcei],color = "black", linestyle = "solid",linewidth = mylinewidth);
     axes[fi].plot(xvals, Tvals[pair[0]], color = "black", linestyle = "dashed", linewidth = mylinewidth);
     #axes[fi].plot(xvals, Tvals[pair[1]], color = "black", linestyle = "dotted", linewidth = mylinewidth);
-    axes[fi].plot(xvals, totals, color="red");
-    axes[fi].set_ylim(0,1.0);
-    axes[fi].set_yticks([0,1]);
-    axes[fi].set_yticklabels(axes[fi].get_yticks(), fontdict = myprops);
-    axes[fi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);    
+    #axes[fi].plot(xvals, totals, color="red");
+    axes[fi].set_xscale('log');
+    axes[fi].set_xlim(10**(-4), 10**(-1));
+    axes[fi].set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
     
 # format
-axes[-1].set_xscale('log');
-axes[-1].set_xlim(10**(-4), 10**(-1));
-#axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)],labels = ["$10^{-5}$","b","c","d","e"]);
-#axes[-1].set_xticklabels(axes[-1].get_xticklabels(), fontdict = myprops);
-axes[-1].set_xlabel('(E+2t)/t', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
+axes[0].set_ylim(0,1.0);
+axes[0].set_yticks([0,0.5,1]);
+axes[0].set_ylabel('$T$', fontsize = myfontsize);  
 plt.tight_layout();
-plt.show();
+plt.savefig('model12.pdf');
 
 
 

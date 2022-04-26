@@ -13,13 +13,20 @@ from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import sys
+
 
 #### top level
 #np.set_printoptions(precision = 4, suppress = True);
-plt.style.use("seaborn-dark-palette");
 verbose = 5;
+
+# fig standardizing
+myfontsize = 14;
+mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
+mystyles = ["solid", "dashed","dotted","dashdot"];
+mylinewidth = 1.0;
+mypanels = ["(a)","(b)","(c)"];
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -52,8 +59,8 @@ DT = 0.370;
 # convert to Ha
 print("\n>>>params, in meV:\n",tl, tp, JK, Jx, DO, DT); 
 del th, Ucharge;
-Ha2meV = 27.211386*1000;
-tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
+#Ha2meV = 27.211386*1000;
+#tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
 tl, tp, JK, Jx, Jz, DO, DT= tl/tl, tp/tl, JK/tl, Jx/tl, Jz/tl, DO/tl, DT/tl;
 print("\n>>>params, in tl:\n",tl, tp, JK, Jx, Jz, DO, DT);
 
@@ -82,30 +89,27 @@ if(verbose):
 #########################################################
 #### generation
 
-if True: # fig 6 ie T vs rho J a, with T vs E inset optional
+if False: 
 
-    fig, ax = plt.subplots();
     dummyvals = [0];
     for dummyi in range(len(dummyvals)):
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        rhoJalims = np.array([0.01,4.0]);
-        rhoJavals = np.linspace(rhoJalims[-1], rhoJalims[0], 9);
-        Elims = JK*JK/(rhoJalims*rhoJalims*np.pi*np.pi*tl) - 2*tl;
-        Evals = np.linspace(Elims[-1], Elims[0], len(rhoJavals)); # switched !
-        for rhoi in range(len(rhoJavals)):
+        logElims = -5,-1
+        Evals = np.logspace(*logElims,199);
+        for Eval in Evals:
 
             # energy
-            rhoJa = rhoJavals[rhoi];
-            Energy = JK*JK/(rhoJa*rhoJa*np.pi*np.pi*tl) - 2*tl; # measure from mu
-            ka = np.arccos(Energy/(-2*tl));
-            Vg = Energy + 2*tl;
+            Energy = Eval - 2*tl;
+            
+            # optical distances, N = 2 fixed
+            ka = np.arccos((Energy)/(-2*tl));
+            Vg = Energy + 2*tl; # gate voltage
 
             # construct hblocks
             hblocks = [];
             impis = [1,2];
-            Udiag = 0; # dummy for later
             for j in range(4): # iter over imps
                 # define all physical params
                 JKO, JKT = 0, 0;
@@ -115,20 +119,19 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
-                # entangle, ie basis {|+>, |->, |sigma0>}
-                #hSR_ent = wfm.utils.entangle(hSR, *pair);
-                hSR_ent = hSR
+                hSR_ent = hSR; #  wfm.utils.entangle(hSR, *pair);
                 # make leads diagonal in this basis
-                if(j==0): _, Udiag = np.linalg.eigh(hSR_ent); 
-                print(_);
-                print(Udiag[:,0],"\n", Udiag[:,1],"\n", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); assert False; # diagonalization is in leads only
+                if( j==0): 
+                    eigEs, Udiag = np.linalg.eigh(hSR_ent); 
+                    print("\nLead eigenstates:");
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); 
                 hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
-                if(verbose > 3 and rhoi == 0 and j == 0):
-                    print("\nJKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
-                    print(" - ham:\n", Ha2meV*np.real(hSR));
-                    print(" - ent ham:\n", Ha2meV*np.real(hSR_ent));
-                    print(" - ent hame should be: ",Ha2meV*np.real(DO-DT),Ha2meV*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2 + 1.5*1.5*Jz - 1.5*(Jz-Jx)));
-                    print(" - diag ham:\n", Ha2meV*np.real(hSR_diag));
+                if(verbose > 3 and Eval == Evals[0] and j == 0):
+                    print("\n - JKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
+                    print(" - ham:\n", tl*np.real(hSR));
+                    print(" - ent ham:\n", tl*np.real(hSR_ent));
+                    print(" - ent hame should be: ",tl*np.real(DO-DT),tl*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2 + 1.5*1.5*Jz - 1.5*(Jz-Jx)));
+                    print(" - diag ham:\n", tl*np.real(hSR_diag));
                 # add to blocks list
                 hblocks.append(np.copy(hSR_diag));
 
@@ -139,8 +142,8 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            if(rhoi == 0): print("E_1 - E_sigma0 : ",(hblocks[0][0,0] - hblocks[0][2,2])*Ha2meV);
-            if(rhoi == 0): print("E_2 - E_sigma0 : ",(hblocks[0][1,1] - hblocks[0][2,2])*Ha2meV);
+            if(Eval == Evals[0]): print("E_1 - E_sigma0 : ",(hblocks[0][0,0] - hblocks[0][2,2])*tl);
+            if(Eval == Evals[0]): print("E_2 - E_sigma0 : ",(hblocks[0][1,1] - hblocks[0][2,2])*tl);
             
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
@@ -150,32 +153,58 @@ if True: # fig 6 ie T vs rho J a, with T vs E inset optional
             Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
             Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
             
-        # plot
+        # save data to .npy
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-        ax.plot(rhoJavals, Tvals[:,sourcei], label = "$|\sigma_0>$", color = "black", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[0]], label = "$|+'>$", color = "black", linestyle = "dashed", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,pair[1]], label = "$|-'>$", color = "black", linestyle = "dashdot", linewidth = 2);
-        ax.plot(rhoJavals, Tvals[:,0]+Tvals[:,1]+Tvals[:,2]+Rvals[:,0]+Rvals[:,1]+Rvals[:,2], color = "red");
-        ax.plot(rhoJavals, (Tvals[:,pair[0]]+Tvals[:,pair[1]])/Tvals[:,sourcei], label = "$(T_{+'}+T_{-'})/T_0$", color = "darkblue", linestyle = "solid", linewidth = 2);
+        data = np.zeros((2+2*len(source),len(Evals)));
+        data[0,0] = tl;
+        data[0,1] = JK;
+        data[1,:] = Evals;
+        data[2:2+len(source),:] = Tvals.T;
+        data[2+len(source):2+2*len(source),:] = Rvals.T;
+        fname = "data/cobalt/JK"+str(int(JK*1000)/1000);
+        print("Saving data to "+fname);
+        np.save(fname, data);
 
-        # inset
-        if False:
-            Evals = JK*JK/(rhoJvals*rhoJvals*np.pi*np.pi*tl)-2*tl;
-            axins = inset_axes(ax, width="50%", height="50%");
-            axins.plot(Evals,Tvals[:,pair[0]], color = "darkgreen", linestyle = "dashed", linewidth = 2); # + state
-            axins.set_xlabel("$E/t$", fontsize = "x-large");
-            axins.set_ylim(0,0.2);
-            axins.set_yticks([0,0.2]);
+if True: # plot
 
-        # format and show
-        ax.set_xlim(0,4);
-        ax.set_xticks([0,2,4]);
-        ax.set_xlabel("$J/ \pi \sqrt{t(E+2t)}$", fontsize = "x-large");
-        ax.set_ylim(0,1);
-        ax.set_yticks([0,0.5,1]);
-        ax.set_ylabel("$T$", fontsize = "x-large");
-        #plt.legend();
-        plt.show();
+    # open command line file
+    dataf = sys.argv[1];
+    fig, axes = plt.subplots(2, sharex = True);
+    fig.set_size_inches(7/2,6/2);
+    print("Loading data from "+dataf);
+    data = np.load(dataf);
+    tl = data[0,0];
+    Jeff = data[0,1];
+    xvals = data[1];
+    Tvals = data[2:2+len(source)];
+    Rvals = data[2+len(source):2+2*len(source)];
+    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
+    print("- shape xvals = ", np.shape(xvals));
+    print("- shape Tvals = ", np.shape(Tvals));
+    print("- shape Rvals = ", np.shape(Rvals));
+
+    # plot T vs logE
+    axes[0].plot(xvals, Tvals[pair[0]]+Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[0], linewidth = mylinewidth);  
+    #axes[0].plot(xvals, Tvals[sourcei], color = mycolors[0], linestyle = mystyles[1], linewidth = mylinewidth); 
+    axes[0].plot(xvals, totals, color="red");
+    axes[0].set_ylim(0,0.2);
+    axes[0].set_yticks([0,0.1,0.2]);
+    axes[0].set_ylabel("$T_{+'} + T_{-'}$", fontsize = myfontsize);
+
+    # plot T/T vs logE
+    axes[1].plot(xvals, (Tvals[pair[0]]+Tvals[pair[1]])/Tvals[sourcei], color = mycolors[0], linestyle = mystyles[0], linewidth = mylinewidth);   
+    axes[1].set_ylim(0,2);
+    axes[1].set_yticks([0,1,2]);
+    axes[1].set_ylabel("$(T_{+'} + T_{-'})/T_0$", fontsize = myfontsize); 
+
+    # format
+    axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
+    axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
+    axes[-1].set_xscale('log');
+    axes[-1].set_xlim(10**(-5),10**(-1));
+    axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+    plt.tight_layout();
+    plt.show(); #plt.savefig('cobalt.pdf');
 
 
 #cos(theta) vs DeltaK only

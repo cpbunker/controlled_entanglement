@@ -27,15 +27,16 @@ reflect = False; # whether to get R or T
 
 # fig standardizing
 from matplotlib.font_manager import FontProperties
-myfontsize = 24;
+myfontsize = 14;
 myfont = FontProperties()
 myfont.set_family('serif')
 myfont.set_name('Times New Roman')
 myprops = {'family':'serif','name':['Times New Roman'],
-    'weight' : 'roman', 'size' : myfontsize*0.75}
+    'weight' : 'roman', 'size' : myfontsize}
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mystyles = ["solid", "dashed","dotted","dashdot"];
-mylinewidth = 2.0;
+mylinewidth = 1.0;
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # plotting
 # panels: (a) S dot S, Delta = 0 (b) S dot S, Delta \neq 0 (c) derived
@@ -44,7 +45,7 @@ mylinewidth = 2.0;
 tl = 1.0;
 th = 1.0;
 fig, axes = plt.subplots(3, sharex = True);
-fig.set_size_inches(7/1.2,9/1.2);
+fig.set_size_inches(7/2,9/2);
 
 # iter over panels a, b, b
 mypanels = ["(a)","(b)","(c)"];
@@ -119,11 +120,10 @@ for axi in range(len(axes)):
                 axes[axi].plot(Evals, Jeff*Jeff/(16*(Evals+2*tl)), color = mycolors[Ji], linewidth = mylinewidth);
 
         # format panel
-        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont);
+        axes[axi].set_title(mypanels[axi], x=0.93, y = 0.7, fontsize = myfontsize);
         axes[axi].set_ylim(0,0.4);
         axes[axi].set_yticks([0,0.2,0.4]);
-        axes[axi].set_yticklabels(axes[axi].get_yticks(), fontdict = myprops);
-        axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
+        axes[axi].set_ylabel('$T$', fontsize = myfontsize );
     # end iter over panels a and b
 
     # panel c
@@ -197,20 +197,18 @@ for axi in range(len(axes)):
                 axes[axi].plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
 
         # format panel
-        axes[axi].set_title(mypanels[axi], x=0.95, y = 0.8, fontsize = 0.75*myfontsize, fontweight = "roman", fontproperties = myfont); 
+        axes[axi].set_title(mypanels[axi], x=0.93, y = 0.7, fontsize = myfontsize); 
         axes[axi].set_ylim(0,0.4);
         axes[axi].set_yticks([0,0.2,0.4]);
-        axes[axi].set_yticklabels(axes[axi].get_yticks(), fontdict = myprops);
-        axes[axi].set_ylabel('T', fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont );
+        axes[axi].set_ylabel('$T$', fontsize = myfontsize );
 
 
 # format overall
 axes[-1].set_xlim(-2,-1.8);
 axes[-1].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
-axes[-1].set_xticklabels(axes[axi].get_xticks(), fontdict = myprops);
-axes[-1].set_xlabel("E/t", fontsize = myfontsize, fontweight = "roman", fontstyle = "italic", fontproperties = myfont);
+axes[-1].set_xlabel("$E/t$", fontsize = myfontsize);
 plt.tight_layout();
-plt.show();
+plt.savefig('menez_all.pdf');
 
 
 
