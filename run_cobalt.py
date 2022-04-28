@@ -45,9 +45,9 @@ dets52 = [[0,2,7],[0,3,6],[1,2,6]]; # total spin 5/2 subspace
 # params, all in units meV
 tl = 100;
 tp = 100;
-th = tl/5;
+th = tl/4;
 Ucharge = 1000;
-JK = 8*th*th/Ucharge;
+JK = 4*th*th/Ucharge;
 
 # Ab initio params, in meV:
 Ha2meV = 27.211386*1000; # 1 hartree is 27 eV
@@ -96,7 +96,7 @@ if False:
 
         # iter over rhoJ, getting T
         Tvals, Rvals = [], [];
-        logElims = -5,-1
+        logElims = -6,-1
         Evals = np.logspace(*logElims,199);
         for Eval in Evals:
 
@@ -187,8 +187,8 @@ if True: # plot
     axes[0].plot(xvals, Tvals[pair[0]]+Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[0], linewidth = mylinewidth);  
     #axes[0].plot(xvals, Tvals[sourcei], color = mycolors[0], linestyle = mystyles[1], linewidth = mylinewidth); 
     axes[0].plot(xvals, totals, color="red");
-    axes[0].set_ylim(0,0.2);
-    axes[0].set_yticks([0,0.1,0.2]);
+    axes[0].set_ylim(0,0.1);
+    axes[0].set_yticks([0,0.05,0.1]);
     axes[0].set_ylabel("$T_{+'} + T_{-'}$", fontsize = myfontsize);
 
     # plot T/T vs logE
@@ -201,10 +201,11 @@ if True: # plot
     axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
     axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
     axes[-1].set_xscale('log');
-    axes[-1].set_xlim(10**(-5),10**(-1));
+    axes[-1].set_xlim(10**(-6), 10**(-1));
+    axes[-1].set_xticks([10**(-6),10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
     axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
     plt.tight_layout();
-    plt.show(); #plt.savefig('cobalt.pdf');
+    plt.savefig('cobalt.pdf');
 
 
 #cos(theta) vs DeltaK only

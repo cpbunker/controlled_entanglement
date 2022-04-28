@@ -150,7 +150,7 @@ if False: # T/T vs rho J a at diff D
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if False:
+if True:
 
     # open command line file
     datafs = sys.argv[1:];
@@ -187,8 +187,9 @@ if False:
     # format
     axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
     axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[-1].set_xscale('log');
+    axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(-5),10**(-1));
+    axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
     axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('model32.pdf');
@@ -296,7 +297,7 @@ if False:
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if True:
+if False:
 
     # open command line file
     datafs = sys.argv[1:];
@@ -333,9 +334,9 @@ if True:
     # format
     axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
     axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[-1].set_xscale('log');
-    #axes[-1].set_xlim(10**(-5), 10**(-1));
-    #axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+    axes[-1].set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
+    axes[-1].set_xlim(10**(-5), 10**(-1));
+    axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
     axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('model32_broken.pdf');
