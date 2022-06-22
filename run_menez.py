@@ -102,7 +102,7 @@ for axi in range(len(axes)):
             Evals = np.linspace(Emin, Emax, 99, dtype = float);
             Tvals, Rvals = [], [];
             for E in Evals:
-                if(E in Evals[:3]): # verbose
+                if(E in Evals[:1]): # verbose
                     Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, verbose = verbose));
                     Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source, reflect = True));
                 else:

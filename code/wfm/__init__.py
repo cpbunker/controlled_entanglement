@@ -15,16 +15,21 @@ import numpy as np
 ##################################################################################
 #### driver of transmission coefficient calculations
 
-def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
+def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug = True):
     '''
     coefficient for a transmitted up and down electron
-    h, array, block hamiltonian matrices
-    tnn, array, nearest neighbor block hopping matrices
-    tnnn, array, next nearest neighbor block hopping matrices
-    tl, float, hopping in leads, not necessarily same as hopping on/off SR
+    Args
+    -h, array, block hamiltonian matrices
+    -tnn, array, nearest neighbor block hopping matrices
+    -tnnn, array, next nearest neighbor block hopping matrices
+    -tl, float, hopping in leads, not necessarily same as hopping on/off SR
         or within SR which is defined by th matrices
-    E, float, energy of the incident electron
-    Ajsigma, incident particle amplitude at site 0 in spin channel j
+    -E, float, energy of the incident electron
+    -Ajsigma, incident particle amplitude at site 0 in spin channel j
+    Optional args
+    -reflect, whether to return reflection or transmission coefs
+    -verbose, how much printing to do
+    -all_debug, whether to enforce a bunch of extra assert statements
     '''
 
     # check input types
@@ -37,8 +42,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
     # check that lead hams are diagonal
     for hi in [0, -1]: # LL, RL
         isdiag = h[hi] - np.diagflat(np.diagonal(h[hi])); # subtract off diag
-        if( np.any(isdiag)): # True if there are nonzero off diag terms
-            #pass
+        if(all_debug and np.any(isdiag)): # True if there are nonzero off diag terms
             raise Exception("Not diagonal\n"+str(h[hi]))
     for i in range(len(Ajsigma)): # always set incident mu = 0
         if(Ajsigma[i] != 0):
@@ -50,8 +54,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
     sigma0 = -1; # incident spin channel
     for sigmai in range(len(Ajsigma)): # find incident spin channel and check that there is only one
         if(Ajsigma[sigmai] != 0):
-            if(sigma0 != -1): # then there was already a nonzero element, bad
-                #pass;
+            if(all_debug and sigma0 != -1): # then there was already a nonzero element, bad
                 raise(Exception("Ajsigma has too many nonzero elements:\n"+str(Ajsigma)));
             else: sigma0 = sigmai;
     assert(sigma0 != -1);
@@ -93,8 +96,8 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0):
         # benchmarking
         if(verbose > 1):
             print(" - sigmai = ",sigmai,", T = ",T,", R = ",R);
-        #if( abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real"));
-        #if( abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
+        if(all_debug and abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real")); # have to comment out if E < barrier
+        if(all_debug and abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
 
         # return var
         if(reflect): # want R
@@ -109,10 +112,10 @@ def Hmat(h, tnn, tnnn, verbose = 0):
     '''
     Make the hamiltonian H for N+2 x N+2 system
     where there are N sites in the scattering region (SR), 1 LL site, 1 RL site
-
-    h, array, on site blocks at each of the N+2 sites of the system
-    tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
-    tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
+    Args
+    -h, array, on site blocks at each of the N+2 sites of the system
+    -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
+    -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
     '''
 
     # unpack
@@ -165,11 +168,11 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
     '''
     Make H' (hamiltonian + self energy) for N+2 x N+2 system
     where there are N sites in the scattering region (SR).
-
-    h, array, on site blocks at each of the N+2 sites of the system
-    tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
-    tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
-    tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
+    Args
+    -h, array, on site blocks at each of the N+2 sites of the system
+    -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
+    -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
+    -tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
     '''
 
     # unpack
@@ -220,9 +223,6 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
         for sigmai in range(len(ka_L)):
             print(" - sigmai = ",sigmai,", v_L = ", v_L[sigmai],"v_R = ",v_R[sigmai]);
             print(" - sigmai = ",sigmai,", Sigma_L = ", SigmaLs[sigmai],"Sigma_R = ",SigmaRs[sigmai]);
-        if False:
-            print(" - sigmai = ",sigmai,", ka_L = ", ka_L[sigmai],", KE_L = ", 2*tl-2*tl*np.cos(ka_L[sigmai]),", Sigma_L = ", SigmaLs[sigmai]);
-            print(" - sigmai = ",sigmai,", ka_R = ", ka_R[sigmai],", KE_R = ", 2*tl-2*tl*np.cos(ka_R[sigmai]),", Sigma_R = ", SigmaRs[sigmai]);              #
 
     return Hp;
 
@@ -230,11 +230,12 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
 def Green(h, tnn, tnnn, tl, E, verbose = 0):
     '''
     Greens function for system described by
-    h, array, on site blocks at each of the N+2 sites of the system
-    tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
-    tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
-    tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
-    E, float, incident energy
+    Args
+    -h, array, on site blocks at each of the N+2 sites of the system
+    -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
+    -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
+    -tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
+    -E, float, incident energy
     '''
 
     # unpack
