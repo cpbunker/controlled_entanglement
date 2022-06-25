@@ -25,7 +25,7 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mystyles = ["solid", "dashed","dotted","dashdot"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -150,7 +150,7 @@ if False: # T/T vs rho J a at diff D
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if True:
+if False:
 
     # open command line file
     datafs = sys.argv[1:];
@@ -198,6 +198,26 @@ if True:
 #########################################################
 #### symmetry breaking
 
+def get_VNE(col_vec):
+    a, b, c = col_vec[0], col_vec[1], col_vec[2];
+    print("\n",40*"*");
+    if(abs(c) > 1e-10): return;
+
+    import qiskit.quantum_info as qi
+    # create unperturbed +, - states
+    plus_sv = qi.Statevector([0,1/np.sqrt(2),1/np.sqrt(2),0]);
+    minus_sv = qi.Statevector([0,1/np.sqrt(2),-1/np.sqrt(2),0]);
+
+    # create this state
+    my_sv = a*plus_sv + b*minus_sv;
+    my_sv = my_sv/my_sv.inner(my_sv); # normalize
+    print(' -> ',my_sv.to_dict())
+
+    # VNE
+    rho0 = qi.partial_trace(my_sv,[1]);
+    VNE = qi.entropy(rho0);
+    print(' -> ',VNE);
+    
 if False: 
 
     # symmetry breaking
@@ -232,7 +252,7 @@ if False:
             del h1e_0, g2e_0, hSR_0;
 
             # von Neumann entropy
-            if True:
+            if False:
                 dummy = 2*DeltaD/(3*J12)
                 alpha = (1+np.sqrt(1+dummy*dummy));
                 beta = dummy;
@@ -243,7 +263,11 @@ if False:
                 rho1_log2 = np.diagflat(np.log2(np.diagonal(rho1))); # since it is diagonal, log operation can be vectorized
                 VNE = -np.trace(np.dot(rho1,rho1_log2));
                 print(">>> VNE = ",VNE);
-                #assert False 
+                #assert False
+            if(Eval == Evals[0]):
+                for coli in range(len(Udiag)):
+                    get_VNE(Udiag[:,coli]);
+                #assert False;
 
             # construct hblocks
             hblocks = [];
@@ -297,7 +321,7 @@ if False:
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if False:
+if True:
 
     # open command line file
     datafs = sys.argv[1:];

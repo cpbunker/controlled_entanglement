@@ -85,11 +85,12 @@ if(verbose):
         pair_str += ">";
         print(pair_str);
         pair_strs.append(pair_str);
+        
             
 #########################################################
 #### generation
 
-if False: 
+if True: 
 
     dummyvals = [0];
     for dummyi in range(len(dummyvals)):
@@ -124,7 +125,10 @@ if False:
                 if( j==0): 
                     eigEs, Udiag = np.linalg.eigh(hSR_ent); 
                     print("\nLead eigenstates:");
-                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); 
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2));
+                    # find von neuman entropy
+                    #for coli in [1,0]: get_VNE(Udiag[:,coli]);
+                    assert False;
                 hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
                 if(verbose > 3 and Eval == Evals[0] and j == 0):
                     print("\n - JKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
@@ -165,7 +169,7 @@ if False:
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if True: # plot
+if False: # plot
 
     # open command line file
     dataf = sys.argv[1];
@@ -206,6 +210,24 @@ if True: # plot
     axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('cobalt.pdf');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #cos(theta) vs DeltaK only

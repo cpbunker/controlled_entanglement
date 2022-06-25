@@ -52,9 +52,9 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug
     assert( isinstance(Ajsigma, np.ndarray));
     assert( len(Ajsigma) == np.shape(h[0])[0] );
     sigma0 = -1; # incident spin channel
-    for sigmai in range(len(Ajsigma)): # find incident spin channel and check that there is only one
+    for sigmai in range(len(Ajsigma)): # ensure there is only one incident spin config
         if(Ajsigma[sigmai] != 0):
-            if(all_debug and sigma0 != -1): # then there was already a nonzero element, bad
+            if( sigma0 != -1): # then there was already a nonzero element, bad
                 raise(Exception("Ajsigma has too many nonzero elements:\n"+str(Ajsigma)));
             else: sigma0 = sigmai;
     assert(sigma0 != -1);
