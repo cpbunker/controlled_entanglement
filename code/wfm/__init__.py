@@ -64,7 +64,6 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug
     n_loc_dof = np.shape(h[0])[0];
 
     # determine velocities in the left, right leads
-    v_L, v_R = np.zeros_like(Ajsigma), np.zeros_like(Ajsigma)
     ka_L = np.arccos((E-np.diagonal(h[0]))/(-2*tl)); # vector_sigma
     ka_R = np.arccos((E-np.diagonal(h[-1]))/(-2*tl));
     v_L = 2*tl*np.sin(ka_L); # a/hbar defined as 1
