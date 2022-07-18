@@ -88,7 +88,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N=2 fixed
+if True: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -169,7 +169,7 @@ for fi in range(len(datafs)):
     axes[fi].plot(xvals, Tvals[sourcei],color = "black", linestyle = "solid",linewidth = mylinewidth);
     axes[fi].plot(xvals, Tvals[pair[0]], color = "black", linestyle = "dashed", linewidth = mylinewidth);
     #axes[fi].plot(xvals, Tvals[pair[1]], color = "black", linestyle = "dotted", linewidth = mylinewidth);
-    #axes[fi].plot(xvals, totals, color="red");
+    axes[fi].plot(xvals, totals, color="red");
     axes[fi].set_xscale('log', subs = []);
     axes[fi].set_xlim(10**(-4), 10**(-1));
     axes[fi].set_xticks([10**(-4),10**(-3),10**(-2),10**(-1)])
@@ -180,7 +180,8 @@ axes[0].set_ylim(0,1.0);
 axes[0].set_yticks([0,0.5,1]);
 axes[0].set_ylabel('$T$', fontsize = myfontsize);  
 plt.tight_layout();
-plt.savefig('model12.pdf');
+plt.show();
+#plt.savefig('model12.pdf');
 
 
 

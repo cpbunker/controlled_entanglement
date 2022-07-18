@@ -49,7 +49,7 @@ fig.set_size_inches(7/2,9/2);
 
 # iter over panels a, b, b
 mypanels = ["(a)","(b)","(c)"];
-Deltavals = [0,0.05];
+Deltavals = [0,0.0];
 for axi in range(len(axes)):
 
     # panels a and b
@@ -178,7 +178,7 @@ for axi in range(len(axes)):
             # sweep over range of energies
             # def range
             Emin, Emax = -1.99999*tl, -2.0*tl+0.2*tl;
-            Evals = np.linspace(Emin, Emax, 99, dtype = complex);
+            Evals = np.linspace(Emin, Emax, 99, dtype = complex); # must be complex
             Tvals, Rvals = [], [];
             for E in Evals:
                 Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, E, source));
@@ -186,15 +186,15 @@ for axi in range(len(axes)):
 
             # plot Tvals vs E
             Tvals, Rvals = np.array(Tvals), np.array(Rvals);
-            axes[axi].plot(Evals,Tvals[:,flipi], color = mycolors[epsi], linestyle = "dashed", linewidth = mylinewidth);
+            axes[axi].plot(np.real(Evals),Tvals[:,flipi], color = mycolors[epsi], linestyle = "dashed", linewidth = mylinewidth);
             if True: # check that T+R = 1
                 totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-                axes[axi].plot(Evals, totals, color="red");
+                axes[axi].plot(np.real(Evals), totals, color="red");
                 #for Ti in range(np.shape(Tvals)[1]): ax.plot(Evals, Tvals[:,Ti], label = Ti)
 
             # menezes prediction in the continuous case
             if analytical:
-                axes[axi].plot(Evals, Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
+                axes[axi].plot(np.real(Evals), Jeff*Jeff/(16*(np.real(Evals)+2*tl)), color = mycolors[epsi], linewidth = mylinewidth);
 
         # format panel
         axes[axi].set_title(mypanels[axi], x=0.93, y = 0.7, fontsize = myfontsize); 
@@ -208,7 +208,8 @@ axes[-1].set_xlim(-2,-1.8);
 axes[-1].set_xticks([-2,-1.95,-1.9,-1.85,-1.8]);
 axes[-1].set_xlabel("$E/t$", fontsize = myfontsize);
 plt.tight_layout();
-plt.savefig('menez_all.pdf');
+plt.show();
+#plt.savefig('menez_all.pdf');
 
 
 
