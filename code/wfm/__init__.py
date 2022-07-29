@@ -15,7 +15,7 @@ import numpy as np
 ##################################################################################
 #### driver of transmission coefficient calculations
 
-def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug = True):
+def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
     '''
     coefficient for a transmitted up and down electron
     Args
@@ -27,9 +27,11 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug
     -E, float, energy of the incident electron
     -Ajsigma, incident particle amplitude at site 0 in spin channel j
     Optional args
-    -reflect, whether to return reflection or transmission coefs
     -verbose, how much printing to do
     -all_debug, whether to enforce a bunch of extra assert statements
+
+    Returns
+    tuple of R coefs (vector of floats for each sigma) and T coefs (likewise)
     '''
     if(not isinstance(h, np.ndarray)): raise TypeError;
     if(not isinstance(tnn, np.ndarray)): raise TypeError;
@@ -80,7 +82,8 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug
                                     # still has 1 free spatial, spin index for transmitted
 
     # compute reflection and transmission coeffs
-    coefs = np.zeros(n_loc_dof, dtype = float);
+    Rs = np.zeros(n_loc_dof, dtype = float); # force as float bc we check that imag part is tiny
+    Ts = np.zeros(n_loc_dof, dtype = float); 
     for sigma in range(n_loc_dof): # iter over spin dofs
 
         # T given in my manuscript as Eq 20
@@ -92,16 +95,16 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, reflect = False, verbose = 0, all_debug
         # benchmarking
         if(verbose > 1): print(" - sigma = "+str(sigma)+",   T = {:.4f}+{:.4f}j, R = {:.4f}+{:.4f}j"
                                .format(np.real(T), np.imag(T), np.real(R), np.imag(R)));
-        if(all_debug and abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real")); # have to comment out if E < barrier
+        # check that the imag part is tiny
+        # fails if E < barrier (evanescent)
+        if(all_debug and abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real")); 
         if(all_debug and abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
 
-        # return var
-        if(reflect): # want R
-            coefs[sigma] = np.real(R);
-        else: # want T
-            coefs[sigma] = np.real(T);
-
-    return coefs;
+        # in view of passing the above check, can drop the imag part
+        Rs[sigma] = R;
+        Ts[sigma] = T;
+    
+    return Rs, Ts;
 
 
 def Hmat(h, tnn, tnnn, verbose = 0):
