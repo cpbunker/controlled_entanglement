@@ -84,7 +84,7 @@ else:
 
 if False: # T/T vs rho J a at diff D
     
-    Dvals = JK*np.array([-1/100,0,1/100,1/10,1]);
+    Dvals = JK*np.array([-1/1000,0,1/1000,1/100,1/10]);
     for Di in range(len(Dvals)):
         D = Dvals[Di];
 
@@ -135,8 +135,8 @@ if False: # T/T vs rho J a at diff D
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # T
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
+            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False));
+            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True, all_debug = False));
          
         # save data to .npy
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
@@ -150,7 +150,7 @@ if False: # T/T vs rho J a at diff D
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if False:
+if True:
 
     # open command line file
     datafs = sys.argv[1:];
@@ -171,18 +171,34 @@ if False:
         print("- shape Rvals = ", np.shape(Rvals));
 
         # plot T vs logE
-        axes[0].plot(xvals, Tvals[pair[0]], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
+        #fig, axes = plt.subplots(2, sharex = True);
+        axes[0].plot(xvals, Tvals[pair[0]], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth); 
         axes[0].plot(xvals, totals, color="red");
         axes[0].set_ylim(0,0.2);
         axes[0].set_yticks([0,0.1,0.2]);
         axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
+        if False:
+            axes[0].plot(xvals, Rvals[pair[0]], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
+            axes[-1].set_xscale('log', subs = []);
+            axes[-1].set_xlim(10**(-5),10**(-1));
+            axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+            axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+            #plt.tight_layout();
+            #plt.show();
 
         # plot T/T vs logE
         axes[1].plot(xvals, Tvals[pair[0]]/Tvals[sourcei], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
-        #axes[1].plot(xvals, totals, color="red");
         axes[1].set_ylim(0,8);
         axes[1].set_yticks([0,4,8]);
-        axes[1].set_ylabel('$T_+/T_0$', fontsize = myfontsize); 
+        axes[1].set_ylabel('$T_+/T_i$', fontsize = myfontsize);
+        if False:
+            axes[1].plot(xvals, Rvals[pair[0]]/Rvals[sourcei], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
+            axes[-1].set_xscale('log', subs = []);
+            axes[-1].set_xlim(10**(-5),10**(-1));
+            axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+            axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+            plt.tight_layout();
+            plt.show();
 
     # format
     axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
@@ -192,7 +208,8 @@ if False:
     axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
     axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('model32.pdf');
+    plt.show();
+    #plt.savefig('model32.pdf');
 
 
 #########################################################
@@ -321,7 +338,7 @@ if False:
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if True:
+if False:
 
     # open command line file
     datafs = sys.argv[1:];
