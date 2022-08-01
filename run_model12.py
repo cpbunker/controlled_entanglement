@@ -88,7 +88,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N fixed
+if True: # compare T vs rhoJa for N fixed
 
     # siam inputs
     tl = 1.0;
@@ -99,7 +99,7 @@ if False: # compare T vs rhoJa for N fixed
     source[4] = 1;
     spinstate = "baa";
 
-    for DeltaVg in tl*np.array([1,1.5,2,2.5,3]):
+    for DeltaVg in [2*tl]: #tl*np.array([1,1.5,2,2.5,3]):
 
         # iter over E, getting T
         logElims = -5,-1
