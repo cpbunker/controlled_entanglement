@@ -32,7 +32,7 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mystyles = ["solid", "dashed","dotted","dashdot"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -88,7 +88,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if True: # compare T vs rhoJa for N fixed
+if False: # compare T vs rhoJa for N fixed
 
     # siam inputs
     tl = 1.0;
@@ -177,6 +177,8 @@ if False:
 
 #### plot cicc-like data
 if True:
+    fig = plt.figure();
+    fig.set_size_inches(7/2,6/2);
     dataf = sys.argv[1];
     print("Loading data from "+dataf);
     data = np.load(dataf);
@@ -201,7 +203,9 @@ if True:
     insax.plot(xvals, Tvals[pair[1]],color = mycolors[2],linewidth = mylinewidth);
     insax.set_xscale('log', subs = []);
     insax.set_xlim(10**(-5), 10**(-1));
-    insax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+    insax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+    #insax.set_xticklabels([]);
+    insax.ticklabel_format(axis='y',style='sci',scilimits=(0,0));
     insax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
 
     # format
@@ -211,9 +215,11 @@ if True:
     mainax.set_ylim(0,1.0);
     mainax.set_yticks([0,0.5,1]);
     mainax.set_ylabel('$T$', fontsize = myfontsize);
-    insax.set_ylim(0,2*10**(-3));
-    insax.set_yticks([0,10**(-3),2*10**(-3)]);
+    mainax.set_title(mypanels[0], x=0.07, y = 0.8, fontsize = myfontsize);
+    insax.set_ylim(0,2.0*10**(-3));
+    insax.set_yticks([0,2.5*10**(-3)]);
     insax.set_ylabel('$T_-$', fontsize = myfontsize);  
+    insax.set_title(mypanels[1], x=0.07, y = 0.45, fontsize = myfontsize);
     plt.tight_layout();
     plt.show();
     #plt.savefig('model12.pdf');

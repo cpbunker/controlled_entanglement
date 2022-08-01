@@ -154,8 +154,9 @@ def h_cicc_eff(J, t, i1, i2, Nsites, pair):
                         [0,0,0,0,0,1,0,0],
                         [0,0,0,2,0,0,-1,0],
                         [0,0,0,0,0,0,0,1] ]);
-    Se_dot_S1 = entangle(Se_dot_S1,*pair);
-    Se_dot_S2 = entangle(Se_dot_S2,*pair);
+    Se_dot_S1 = entangle(Se_dot_S1,*pair); # verified correct
+    Se_dot_S2 = entangle(Se_dot_S2,*pair); # verified correct
+
     # insert these local interactions
     h_cicc =[];
     for sitei in range(Nsites): # iter over all sites
