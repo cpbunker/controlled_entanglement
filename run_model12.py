@@ -49,20 +49,24 @@ if False: # compare T vs rhoJa for N not fixed
     spinstate = "baa"
 
     # iter over E, getting T
-    Tvals, Rvals = [], [];
     logElims = -4,-1
     Evals = np.logspace(*logElims,199);
-    for Eval in Evals:
+    Rvals = np.empty((len(Evals),len(source)), dtype = float);
+    Tvals = np.empty((len(Evals),len(source)), dtype = float);
+    for Evali in range(len(Evals)):
 
         # energy and K fixed by J, rhoJ
         #E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
                                                 # this E is measured from bottom of band !!!
+
+        # energy
+        Eval = Evals[Evali];
         Energy = Eval - 2*tl;
         
         # location of impurities, fixed by kx0 = pi
-        k_rho = np.arccos(Energy/(-2*tl));
-        kx0 = 1*np.pi;
-        N0 = max(1,int(kx0/(k_rho)));
+        k_rho = np.arccos(Energy/(-2*tl)); # = ka since \varepsilon_0ss = 0
+        kx0 = 2.0*np.pi;
+        N0 = max(1,int(kx0/(k_rho))); #N0 = (N-1)
         print(">>> N0 = ",N0);
 
         # construct hams
@@ -72,23 +76,23 @@ if False: # compare T vs rhoJa for N not fixed
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # get T from this setup
-        Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source));
-        Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, reflect = True));
+        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source);
+        Rvals[Evali] = Rdum;
+        Tvals[Evali] = Tdum;
 
     # save data to .npy
-    Tvals, Rvals = np.array(Tvals), np.array(Rvals);
     data = np.zeros((2+2*len(source),len(Evals)));
     data[0,0] = tl;
     data[0,1] = Jeff;
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T;
     data[10:,:] = Rvals.T;
-    fname = "data/model12/Nx";
+    fname = "data/model12/Nx/"+str(int(kx0*100)/100);
     print("Saving data to "+fname);
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N fixed
+if False: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -99,56 +103,68 @@ if False: # compare T vs rhoJa for N fixed
     source[4] = 1;
     spinstate = "baa";
 
-    for DeltaVg in [2*tl]: #tl*np.array([1,1.5,2,2.5,3]):
+    # iter over E, getting T
+    logElims = -5,-1
+    Evals = np.logspace(*logElims,199);
+    Rvals = np.empty((len(Evals),len(source)), dtype = float);
+    Tvals = np.empty((len(Evals),len(source)), dtype = float);
+    for Evali in range(len(Evals)):
 
-        # iter over E, getting T
-        logElims = -5,-1
-        Evals = np.logspace(*logElims,199);
-        Rvals = np.empty((len(Evals),len(source)), dtype = float);
-        Tvals = np.empty((len(Evals),len(source)), dtype = float);
-        for Evali in range(len(Evals)):
+        # energy and K fixed by J, rhoJ
+        #E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
+                                                # this E is measured from bottom of band !!!
 
-            # energy and K fixed by J, rhoJ
-            #E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                    # this E is measured from bottom of band !!!
+        # energy
+        Eval = Evals[Evali]; # Eval > 0 always
+        Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+        
+        # optical distances, N = 2 fixed
+        N0 = 1; # N0 = N - 1
+        ka = np.arccos((Energy)/(-2*tl));
+        kappaa = 0.0*np.pi;
+        Vg = Energy+2*tl*np.cos(kappaa);
 
-            # energy
-            Eval = Evals[Evali];
-            Energy = Eval - 2*tl;
-            
-            # optical distances, N = 2 fixed
-            ka = np.arccos((Energy)/(-2*tl));
-            #Vg = Energy + 2*tl; # gate voltage
-            Vg = Energy + DeltaVg;
-            N0 = 2;
+        # construct hams
+        # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
+        i1, i2 = 1, N0+1;
+        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
+        hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+        hblocks[2] += Vg*np.eye(len(source));
+        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+        if(verbose > 3 and Eval == Evals[0]): print(hblocks);
 
-            # construct hams
-            # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
-            i1, i2 = 1, 1+N0;
-            hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-            if(verbose > 3 and Eval == Evals[0]): print(hblocks);
+        # get T from this setup
+        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
+        Rvals[Evali] = Rdum;
+        Tvals[Evali] = Tdum;
 
-            # get T from this setup
-            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
-            Rvals[Evali] = Rdum;
-            Tvals[Evali] = Tdum;
-
-        # save data to .npy
-        data = np.zeros((2+2*len(source),len(Evals)));
-        data[0,0] = tl;
-        data[0,1] = Jeff;
-        data[1,:] = Evals;
-        data[2:10,:] = Tvals.T; # 8 spin dofs
-        data[10:,:] = Rvals.T;
-        fname = "data/model12/N"+str(N0)+"_"+str(DeltaVg);
-        print("Saving data to "+fname);
-        np.save(fname, data);
+    # save data to .npy
+    data = np.zeros((2+2*len(source),len(Evals)));
+    data[0,0] = tl;
+    data[0,1] = Jeff;
+    data[1,:] = Evals;
+    data[2:10,:] = Tvals.T; # 8 spin dofs
+    data[10:,:] = Rvals.T;
+    fname = "data/model12/N"+str(N0+1)+"/"+str(int(kappaa*100)/100);
+    print("Saving data to "+fname);
+    np.save(fname, data);
 
 
 ########################################################################
+
+# load data
+def load_data(fname):
+    print("Loading data from "+fname);
+    data = np.load(fname);
+    tl = data[0,0];
+    Jeff = data[0,1];
+    myxvals = data[1];
+    myTvals = data[2:10];
+    myRvals = data[10:];
+    mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
+    print("- shape xvals = ", np.shape(myxvals));
+    print("- shape Tvals = ", np.shape(myTvals));
+    return myxvals, myRvals, myTvals, mytotals;
 
 # figure of merit
 def FOM(Ti,Tp, grid=100000):
@@ -158,21 +174,12 @@ def FOM(Ti,Tp, grid=100000):
     fom = np.trapz(p2vals, thetavals)/np.pi;
     return fom;
 
-#### plot cicc-like data
-if True:
+#### plot T+ like cicc figure
+if False:
     fig = plt.figure();
     fig.set_size_inches(7/2,6/2);
     dataf = sys.argv[1];
-    print("Loading data from "+dataf);
-    data = np.load(dataf);
-    tl = data[0,0];
-    Jeff = data[0,1];
-    xvals = data[1];
-    Tvals = data[2:10];
-    Rvals = data[10:];
-    totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-    print("- shape xvals = ", np.shape(xvals));
-    print("- shape Tvals = ", np.shape(Tvals));
+    xvals, Rvals, Tvals, totals = load_data(dataf);
 
     # plot 3 possibilities
     sigmas = [sourcei,pair[0], pair[1]];
@@ -218,6 +225,56 @@ if True:
     fomax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
     plt.show();
         
+#### plot data at different vals of kx0
+if True:
+    folder = sys.argv[1];
+    myrows, mycols = 3,2;
+    fig, axes = plt.subplots(nrows = myrows, ncols = mycols, sharex = 'col', sharey = 'row'); # cols are T, R
+    sigmas = [pair[0],pair[1],sourcei];
+    nvals = np.array([0,1,1.25,1.5,1.75,2]);
+    for ni in range(len(nvals)):
+        pival = int(np.pi*nvals[ni]*100)/100
+        dataf = "data/model12/"+folder+"/"+str(pival)+".npy";
+        xvals, Rvals, Tvals, totals = load_data(dataf);
+
+        # plot R+, R-, Ri
+        for rowi in range(myrows):
+            axes[rowi,0].plot(xvals, Rvals[sigmas[rowi]], color = mycolors[ni], label = nvals[ni]);
+        #axes[1,0].plot(xvals, Rvals[pair[1]], color = mycolors[ni], label = nvals[ni]);
+        #axes[2,0].plot(xvals, Rvals[sourcei], color = mycolors[ni], label = nvals[ni]);
+
+        # plot T+, T-, Ti
+        for rowi in range(myrows):
+            axes[rowi,1].plot(xvals, Tvals[sigmas[rowi]], color = mycolors[ni], label = nvals[ni]);
+
+        # plot totals
+        axes[-1,-1].plot(xvals, totals, color='red');
+
+    # format
+    stems = ['$R','$T'];
+    subscripts = ['_+$','_-$','_i$'];
+    for coli in range(mycols):
+        axes[-1,coli].set_xscale('log', subs = []);
+        axes[-1,coli].set_xlim(10**(-5), 10**(-1));
+        axes[-1,coli].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+        axes[-1,coli].set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+        axes[-1,coli].legend();
+        for rowi in range(myrows):
+            axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi]);
+    plt.tight_layout();
+    plt.show();
+        
+    
+
+
+
+
+
+
+
+
+
+
 
 
 
