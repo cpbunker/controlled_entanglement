@@ -32,7 +32,7 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mystyles = ["solid", "dashed","dotted","dashdot"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -150,30 +150,13 @@ if False: # compare T vs rhoJa for N fixed
 
 ########################################################################
 
-#### plot T_- / T_+ at different Vg
-if False:
-    fig, ax = plt.subplots();
-    datafs = sys.argv[1:];
-    for datafi in range(len(datafs)):
-        dataf = datafs[datafi];
-        print("Loading data from "+dataf);
-        data = np.load(dataf);
-        tl = data[0,0];
-        Jeff = data[0,1];
-        xvals = data[1];
-        Tvals = data[2:10];
-        Rvals = data[10:];
-        #ax.plot(xvals, Tvals[pair[1]]/Tvals[pair[0]],color = mycolors[datafi],linewidth = mylinewidth);
-        ax.plot(xvals, Tvals[pair[1]],color = mycolors[datafi],linewidth = mylinewidth);
-        ax.set_xscale('log', subs = []);
-        ax.set_xlim(10**(-5), 10**(-1));
-        ax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+# figure of merit
+def FOM(Ti,Tp, grid=100000):
 
-    # format
-    ax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
-    ax.set_ylabel('$T$', fontsize = myfontsize);  
-    plt.tight_layout();
-    plt.show();
+    thetavals = np.linspace(0,np.pi,grid);
+    p2vals = Ti*Tp/(Tp*np.cos(thetavals)*np.cos(thetavals)+Ti*np.sin(thetavals)*np.sin(thetavals));
+    fom = np.trapz(p2vals, thetavals)/np.pi;
+    return fom;
 
 #### plot cicc-like data
 if True:
@@ -204,7 +187,6 @@ if True:
     insax.set_xscale('log', subs = []);
     insax.set_xlim(10**(-5), 10**(-1));
     insax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-    #insax.set_xticklabels([]);
     insax.ticklabel_format(axis='y',style='sci',scilimits=(0,0));
     insax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
 
@@ -224,8 +206,48 @@ if True:
     plt.show();
     #plt.savefig('model12.pdf');
 
+    # fom zoom in
+    fig, fomax = plt.subplots();
+    fomvals = np.empty_like(xvals);
+    for xi in range(len(xvals)):
+        fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
+    fomax.plot(xvals, fomvals);
+    fomax.set_xscale('log', subs = []);
+    fomax.set_xlim(10**(-5), 10**(-1));
+    fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+    fomax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+    plt.show();
+        
 
 
+
+
+
+
+#### plot T_- / T_+ at different Vg
+if False:
+    fig, ax = plt.subplots();
+    datafs = sys.argv[1:];
+    for datafi in range(len(datafs)):
+        dataf = datafs[datafi];
+        print("Loading data from "+dataf);
+        data = np.load(dataf);
+        tl = data[0,0];
+        Jeff = data[0,1];
+        xvals = data[1];
+        Tvals = data[2:10];
+        Rvals = data[10:];
+        #ax.plot(xvals, Tvals[pair[1]]/Tvals[pair[0]],color = mycolors[datafi],linewidth = mylinewidth);
+        ax.plot(xvals, Tvals[pair[1]],color = mycolors[datafi],linewidth = mylinewidth);
+        ax.set_xscale('log', subs = []);
+        ax.set_xlim(10**(-5), 10**(-1));
+        ax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+
+    # format
+    ax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+    ax.set_ylabel('$T$', fontsize = myfontsize);  
+    plt.tight_layout();
+    plt.show();
 
 #### plot data side by side
 if False:
