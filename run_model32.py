@@ -176,7 +176,7 @@ if True:
         axes[0].plot(xvals, totals, color="red");
         axes[0].set_ylim(0,0.2);
         axes[0].set_yticks([0,0.1,0.2]);
-        axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
+        axes[0].set_ylabel('$T_+$', fontsize = myfontsize,rotation = "horizontal");
         if False:
             axes[0].plot(xvals, Rvals[pair[0]], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
             axes[-1].set_xscale('log', subs = []);
@@ -190,7 +190,7 @@ if True:
         axes[1].plot(xvals, Tvals[pair[0]]/Tvals[sourcei], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
         axes[1].set_ylim(0,8);
         axes[1].set_yticks([0,4,8]);
-        axes[1].set_ylabel('$T_+/T_i$', fontsize = myfontsize);
+        axes[1].set_ylabel('$T_+/T_i$', fontsize = myfontsize,rotation = "horizontal");
         if False:
             axes[1].plot(xvals, Rvals[pair[0]]/Rvals[sourcei], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
             axes[-1].set_xscale('log', subs = []);
@@ -363,14 +363,14 @@ if False:
         axes[0].plot(xvals, totals, color="red");
         axes[0].set_ylim(0,0.1);
         axes[0].set_yticks([0,0.05,0.1]);
-        axes[0].set_ylabel("$T_{-'}$", fontsize = myfontsize);
+        axes[0].set_ylabel("$T_{-'}$", fontsize = myfontsize, rotation = "horizontal");
 
         # plot T/T vs logE
         axes[1].plot(xvals, Tvals[pair[0]]/Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[fi], linewidth = mylinewidth);   
         #axes[1].plot(xvals, totals, color="red");
         axes[1].set_ylim(0,1.0);
         axes[1].set_yticks([0,0.5,1.0]);
-        axes[1].set_ylabel("$T_{+'}/T_{-'}$", fontsize = myfontsize); 
+        axes[1].set_ylabel("$T_{+'}/T_{-'}$", fontsize = myfontsize,rotation = "horizontal"); 
 
     # format
     axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);

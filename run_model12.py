@@ -18,6 +18,7 @@ from code.wfm import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm
 import sys
 
 # top level
@@ -29,6 +30,7 @@ sourcei = 4;
 # fig standardizing
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
+mymarkers = ["o","^","s","d","X","P","*"];
 mystyles = ["solid", "dashed","dotted","dashdot"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
@@ -166,67 +168,73 @@ def load_data(fname):
     print("- shape Tvals = ", np.shape(myTvals));
     return myxvals, myRvals, myTvals, mytotals;
 
+# p2
+def p2(Ti,Tp,theta):
+    assert isinstance(Ti,float) and isinstance(Tp,float); # vectorized in thetas only
+    return Ti*Tp/(Tp*np.cos(theta/2)*np.cos(theta/2)+Ti*np.sin(theta/2)*np.sin(theta/2));
+
 # figure of merit
 def FOM(Ti,Tp, grid=100000):
-
     thetavals = np.linspace(0,np.pi,grid);
-    p2vals = Ti*Tp/(Tp*np.cos(thetavals)*np.cos(thetavals)+Ti*np.sin(thetavals)*np.sin(thetavals));
+    p2vals = p2(Ti,Tp,thetavals);
     fom = np.trapz(p2vals, thetavals)/np.pi;
     return fom;
 
 #### plot T+ like cicc figure
-if False:
-    fig = plt.figure();
-    fig.set_size_inches(7/2,6/2);
+if True:
+    num_subplots = 3
+    fig, (mainax, fomax, thetax) = plt.subplots(num_subplots, sharex=True);
+    fig.set_size_inches(7/2,3*num_subplots/2);
     dataf = sys.argv[1];
     xvals, Rvals, Tvals, totals = load_data(dataf);
 
-    # plot 3 possibilities
+    # plot Ti, T+, T-
     sigmas = [sourcei,pair[0], pair[1]];
-    mainax = plt.subplot(3,1,(1,2));
     for sigmai in range(len(sigmas)):
-        mainax.plot(xvals, Tvals[sigmas[sigmai]],color = mycolors[sigmai],linewidth = mylinewidth);
-        mainax.set_xscale('log', subs = []);
-
-    # inset zoom in
-    insax = plt.subplot(3,1,3);
-    insax.plot(xvals, Tvals[pair[1]],color = mycolors[2],linewidth = mylinewidth);
-    insax.set_xscale('log', subs = []);
-    insax.set_xlim(10**(-5), 10**(-1));
-    insax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-    insax.ticklabel_format(axis='y',style='sci',scilimits=(0,0));
-    insax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+        factor = 1;
+        if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
+        mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
 
     # format
-    mainax.sharex(insax);
-    mainax.label_outer();
-    insax.label_outer();
     mainax.set_ylim(0,1.0);
     mainax.set_yticks([0,0.5,1]);
-    mainax.set_ylabel('$T$', fontsize = myfontsize);
-    mainax.set_title(mypanels[0], x=0.07, y = 0.8, fontsize = myfontsize);
-    insax.set_ylim(0,2.0*10**(-3));
-    insax.set_yticks([0,2.5*10**(-3)]);
-    insax.set_ylabel('$T_-$', fontsize = myfontsize);  
-    insax.set_title(mypanels[1], x=0.07, y = 0.45, fontsize = myfontsize);
-    plt.tight_layout();
-    plt.show();
-    #plt.savefig('model12.pdf');
-
-    # fom zoom in
-    fig, fomax = plt.subplots();
+    #mainax.set_ylabel('$T$', fontsize = myfontsize);
+    mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
+    
+    # plot FOM
     fomvals = np.empty_like(xvals);
     for xi in range(len(xvals)):
         fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
-    fomax.plot(xvals, fomvals);
-    fomax.set_xscale('log', subs = []);
-    fomax.set_xlim(10**(-5), 10**(-1));
-    fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-    fomax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+    fomax.plot(xvals, fomvals, color = mycolors[0], marker=mymarkers[0],markevery=50);
+
+    # format
+    fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
+
+    # plot at diff theta
+    numtheta = 5;
+    thetavals = np.linspace(0,np.pi,numtheta);
+    for thetai in range(numtheta):
+        cm_reds = matplotlib.cm.get_cmap("Reds");
+        yvals = [];
+        for xi in range(len(xvals)):
+            yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
+        thetax.plot(xvals, yvals,color = cm_reds((1+thetai)/numtheta));
+    cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
+    #cb_reds.set_label("$\\theta$",rotation = "horizontal");
+    cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
+
+    # format
+    thetax.set_title(mypanels[2], x=0.07, y = 0.7, fontsize = myfontsize);
+    thetax.set_xscale('log', subs = []);
+    thetax.set_xlim(10**(-5), 10**(-1));
+    thetax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
+    thetax.set_xlabel('$K/t$',fontsize = myfontsize);
     plt.show();
+    #plt.savefig('model12.pdf');
+    
         
 #### plot data at different vals of kx0
-if True:
+if False:
     folder = sys.argv[1];
     myrows, mycols = 3,2;
     fig, axes = plt.subplots(nrows = myrows, ncols = mycols, sharex = 'col', sharey = 'row'); # cols are T, R
@@ -260,7 +268,7 @@ if True:
         axes[-1,coli].set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
         axes[-1,coli].legend();
         for rowi in range(myrows):
-            axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi]);
+            axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi],rotation = "horizontal");
     plt.tight_layout();
     plt.show();
         
