@@ -77,8 +77,8 @@ if False: # compare T vs rhoJa for N not fixed
         hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
-        # get T from this setup
-        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source);
+        # get R, T coefs
+        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
         Rvals[Evali] = Rdum;
         Tvals[Evali] = Tdum;
 
@@ -135,7 +135,7 @@ if False: # compare T vs rhoJa for N=2 fixed
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
         if(verbose > 3 and Eval == Evals[0]): print(hblocks);
 
-        # get T from this setup
+        # get R, T coefs
         Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
         Rvals[Evali] = Rdum;
         Tvals[Evali] = Tdum;

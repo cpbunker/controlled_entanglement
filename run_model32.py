@@ -78,28 +78,40 @@ else:
     tp = 1.0;
     JK = 0.1;
     J12 = JK/10;
+    J12x, J12y, J12z = J12, J12, J12;
             
 #########################################################
 #### generation
 
-if False: # T/T vs rho J a at diff D
+if False: # T+ vs rho J a at diff D
     
-    Dvals = JK*np.array([-1/1000,0,1/1000,1/100,1/10]);
+    Dvals = np.array([-1/1000]) #,0,1/1000,1/100,1/10]);
     for Di in range(len(Dvals)):
-        D = Dvals[Di];
+        Dval = Dvals[Di];
+
+    #Dval = 0;
+    #DeltaEvals = -2*Dvals;
+    #DeltaJvals = (DeltaEvals+2*Dval)/(-3/2); # this is Jz - Jx
+    #J12zvals = J12x + DeltaJvals;
+    #for Di in range(len(J12zvals)):
+        #J12z = J12zvals[Di];
 
         # iter over rhoJ, getting T
-        Tvals, Rvals = [], [];
         logElims = -5,-1
         Evals = np.logspace(*logElims,199);
-        for Eval in Evals:
+        Rvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float);
+        for Evali in range(len(Evals)):
 
             # energy
-            Energy = Eval - 2*tl;
+            Eval = Evals[Evali]; # Eval > 0 always
+            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
             
             # optical distances, N = 2 fixed
+            N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
-            Vg = Energy + 2*tl; # gate voltage
+            kappaa = 0.0*np.pi;
+            Vg = Energy+2*tl*np.cos(kappaa);
 
             # construct hblocks
             hblocks = [];
@@ -109,7 +121,7 @@ if False: # T/T vs rho J a at diff D
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = JK;
                 elif(j == impis[1]): JK2 = JK;
-                params = J12, J12, J12, D, D, 0, JK1, JK2;
+                params = J12x, J12y, J12z, Dval, Dval, 0, JK1, JK2;
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
@@ -120,7 +132,7 @@ if False: # T/T vs rho J a at diff D
                     print("\nJK1, JK2 = ",JK1, JK2);
                     print(" - ham:\n", np.real(hSR));
                     print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",-D*(2*1.5-1))
+                    print(" - DeltaE = ",-Dval*(2*1.5-1))
 
             # finish hblocks
             hblocks = np.array(hblocks);
@@ -129,24 +141,24 @@ if False: # T/T vs rho J a at diff D
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            print("Delta E / J = ", (hblocks[0][0,0] - hblocks[0][2,2])/JK)
+            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl)
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
-            # T
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True, all_debug = False));
+            # get R, T coefs
+            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
+            Rvals[Evali] = Rdum;
+            Tvals[Evali] = Tdum;
          
         # save data to .npy
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
         data = np.zeros((2+2*len(source),len(Evals)));
         data[0,0] = tl;
         data[0,1] = JK;
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/D"+str(int(D*1000)/1000);
+        fname = "data/model32/D"+str(int(Dval*1000)/1000);
         print("Saving data to "+fname);
         np.save(fname, data);
 
