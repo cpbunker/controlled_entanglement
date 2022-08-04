@@ -22,7 +22,8 @@ verbose = 5;
 # fig standardizing
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mystyles = ["solid", "dashed","dotted","dashdot"];
+mymarkers = ["o","^","s","d","*","X","P"];
+mystyles = ["solid","dashed"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -104,7 +105,7 @@ if False: # T+ vs rho J a at diff D
         for Evali in range(len(Evals)):
 
             # energy
-            Eval = Evals[Evali]; # Eval > 0 always
+            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
             Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
             
             # optical distances, N = 2 fixed
@@ -162,71 +163,82 @@ if False: # T+ vs rho J a at diff D
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if True:
+########################################################################
 
-    # open command line file
+# load data
+def load_data(fname):
+    print("Loading data from "+fname);
+    data = np.load(fname);
+    tl = data[0,0];
+    Jeff = data[0,1];
+    myxvals = data[1];
+    myTvals = data[2:10];
+    myRvals = data[10:];
+    mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
+    print("- shape xvals = ", np.shape(myxvals));
+    print("- shape Tvals = ", np.shape(myTvals));
+    return myxvals, myRvals, myTvals, mytotals;
+
+# p2
+def p2(Ti,Tp,theta):
+    assert isinstance(Ti,float) and isinstance(Tp,float); # vectorized in thetas only
+    if Tp == 0.0: Tp = 1e-10;
+    return Ti*Tp/(Tp*np.cos(theta/2)*np.cos(theta/2)+Ti*np.sin(theta/2)*np.sin(theta/2));
+
+# figure of merit
+def FOM(Ti,Tp, grid=100000):
+    thetavals = np.linspace(0,np.pi,grid);
+    p2vals = p2(Ti,Tp,thetavals);
+    fom = np.trapz(p2vals, thetavals)/np.pi;
+    return fom;
+
+#### plot
+if False:
+    num_subplots = 2
+    fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
+    fig.set_size_inches(7/2,3*num_subplots/2);
     datafs = sys.argv[1:];
-    fig, axes = plt.subplots(2, sharex = True);
-    fig.set_size_inches(7/2,6/2);
     for fi in range(len(datafs)):
-        dataf = datafs[fi];
-        print("Loading data from "+dataf);
-        data = np.load(dataf);
-        tl = data[0,0];
-        Jeff = data[0,1];
-        xvals = data[1];
-        Tvals = data[2:2+len(source)];
-        Rvals = data[2+len(source):2+2*len(source)];
-        totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-        print("- shape xvals = ", np.shape(xvals));
-        print("- shape Tvals = ", np.shape(Tvals));
-        print("- shape Rvals = ", np.shape(Rvals));
+        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
 
-        # plot T vs logE
-        #fig, axes = plt.subplots(2, sharex = True);
-        axes[0].plot(xvals, Tvals[pair[0]], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth); 
-        axes[0].plot(xvals, totals, color="red");
-        axes[0].set_ylim(0,0.2);
-        axes[0].set_yticks([0,0.1,0.2]);
-        axes[0].set_ylabel('$T_+$', fontsize = myfontsize,rotation = "horizontal");
-        if False:
-            axes[0].plot(xvals, Rvals[pair[0]], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
-            axes[-1].set_xscale('log', subs = []);
-            axes[-1].set_xlim(10**(-5),10**(-1));
-            axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-            axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
-            #plt.tight_layout();
-            #plt.show();
+        # plot T+
+        mainax.plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=50, linewidth = mylinewidth); 
+        #mainax.plot(xvals, totals, color="red");
 
-        # plot T/T vs logE
-        axes[1].plot(xvals, Tvals[pair[0]]/Tvals[sourcei], color = mycolors[fi], linestyle = "solid", linewidth = mylinewidth);   
-        axes[1].set_ylim(0,8);
-        axes[1].set_yticks([0,4,8]);
-        axes[1].set_ylabel('$T_+/T_i$', fontsize = myfontsize,rotation = "horizontal");
-        if False:
-            axes[1].plot(xvals, Rvals[pair[0]]/Rvals[sourcei], color = mycolors[fi], linestyle = "dashed", linewidth = mylinewidth);
-            axes[-1].set_xscale('log', subs = []);
-            axes[-1].set_xlim(10**(-5),10**(-1));
-            axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-            axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
-            plt.tight_layout();
-            plt.show();
+        # plot FOM
+        fomvals = np.empty_like(xvals);
+        for xi in range(len(xvals)):
+            fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
+        fomax.plot(xvals, fomvals, color = mycolors[fi], marker=mymarkers[fi],markevery=50, linewidth = mylinewidth);
 
     # format
-    axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[-1].set_xscale('log', subs = []);
-    axes[-1].set_xlim(10**(-5),10**(-1));
-    axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-    axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+    mainax.set_ylim(0,0.2);
+    mainax.set_yticks([0,0.2]);
+    mainax.set_ylabel('$T_+$', fontsize = myfontsize);
+    mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
+    fomax.set_xscale('log', subs = []);
+    fomax.set_xlim(10**(-5),10**(-1));
+    fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+    fomax.set_xlabel('$K/t$', fontsize = myfontsize);
+    fomax.set_ylim(0,0.3);
+    fomax.set_yticks([0.0,0.3]);
+    fomax.set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
+    fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     plt.show();
     #plt.savefig('model32.pdf');
 
 
-#########################################################
-#### symmetry breaking
 
+
+
+
+
+
+
+#########################################################
+#### broken symmetry
+    
 def get_VNE(col_vec):
     a, b, c = col_vec[0], col_vec[1], col_vec[2];
     print("\n",40*"*");
@@ -248,32 +260,35 @@ def get_VNE(col_vec):
     print(' -> ',VNE);
     
 if False: 
-
-    # symmetry breaking
     Dmid = 0.5*JK;
     DeltaD = 0.1*JK;
     D1 = Dmid + DeltaD/2;
     D2 = Dmid - DeltaD/2;
     del J12;
-    J12vals = DeltaD*np.array([0.1,1,10]); # ie DeltaD/J12 = 10, 1, 0.1
-    for J12i in range(len(J12vals)):
-        J12 = J12vals[J12i];
+    J12z = 0;
+    J12xvals = DeltaD*np.array([0.1,1,10]); # ie DeltaD/J12x = 10, 1, 0.1
+    for J12xi in range(len(J12xvals)):
+        J12x = J12xvals[J12xi]; # reassign J12x to get desired DeltaD/J12x value
 
-        # iter over rhoJ, getting T
-        Tvals, Rvals = [], [];
+        # iter over E, getting T
         logElims = -5,-1
         Evals = np.logspace(*logElims,199);
-        for Eval in Evals:
+        Rvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float);
+        for Evali in range(len(Evals)):
 
             # energy
-            Energy = Eval - 2*tl;
-
+            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+            
             # optical distances, N = 2 fixed
+            N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
-            Vg = Energy + 2*tl; # gate voltage
+            kappaa = 0.0*np.pi;
+            Vg = Energy+2*tl*np.cos(kappaa);
 
             # JK=0 matrix for ref
-            h1e_0, g2e_0 = wfm.utils.h_cobalt_2q((J12,J12,J12,D1,D2, 0, 0, 0));
+            h1e_0, g2e_0 = wfm.utils.h_cobalt_2q((J12x,J12x,J12z,D1,D2, 0, 0, 0));
             hSR_0 = fci_mod.single_to_det(h1e_0, g2e_0, species, states, dets_interest = dets52);
             hSR_0 = wfm.utils.entangle(hSR_0, *pair);
             #print(hSR_0); assert False;
@@ -306,7 +321,7 @@ if False:
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = JK;
                 elif(j == impis[1]): JK2 = JK;
-                params = J12, J12, J12, D1, D2, 0, JK1, JK2;
+                params = J12x, J12x, J12z, D1, D2, 0, JK1, JK2;
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
                 # construct h_SR (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);  
@@ -314,7 +329,7 @@ if False:
                 hSR_ent = wfm.utils.entangle(hSR, *pair);
                 hSR_diag = np.dot( np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
                 # force diagonal
-                if((j not in impis) and True):
+                if((j not in impis)):
                     hSR_diag = np.diagflat(np.diagonal(hSR_diag));
                 hblocks.append(np.copy(hSR_diag));
                 if(verbose > 3 and Eval == Evals[0]):
@@ -334,65 +349,61 @@ if False:
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
-            # T
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
+            # get R, T coefs
+            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
+            Rvals[Evali] = Rdum;
+            Tvals[Evali] = Tdum;
          
-        # save data to .npy
-        Tvals, Rvals = np.array(Tvals), np.array(Rvals);
+        # save data to .npy for each DeltaD/J12 val
         data = np.zeros((2+2*len(source),len(Evals)));
         data[0,0] = tl;
         data[0,1] = JK;
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/J12"+str(int(DeltaD/J12));
+        fname = "data/model32/DeltaD"+str(int(10*DeltaD/J12x)/10);
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if False:
-
-    # open command line file
+#### plot broken symmetry    
+if True:
+    num_subplots = 2
+    fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
+    fig.set_size_inches(7/2,3*num_subplots/2);
     datafs = sys.argv[1:];
-    fig, axes = plt.subplots(2, sharex = True);
-    fig.set_size_inches(7/2,6/2);
     for fi in range(len(datafs)):
-        dataf = datafs[fi];
-        print("Loading data from "+dataf);
-        data = np.load(dataf);
-        tl = data[0,0];
-        Jeff = data[0,1];
-        xvals = data[1];
-        Tvals = data[2:2+len(source)];
-        Rvals = data[2+len(source):2+2*len(source)];
-        totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-        print("- shape xvals = ", np.shape(xvals));
-        print("- shape Tvals = ", np.shape(Tvals));
-        print("- shape Rvals = ", np.shape(Rvals));
+        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
 
         # plot T vs logE
-        axes[0].plot(xvals, Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[fi], linewidth = mylinewidth);   
-        axes[0].plot(xvals, totals, color="red");
-        axes[0].set_ylim(0,0.1);
-        axes[0].set_yticks([0,0.05,0.1]);
-        axes[0].set_ylabel("$T_{-'}$", fontsize = myfontsize, rotation = "horizontal");
-
-        # plot T/T vs logE
-        axes[1].plot(xvals, Tvals[pair[0]]/Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[fi], linewidth = mylinewidth);   
-        #axes[1].plot(xvals, totals, color="red");
-        axes[1].set_ylim(0,1.0);
-        axes[1].set_yticks([0,0.5,1.0]);
-        axes[1].set_ylabel("$T_{+'}/T_{-'}$", fontsize = myfontsize,rotation = "horizontal"); 
+        for pairi in range(len(pair)):
+            mainax.plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=50, linewidth = mylinewidth);   
+            #mainax.plot(xvals, totals, color="red");
 
     # format
-    axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[-1].set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
-    axes[-1].set_xlim(10**(-5), 10**(-1));
-    axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-    axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+    mainax.set_ylim(0,0.1);
+    mainax.set_yticks([0,0.05,0.1]);
+    mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
+    fomax.set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
+    fomax.set_xlim(10**(-5), 10**(-1));
+    fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+    fomax.set_xlabel('$K$', fontsize = myfontsize);
+    fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
+    #plt.show();
     plt.savefig('model32_broken.pdf');
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

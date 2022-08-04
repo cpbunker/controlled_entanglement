@@ -24,14 +24,13 @@ import sys
 # top level
 np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
-pair = (1,2); # pair[0] is the + state
+pair = (1,2); # pair[0] is the + state after entanglement
 sourcei = 4;
 
 # fig standardizing
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mystyles = ["solid", "dashed","dotted","dashdot"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -57,13 +56,9 @@ if False: # compare T vs rhoJa for N not fixed
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
     for Evali in range(len(Evals)):
 
-        # energy and K fixed by J, rhoJ
-        #E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                # this E is measured from bottom of band !!!
-
         # energy
-        Eval = Evals[Evali];
-        Energy = Eval - 2*tl;
+        Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+        Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
         
         # location of impurities, fixed by kx0 = pi
         k_rho = np.arccos(Energy/(-2*tl)); # = ka since \varepsilon_0ss = 0
@@ -112,12 +107,8 @@ if False: # compare T vs rhoJa for N=2 fixed
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
     for Evali in range(len(Evals)):
 
-        # energy and K fixed by J, rhoJ
-        #E_rho = Jeff*Jeff/(rhoJa*rhoJa*np.pi*np.pi*tl); # fixed E that preserves rho_J_int
-                                                # this E is measured from bottom of band !!!
-
         # energy
-        Eval = Evals[Evali]; # Eval > 0 always
+        Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
         Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
         
         # optical distances, N = 2 fixed
@@ -205,7 +196,7 @@ if True:
     fomvals = np.empty_like(xvals);
     for xi in range(len(xvals)):
         fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
-    fomax.plot(xvals, fomvals, color = mycolors[0], marker=mymarkers[0],markevery=50);
+    fomax.plot(xvals, fomvals, color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth);
 
     # format
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
@@ -265,7 +256,7 @@ if False:
         axes[-1,coli].set_xscale('log', subs = []);
         axes[-1,coli].set_xlim(10**(-5), 10**(-1));
         axes[-1,coli].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-        axes[-1,coli].set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
+        axes[-1,coli].set_xlabel('$K/t$',fontsize = myfontsize);
         axes[-1,coli].legend();
         for rowi in range(myrows):
             axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi],rotation = "horizontal");
