@@ -38,7 +38,7 @@ mypanels = ["(a)","(b)","(c)"];
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
 
-if False: # compare T vs rhoJa for N not fixed
+if True: # compare T vs rhoJa for N not fixed
 
     # siam inputs
     tl = 1.0;
@@ -101,7 +101,7 @@ if False: # compare T vs rhoJa for N=2 fixed
     spinstate = "baa";
 
     # iter over E, getting T
-    logElims = -5,-1
+    logElims = -5,0
     Evals = np.logspace(*logElims,199);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -116,6 +116,7 @@ if False: # compare T vs rhoJa for N=2 fixed
         ka = np.arccos((Energy)/(-2*tl));
         kappaa = 0.0*np.pi;
         Vg = Energy+2*tl*np.cos(kappaa);
+        Vg = 0;
 
         # construct hams
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
@@ -138,7 +139,7 @@ if False: # compare T vs rhoJa for N=2 fixed
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T; # 8 spin dofs
     data[10:,:] = Rvals.T;
-    fname = "data/model12/N"+str(N0+1)+"/"+str(int(kappaa*100)/100);
+    fname = "data/model12/N"+str(N0+1)+"_Vg0/"+str(int(kappaa*100)/100);
     print("Saving data to "+fname);
     np.save(fname, data);
 
@@ -172,7 +173,7 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot T+ like cicc figure
-if True:
+if False:
     num_subplots = 3
     fig, (mainax, fomax, thetax) = plt.subplots(num_subplots, sharex=True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -183,12 +184,12 @@ if True:
     sigmas = [sourcei,pair[0], pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
-        if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
+        if sigmas[sigmai] == pair[1]: factor = 1000/Tvals[pair[0]]; # blow up T-
         mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
 
     # format
-    mainax.set_ylim(0,1.0);
-    mainax.set_yticks([0,0.5,1]);
+    #mainax.set_ylim(0,1.0);
+    #mainax.set_yticks([0,0.5,1]);
     #mainax.set_ylabel('$T$', fontsize = myfontsize);
     mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
     
@@ -219,7 +220,7 @@ if True:
     thetax.set_xscale('log', subs = []);
     thetax.set_xlim(10**(-5), 10**(-1));
     thetax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-    thetax.set_xlabel('$K/t$',fontsize = myfontsize);
+    thetax.set_xlabel('$K_i/t$',fontsize = myfontsize);
     plt.show();
     #plt.savefig('model12.pdf');
     
@@ -256,7 +257,7 @@ if False:
         axes[-1,coli].set_xscale('log', subs = []);
         axes[-1,coli].set_xlim(10**(-5), 10**(-1));
         axes[-1,coli].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-        axes[-1,coli].set_xlabel('$K/t$',fontsize = myfontsize);
+        axes[-1,coli].set_xlabel('$K_i/t$',fontsize = myfontsize);
         axes[-1,coli].legend();
         for rowi in range(myrows):
             axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi],rotation = "horizontal");

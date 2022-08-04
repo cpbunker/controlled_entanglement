@@ -219,7 +219,7 @@ if False:
     fomax.set_xscale('log', subs = []);
     fomax.set_xlim(10**(-5),10**(-1));
     fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-    fomax.set_xlabel('$K/t$', fontsize = myfontsize);
+    fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
     fomax.set_ylim(0,0.3);
     fomax.set_yticks([0.0,0.3]);
     fomax.set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
@@ -266,7 +266,8 @@ if False:
     D2 = Dmid - DeltaD/2;
     del J12;
     J12z = 0;
-    J12xvals = DeltaD*np.array([0.1,1,10]); # ie DeltaD/J12x = 10, 1, 0.1
+    betavals = np.array([10,1,0.1]);
+    J12xvals = 2*DeltaD/(3*betavals)
     for J12xi in range(len(J12xvals)):
         J12x = J12xvals[J12xi]; # reassign J12x to get desired DeltaD/J12x value
 
@@ -361,7 +362,7 @@ if False:
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/DeltaD"+str(int(10*DeltaD/J12x)/10);
+        fname = "data/model32/beta"+str(betavals[J12xi]);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -381,12 +382,12 @@ if True:
 
     # format
     mainax.set_ylim(0,0.1);
-    mainax.set_yticks([0,0.05,0.1]);
+    mainax.set_yticks([0,0.08,0.16]);
     mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
     fomax.set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
     fomax.set_xlim(10**(-5), 10**(-1));
     fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-    fomax.set_xlabel('$K$', fontsize = myfontsize);
+    fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     #plt.show();
