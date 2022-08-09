@@ -33,12 +33,12 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mymarkers = ["o","^","s","d","X","P","*"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
 
-if True: # compare T vs rhoJa for N not fixed
+if False: # compare T vs rhoJa for N not fixed
 
     # siam inputs
     tl = 1.0;
@@ -173,7 +173,7 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot T+ like cicc figure
-if False:
+if True:
     num_subplots = 3
     fig, (mainax, fomax, thetax) = plt.subplots(num_subplots, sharex=True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -184,13 +184,13 @@ if False:
     sigmas = [sourcei,pair[0], pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
-        if sigmas[sigmai] == pair[1]: factor = 1000/Tvals[pair[0]]; # blow up T-
+        if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
         mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
 
     # format
-    #mainax.set_ylim(0,1.0);
-    #mainax.set_yticks([0,0.5,1]);
-    #mainax.set_ylabel('$T$', fontsize = myfontsize);
+    mainax.set_ylim(0,1.0);
+    mainax.set_yticks([0,0.5,1]);
+    mainax.set_ylabel('$T_\sigma$', fontsize = myfontsize);
     mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
     
     # plot FOM
@@ -200,6 +200,9 @@ if False:
     fomax.plot(xvals, fomvals, color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth);
 
     # format
+    fomax.set_ylim(0,0.4);
+    fomax.set_yticks([0,0.2,0.4]);
+    fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
 
     # plot at diff theta
@@ -213,14 +216,18 @@ if False:
         thetax.plot(xvals, yvals,color = cm_reds((1+thetai)/numtheta));
     cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
     #cb_reds.set_label("$\\theta$",rotation = "horizontal");
-    cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
+    #cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
 
     # format
+    thetax.set_ylim(0,1.0);
+    thetax.set_yticks([0,0.5,1.0]);
+    thetax.set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
     thetax.set_title(mypanels[2], x=0.07, y = 0.7, fontsize = myfontsize);
     thetax.set_xscale('log', subs = []);
     thetax.set_xlim(10**(-5), 10**(-1));
     thetax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
     thetax.set_xlabel('$K_i/t$',fontsize = myfontsize);
+    plt.tight_layout();
     plt.show();
     #plt.savefig('model12.pdf');
     

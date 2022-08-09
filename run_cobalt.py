@@ -99,14 +99,19 @@ if True:
         Tvals, Rvals = [], [];
         logElims = -6,-1
         Evals = np.logspace(*logElims,199);
-        for Eval in Evals:
+        Rvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float);
+        for Evali in range(len(Evals)):
 
             # energy
-            Energy = Eval - 2*tl;
+            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
             
             # optical distances, N = 2 fixed
+            N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
-            Vg = Energy + 2*tl; # gate voltage
+            kappaa = 0.0*np.pi;
+            Vg = Energy+2*tl*np.cos(kappaa);
 
             # construct hblocks
             hblocks = [];
@@ -125,7 +130,7 @@ if True:
                 if( j==0): 
                     eigEs, Udiag = np.linalg.eigh(hSR_ent); 
                     print("\nLead eigenstates:");
-                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2));
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); # not correct
                     # find von neuman entropy
                     #for coli in [1,0]: get_VNE(Udiag[:,coli]);
                     assert False;
@@ -153,9 +158,10 @@ if True:
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
-            # T (Energy from 0)
-            Tvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, verbose = 0));
-            Rvals.append(wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, reflect = True));
+            # get R, T coefs
+            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
+            Rvals[Evali] = Rdum;
+            Tvals[Evali] = Tdum;
             
         # save data to .npy
         Tvals, Rvals = np.array(Tvals), np.array(Rvals);
@@ -169,7 +175,7 @@ if True:
         print("Saving data to "+fname);
         np.save(fname, data);
 
-if False: # plot
+if True: # plot
 
     # open command line file
     dataf = sys.argv[1];

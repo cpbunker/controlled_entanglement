@@ -26,7 +26,7 @@ mymarkers = ["o","^","s","d","*","X","P"];
 mystyles = ["solid","dashed"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -193,7 +193,7 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot
-if False:
+if True:
     num_subplots = 2
     fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -222,11 +222,11 @@ if False:
     fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
     fomax.set_ylim(0,0.3);
     fomax.set_yticks([0.0,0.3]);
-    fomax.set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
+    fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.show();
-    #plt.savefig('model32.pdf');
+    #plt.show();
+    plt.savefig('model32.pdf');
 
 
 
@@ -367,7 +367,7 @@ if False:
         np.save(fname, data);
 
 #### plot broken symmetry    
-if True:
+if False:
     num_subplots = 2
     fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
