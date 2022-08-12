@@ -26,7 +26,7 @@ mymarkers = ["o","^","s","d","*","X","P"];
 mystyles = ["solid","dashed"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -180,7 +180,7 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot
-if True:
+if False:
     num_subplots = 2
     fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -214,14 +214,14 @@ if True:
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     #plt.show();
-    plt.savefig('model32_positive.pdf');
+    plt.savefig('model32.pdf');
 
 
 
 
 if False: # T+ at different Delta E by changing J12z
 
-    Dvals = np.array([0,1/1000,1/100,2/100]);
+    Dvals = np.array([1/10]);#  0,1/1000,1/100,2/100]);
     Dval = 0;
     DeltaEvals = -2*Dvals;
     DeltaJvals = (DeltaEvals+2*Dval)/(-3/2); # this is Jz - Jx
@@ -296,13 +296,13 @@ if False: # T+ at different Delta E by changing J12z
         np.save(fname, data);
 
 #### plot
-if False:
+if True:
     num_subplots = 2
     fig, axes = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
     datadir = "data/model32/";
     datafs_neg = ["J12z0.01.npy","J12z0.008.npy","J12z-0.003.npy","J12z-0.016.npy"];
-    datafs_pos = ["J12z0.01_copy.npy","J12z0.011.npy","J12z0.023.npy","J12z0.036.npy"];
+    datafs_pos = ["J12z0.01_copy.npy","J12z0.011.npy","J12z0.023.npy","J12z0.143.npy"];
     datafs = datafs_neg[:]; datafs.extend(datafs_pos);
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datadir+datafs[fi]);
@@ -310,12 +310,12 @@ if False:
 
         if datafs[fi] in datafs_neg:
             # plot T+ for negative case
-            axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
+            axes[1].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
             #axes[0].plot(xvals, totals, color="red");
 
         if datafs[fi] in datafs_pos:
             # plot T+ for positive case
-            axes[1].plot(xvals, Tvals[pair[0]], color=mycolors[fi-len(datafs_neg)], marker=mymarkers[fi-len(datafs_neg)], markevery=(10*(fi-len(datafs_neg)),50), linewidth = mylinewidth); 
+            axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi-len(datafs_neg)], marker=mymarkers[fi-len(datafs_neg)], markevery=(10*(fi-len(datafs_neg)),50), linewidth = mylinewidth); 
             #axes[1].plot(xvals, totals, color="red");
 
     # format
@@ -329,8 +329,8 @@ if False:
         axes[axi].set_ylabel('$T_+$', fontsize = myfontsize);
         axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.show();
-    #plt.savefig('model32_positive.pdf');
+    #plt.show();
+    plt.savefig('model32_J12z.pdf');
 
 
 
