@@ -89,7 +89,7 @@ def get_VNE(eigvec,eigval):
     VNE = qi.entropy(rho0);
     print('VNE = ',VNE,'\n');
     
-if True: 
+if False: 
     Dmid = 0.5*JK;
     DeltaD = 0.1*JK;
     D1 = Dmid + DeltaD/2;
@@ -174,7 +174,6 @@ if True:
 
                 # manually check |-'> state
                 # coefs for |-'> in the plus, minus basis
-                print("\n",40*"*");
                 plus_coef = 1-np.sqrt(1+beta*beta);
                 minus_coef = beta;
                 normalization = np.sqrt(2*(1+beta*beta-np.sqrt(1+beta*beta))) #np.sqrt( plus_coef*np.conj(plus_coef)+minus_coef*np.conj(minus_coef))
@@ -183,6 +182,7 @@ if True:
                 # now convert into the up down, down up basis
                 updown_coef = (1/np.sqrt(2))*(plus_coef + minus_coef);
                 downup_coef = (1/np.sqrt(2))*(plus_coef - minus_coef);
+                print("\n",40*"*");
                 print("Manual eigenstate |-'> = ",{'01':updown_coef,'10':downup_coef});
 
                 # eigenenergy
@@ -206,8 +206,8 @@ if True:
                 Tpp, Tmp, Tip = Tvals[Evali,pair[0]],Tvals[Evali,pair[1]],Tvals[Evali,sourcei];
                 transmitted_state_prime = {'100':np.sqrt(Tip),'001':np.sqrt(Tpp)*updown_coef_p + np.sqrt(Tmp)*updown_coef,
                                                             '010':np.sqrt(Tpp)*downup_coef_p + np.sqrt(Tmp)*downup_coef};
-                print(transmitted_state_prime)
-                assert False;
+                print("\n",40*"*");
+                print("Transmitted state = ",transmitted_state_prime,"\n")
          
         # save data to .npy for each DeltaD/J12 val
         data = np.zeros((2+2*len(source),len(Evals)));
@@ -243,20 +243,25 @@ fig.set_size_inches(7/2,3*num_subplots/2);
 datafs = sys.argv[1:];
 for fi in range(len(datafs)):
     xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
+    mymarkevery = (0,50);
 
     # plot T vs logE
     for pairi in range(len(pair)):
-        mainax.plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=50, linewidth = mylinewidth);   
+        mainax.plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth);   
         #mainax.plot(xvals, totals, color="red");
 
 # format
-mainax.set_ylim(0,0.1);
+mainax.set_ylim(0,0.16);
 mainax.set_yticks([0,0.08,0.16]);
+mainax.set_ylabel('$T_\sigma$',fontsize = myfontsize);
 mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
 fomax.set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
 fomax.set_xlim(10**(-5), 10**(-1));
 fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
 fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
+fomax.set_ylim(0,0.16);
+fomax.set_yticks([0,0.08,0.16]);
+fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
 plt.tight_layout();
 #plt.show();
