@@ -33,7 +33,7 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mymarkers = ["o","^","s","d","X","P","*"];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -187,7 +187,7 @@ if True:
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
         mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
-
+    mainax.plot(xvals,Rvals[pair[0]],color="red",linestyle="dashed");
     # format
     mainax.set_ylim(0,1.0);
     mainax.set_yticks([0,0.5,1]);
