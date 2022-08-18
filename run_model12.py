@@ -28,12 +28,14 @@ pair = (1,2); # pair[0] is the + state after entanglement
 sourcei = 4;
 
 # fig standardizing
+myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
+mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -51,7 +53,7 @@ if False: # compare T vs rhoJa for N not fixed
 
     # iter over E, getting T
     logElims = -4,-1
-    Evals = np.logspace(*logElims,199);
+    Evals = np.logspace(*logElims,myxvals);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
     for Evali in range(len(Evals)):
@@ -89,7 +91,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N=2 fixed
+if True: # compare T vs rhoJa for N=2 fixed
 
     # siam inputs
     tl = 1.0;
@@ -102,7 +104,7 @@ if False: # compare T vs rhoJa for N=2 fixed
 
     # iter over E, getting T
     logElims = -5,0
-    Evals = np.logspace(*logElims,199);
+    Evals = np.logspace(*logElims,myxvals);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
     for Evali in range(len(Evals)):
@@ -115,7 +117,6 @@ if False: # compare T vs rhoJa for N=2 fixed
         N0 = 1; # N0 = N - 1
         ka = np.arccos((Energy)/(-2*tl));
         kappaa = 0.0*np.pi;
-        Vg = Energy+2*tl*np.cos(kappaa);
         Vg = 0;
 
         # construct hams
@@ -176,7 +177,8 @@ def FOM(Ti,Tp, grid=100000):
 #### plot T+ like cicc figure
 if True:
     num_subplots = 3
-    fig, (mainax, fomax, thetax) = plt.subplots(num_subplots, sharex=True);
+    fig, axes = plt.subplots(num_subplots, sharex=True);
+    mainax, thetax, fomax = tuple(axes);
     fig.set_size_inches(7/2,3*num_subplots/2);
     dataf = sys.argv[1];
     xvals, Rvals, Tvals, totals = load_data(dataf);
@@ -187,7 +189,7 @@ if True:
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
         mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
-    mainax.plot(xvals,Rvals[pair[0]],color="red",linestyle="dashed");
+
     # format
     mainax.set_ylim(0,1.0);
     mainax.set_yticks([0,0.5,1]);
@@ -215,22 +217,26 @@ if True:
         for xi in range(len(xvals)):
             yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
         thetax.plot(xvals, yvals,color = cm_reds((1+thetai)/numtheta));
-    cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
-    #cb_reds.set_label("$\\theta$",rotation = "horizontal");
-    #cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
+    if False: # colorbar
+        cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
+        cb_reds.set_label("$\\theta$",rotation = "horizontal");
+        cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
 
     # format
     thetax.set_ylim(0,1.0);
     thetax.set_yticks([0,0.5,1.0]);
     thetax.set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
-    thetax.set_title(mypanels[2], x=0.07, y = 0.7, fontsize = myfontsize);
-    thetax.set_xscale('log', subs = []);
-    thetax.set_xlim(10**(-5), 10**(-1));
-    thetax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-    thetax.set_xlabel('$K_i/t$',fontsize = myfontsize);
+
+    # overall format
+    for axi in range(len(axes)):
+        axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     plt.tight_layout();
+    plt.savefig('figs/model12.pdf');
     plt.show();
-    #plt.savefig('model12.pdf');
     
         
 #### plot data at different vals of kx0

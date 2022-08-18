@@ -20,10 +20,11 @@ import sys
 verbose = 5;
 
 # fig standardizing
+myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","*","X","P"];
-mystyles = ["solid","dashed"];
+mymarkers = ["o","^","s","d","X","P","*"];
+mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -69,22 +70,16 @@ J12x, J12y, J12z = J12, J12, J12;
 #########################################################
 #### generate data
 
-if False: # T+ at different Delta E by changing D
+if True: # T+ at different Delta E by changing D
     
-    Dvals = np.array([2/100]) #0,1/1000,1/100,2/100]);
+    Esplitvals = (1)*np.array([0.0,-0.01,-0.05, -0.1]);
+    Dvals = -Esplitvals/2;
     for Di in range(len(Dvals)):
         Dval = Dvals[Di];
 
-    #Dval = 0;
-    #DeltaEvals = -2*Dvals;
-    #DeltaJvals = (DeltaEvals+2*Dval)/(-3/2); # this is Jz - Jx
-    #J12zvals = J12x + DeltaJvals;
-    #for Di in range(len(J12zvals)):
-        #J12z = J12zvals[Di];
-
         # iter over E, getting T
-        logElims = -5,-1
-        Evals = np.logspace(*logElims,199);
+        logElims = -3,0
+        Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
@@ -95,9 +90,6 @@ if False: # T+ at different Delta E by changing D
             
             # optical distances, N = 2 fixed
             N0 = 1; # N0 = N - 1
-            ka = np.arccos((Energy)/(-2*tl));
-            kappaa = 0.0*np.pi;
-            Vg = Energy+2*tl*np.cos(kappaa);
 
             # construct hblocks
             hblocks = [];
@@ -118,12 +110,12 @@ if False: # T+ at different Delta E by changing D
                     print("\nJK1, JK2 = ",JK1, JK2);
                     print(" - ham:\n", np.real(hSR));
                     print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",-Dval*(2*1.5-1))
+                    print(" - DeltaE = ",Esplitvals[Di])
 
             # finish hblocks
             hblocks = np.array(hblocks);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
+            #hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+            #hblocks[2] += Vg*np.eye(len(source));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
@@ -144,7 +136,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/D"+str(int(Dval*1000)/1000);
+        fname = "data/model32/Esplit"+str(int(Esplitvals[Di]*100)/100);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -180,7 +172,7 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot
-if False:
+if True:
     num_subplots = 2
     fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -205,16 +197,16 @@ if False:
     mainax.set_ylabel('$T_+$', fontsize = myfontsize);
     mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
     fomax.set_xscale('log', subs = []);
-    fomax.set_xlim(10**(-5),10**(-1));
-    fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+    fomax.set_xlim(10**(logElims[0]),10**(logElims[1]));
+    fomax.set_xticks([10**(logElims[0]),10**(logElims[1])]);
     fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
-    fomax.set_ylim(0,0.32);
-    fomax.set_yticks([0.0,0.16,0.32]);
+    fomax.set_ylim(0.15,0.25);
+    fomax.set_yticks([0.15,0.2,0.25]);
     fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
     fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.show();
-    plt.savefig('model32.pdf');
+    plt.savefig('figs/model32.pdf');
+    plt.show();
 
 
 
@@ -296,7 +288,7 @@ if False: # T+ at different Delta E by changing J12z
         np.save(fname, data);
 
 #### plot
-if True:
+if False:
     num_subplots = 2
     fig, axes = plt.subplots(num_subplots, sharex = True);
     fig.set_size_inches(7/2,3*num_subplots/2);
@@ -329,8 +321,7 @@ if True:
         axes[axi].set_ylabel('$T_+$', fontsize = myfontsize);
         axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.show();
-    plt.savefig('model32_J12z.pdf');
+    plt.show();
 
 
 

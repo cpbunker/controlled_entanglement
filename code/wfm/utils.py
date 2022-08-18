@@ -176,51 +176,59 @@ def h_cicc_eff(J, t, i1, i2, Nsites, pair):
 
     return h_cicc, tblocks;
 
-def h_cicc_hacked(J,t,N, dimer = False):
+def h_cicc_hacked(J, t, NSR, Nsites, pair):
     '''
-    Version of h_cicc_eff
+    Construct tight binding blocks (each block has many body dofs) to implement
+    cicc model in quasi many body GF method
+
+    Args:
+    - J, float, eff heisenberg coupling
+    - t, float, hopping btwn sites - corresponds to t' in my setup
+    - NSR, int, num sites in SR
+    - Nsites, int, total num sites
+    - Jz, bool, whether to include diagonal (Jz Se^z Si^z) terms
     '''
 
-    # J is anisotropic
-    Jz = 0;
+    # check inputs
+    assert(NSR < Nsites);
     
     # heisenberg interaction matrices
-    Se_dot_S1 = (1/4.0)*np.array([ [Jz,0,0,0,0,0,0,0], # coupling to first spin impurity
-                        [0,Jz,0,0,0,0,0,0],
-                        [0,0,-Jz,0,2*J,0,0,0],
-                        [0,0,0,-Jz,0,2*J,0,0],
-                        [0,0,2*J,0,-Jz,0,0,0],
-                        [0,0,0,2*J,0,-Jz,0,0],
-                        [0,0,0,0,0,0,Jz,0],
-                        [0,0,0,0,0,0,0,Jz] ]);
+    Se_dot_S1 = (J/4.0)*np.array([ [1,0,0,0,0,0,0,0], # coupling to first spin impurity
+                        [0,1,0,0,0,0,0,0],
+                        [0,0,-1,0,2,0,0,0],
+                        [0,0,0,-1,0,2,0,0],
+                        [0,0,2,0,-1,0,0,0],
+                        [0,0,0,2,0,-1,0,0],
+                        [0,0,0,0,0,0,1,0],
+                        [0,0,0,0,0,0,0,1] ]);
 
-    Se_dot_S2 = (1/4.0)*np.array([ [Jz,0,0,0,0,0,0,0], # coupling to second spin impurity
-                        [0,-Jz,0,0,2*J,0,0,0],
-                        [0,0,Jz,0,0,0,0,0],
-                        [0,0,0,-Jz,0,0,2*J,0],
-                        [0,2*J,0,0,-Jz,0,0,0],
-                        [0,0,0,0,0,Jz,0,0],
-                        [0,0,0,2*J,0,0,-Jz,0],
-                        [0,0,0,0,0,0,0,Jz] ]);
+    Se_dot_S2 = (J/4.0)*np.array([ [1,0,0,0,0,0,0,0], # coupling to second spin impurity
+                        [0,-1,0,0,2,0,0,0],
+                        [0,0,1,0,0,0,0,0],
+                        [0,0,0,-1,0,0,2,0],
+                        [0,2,0,0,-1,0,0,0],
+                        [0,0,0,0,0,1,0,0],
+                        [0,0,0,2,0,0,-1,0],
+                        [0,0,0,0,0,0,0,1] ]);
+    Se_dot_S1 = entangle(Se_dot_S1,*pair); # verified correct
+    Se_dot_S2 = entangle(Se_dot_S2,*pair); # verified correct
 
-    if(dimer): # Se dot S1 then Se dot S2
-        assert(N==4);
-        h_cicc = np.array([np.zeros_like(Se_dot_S1), Se_dot_S1, Se_dot_S2, np.zeros_like(Se_dot_S1)]);
-        tblocks = np.array([-t*np.eye(*np.shape(Se_dot_S1)),-t*np.eye(*np.shape(Se_dot_S1)),-t*np.eye(*np.shape(Se_dot_S1))]);
-        return h_cicc, tblocks;
-    
+    # insert these local interactions
     h_cicc =[];
-    for sitei in range(N): # iter over all sites
-        if(sitei > 0 and sitei < N - 1):
-            h_cicc.append(Se_dot_S1 + Se_dot_S2);
+    for sitei in range(Nsites): # iter over all sites
+        if(sitei > 0 and sitei <= NSR): #if in SR
+            h_cicc.append(Se_dot_S1+Se_dot_S2);
         else:
             h_cicc.append(np.zeros_like(Se_dot_S1) );
+    h_cicc = np.array(h_cicc);
 
+    # hopping connects like spin orientations only, ie is identity
     tblocks = []
-    for sitei in range(N-1):
+    for sitei in range(Nsites-1):
         tblocks.append(-t*np.eye(*np.shape(Se_dot_S1)) );
+    tblocks = np.array(tblocks);
 
-    return np.array(h_cicc), np.array(tblocks);
+    return h_cicc, tblocks;
 
 
 def h_kondo_2e(J,s2):
