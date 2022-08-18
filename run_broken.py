@@ -20,10 +20,12 @@ import sys
 verbose = 5;
 
 # fig standardizing
+myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","*","X","P"];
+mymarkers = ["o","^","s","d","X","P","*"];
 mystyles = ["solid","dashed"];
+mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -64,9 +66,6 @@ if(verbose):
 tl = 1.0;
 tp = 1.0;
 JK = 0.1;
-            
-#########################################################
-#### generate data
     
 def get_VNE(eigvec,eigval):
     a, b, c = eigvec[0], eigvec[1], eigvec[2]; # coefs in the basis \{ |+>, |->, |i> \}
@@ -88,6 +87,9 @@ def get_VNE(eigvec,eigval):
     rho0 = qi.partial_trace(my_sv,[1]);
     VNE = qi.entropy(rho0);
     print('VNE = ',VNE,'\n');
+
+#########################################################
+#### generate data
     
 if False: 
     Dmid = 0.5*JK;
@@ -102,8 +104,8 @@ if False:
         beta = betavals[J12xi]
 
         # iter over E, getting T
-        logElims = -5,-1
-        Evals = np.logspace(*logElims,199);
+        logElims = -3,0
+        Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
@@ -115,8 +117,6 @@ if False:
             # optical distances, N = 2 fixed
             N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
-            kappaa = 0.0*np.pi;
-            Vg = Energy+2*tl*np.cos(kappaa);
 
             # JK=0 matrix for ref
             h1e_0, g2e_0 = wfm.utils.h_cobalt_2q((J12x,J12x,J12z,D1,D2, 0, 0, 0));
@@ -152,8 +152,8 @@ if False:
 
             # finish hblocks
             hblocks = np.array(hblocks);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
+            #hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+            #hblocks[2] += Vg*np.eye(len(source));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
@@ -216,7 +216,7 @@ if False:
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32_broken/beta"+str(beta);
+        fname = "data/broken/beta"+str(beta);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -248,21 +248,22 @@ for fi in range(len(datafs)):
     # plot T vs logE
     for pairi in range(len(pair)):
         mainax.plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth);   
-        #mainax.plot(xvals, totals, color="red");
+    #fomax.plot(xvals, Tvals[pair[0]]/Tvals[pair[pair[1]]], color=mycolors[fi]);
 
 # format
+logElims = -3,0
 mainax.set_ylim(0,0.16);
 mainax.set_yticks([0,0.08,0.16]);
 mainax.set_ylabel('$T_\sigma$',fontsize = myfontsize);
 mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
-fomax.set_xscale('log', subs = [2,3,4,5,6,7,8,9]);
-fomax.set_xlim(10**(-5), 10**(-1));
-fomax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
+fomax.set_xscale('log', subs = []);
+fomax.set_xlim(10**(logElims[0]),10**(logElims[1]));
+fomax.set_xticks([10**(logElims[0]),10**(logElims[1])]);
 fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
 fomax.set_ylim(0,0.16);
 fomax.set_yticks([0,0.08,0.16]);
 fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
 plt.tight_layout();
-#plt.show();
-plt.savefig('model32_broken.pdf');
+plt.savefig('figs/broken.pdf');
+plt.show();

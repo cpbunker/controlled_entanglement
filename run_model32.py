@@ -235,8 +235,6 @@ if False: # T+ at different Delta E by changing J12z
             # optical distances, N = 2 fixed
             N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
-            kappaa = 0.0*np.pi;
-            Vg = Energy+2*tl*np.cos(kappaa);
 
             # construct hblocks
             hblocks = [];

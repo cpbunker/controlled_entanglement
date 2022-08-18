@@ -36,21 +36,24 @@ plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 # tight binding params
 tl = 1.0;
 th = 1.0;
-Delta = 0.01; # inelastic splitting
+Delta = 0.0; # inelastic splitting
 
 #################################################################
 #### replication of continuum solution
 
-if False:
-    num_plots = 2
+if True:
+    num_plots = 3
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # iter over effective J
-    Jeffs = [0.1,0.2,0.4];
-    for Ji in range(len(Jeffs)):
-        Jeff = Jeffs[Ji];
+    Jvals = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
+    plot_Jvals = [0.1,0.2,0.4];
+    criticalEs = np.full(len(Jvals),-1.0, dtype = float);
+    critical_diff = 0.1;
+    for Ji in range(len(Jvals)):
+        Jeff = Jvals[Ji];
         
         # 2nd qu'd operator for S dot s
         h1e = np.zeros((4,4))
@@ -94,7 +97,7 @@ if False:
         logElims = -3,0
         Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
-        Tvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float); 
         for Evali in range(len(Evals)):
 
             # energy
@@ -107,15 +110,30 @@ if False:
                  Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False);
             Rvals[Evali] = Rdum;
             Tvals[Evali] = Tdum;
-            
-        # plot Tvals vs E
-        axes[0].plot(Evals,Tvals[:,flipi], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
-        axes[1].plot(Evals,Tvals[:,sourcei], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
-        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-        axes[1].plot(Evals, totals, color="red", label = "total ");
 
-        # menezes prediction for continuum
-        axes[0].plot(Evals, Jeff*Jeff/(16*tl*Evals), color = mycolors[Ji],linestyle = "dashed", marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            # find the critical energy
+            menez_T = Jeff*Jeff/(16*tl*Eval);
+            my_T = Tdum[1];
+            if abs(my_T - menez_T)/menez_T < 0.1 and criticalEs[Ji] == -1.0: # critical and not found yet
+                criticalEs[Ji] = Eval; # > 0 always
+
+        if Jvals[Ji] in plot_Jvals: # only plot some  
+            # plot Tvals vs E
+            colori = plot_Jvals.index(Jeff);
+            axes[0].plot(Evals,Tvals[:,flipi], color = mycolors[colori], marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[1].plot(Evals,Tvals[:,sourcei], color = mycolors[colori], marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
+            totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
+            #axes[1].plot(Evals, totals, color="red", label = "total ");
+            # menezes prediction for continuum
+            axes[0].plot(Evals, Jeff*Jeff/(16*tl*Evals), color = mycolors[colori],linestyle = "dashed", marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
+
+    # critical E's
+    axes[2].scatter(criticalEs, Jvals, marker = 'D', color = "red");
+    # best fit
+    slope, intercept = np.polyfit(criticalEs, Jvals, deg=1);
+    axes[2].plot(criticalEs, intercept+slope*criticalEs, color = "red");
+    print("slope = ",slope,", intercept = ", intercept);
+    print("K slope = ",1/slope,", K intercept = ", -intercept/slope);
 
     # format
     axes[-1].set_xscale('log', subs = []);
@@ -127,15 +145,17 @@ if False:
     axes[1].set_ylim(0,1.01);
     axes[1].set_yticks([0,0.5,1.0]);
     axes[1].set_ylabel('$T_{i}$', fontsize = myfontsize );
+    axes[2].set_ylabel('$J$', fontsize = myfontsize );
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/inelastic.pdf');
+    plt.savefig('figs/continuum.pdf');
     plt.show();
 
 
 #################################################################
 #### physical origin
 
-if True:
+if False:
     num_plots = 2
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];

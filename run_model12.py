@@ -42,15 +42,6 @@ plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 if False: # compare T vs rhoJa for N not fixed
 
-    # siam inputs
-    tl = 1.0;
-    Jeff = 0.1;
-
-    # choose boundary condition
-    source = np.zeros(8); # incident up, imps = down, down
-    source[4] = 1;
-    spinstate = "baa"
-
     # iter over E, getting T
     logElims = -4,-1
     Evals = np.logspace(*logElims,myxvals);
@@ -92,15 +83,6 @@ if False: # compare T vs rhoJa for N not fixed
 
 
 if True: # compare T vs rhoJa for N=2 fixed
-
-    # siam inputs
-    tl = 1.0;
-    Jeff = 0.1;
-
-    # choose boundary condition
-    source = np.zeros(8); # incident up, imps = down, down
-    source[4] = 1;
-    spinstate = "baa";
 
     # iter over E, getting T
     logElims = -5,0

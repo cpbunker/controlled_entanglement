@@ -118,7 +118,7 @@ def sweep_param_space(ps, d, n):
 ##################################################################################
 #### functions specific to a model
 
-def h_cicc_eff(J, t, i1, i2, Nsites, pair):
+def h_cicc_eff(J, t, i1, i2, pair):
     '''
     Construct tight binding blocks (each block has many body dofs) to implement
     cicc model in quasi many body GF method
@@ -126,15 +126,17 @@ def h_cicc_eff(J, t, i1, i2, Nsites, pair):
     Args:
     - J, float, eff heisenberg coupling
     - t, float, hopping btwn sites - corresponds to t' in my setup
-    = i1, int, site of 1st imp
-    - i2, int, site of 2nd imp
-    - Nsites, int, total num sites in SR
+    - i1, list of sites for first spin
+    - i2, list of sites for second spin
+    - we assume a LL site 0 and a RL site N+1 for N+2 total sites
     - Jz, bool, whether to include diagonal (Jz Se^z Si^z) terms
     '''
 
-    # check inputs
-    assert(i1 < i2);
-    assert(i2 < Nsites);
+    # check inputs\
+    assert(isinstance(i1, list) and isinstance(i2, list));
+    assert(i1[0] == 1);
+    assert(i1[-1] < i2[0]);
+    N = i2[-1];
     
     # heisenberg interaction matrices
     Se_dot_S1 = (J/4.0)*np.array([ [1,0,0,0,0,0,0,0], # coupling to first spin impurity
@@ -159,13 +161,16 @@ def h_cicc_eff(J, t, i1, i2, Nsites, pair):
 
     # insert these local interactions
     h_cicc =[];
+    Nsites = N+2; # N sites in SR + 1 for each lead
     for sitei in range(Nsites): # iter over all sites
-        if(sitei == i1):
+        if(sitei in i1 and sitei not in i2):
             h_cicc.append(Se_dot_S1);
-        elif(sitei == i2):
+        elif(sitei in i2 and sitei not in i1):
             h_cicc.append(Se_dot_S2);
-        else:
+        elif(sitei not in i1 and sitei not in i2):
             h_cicc.append(np.zeros_like(Se_dot_S1) );
+        else:
+            raise Exception;
     h_cicc = np.array(h_cicc);
 
     # hopping connects like spin orientations only, ie is identity
