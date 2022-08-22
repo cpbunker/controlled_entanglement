@@ -31,19 +31,19 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
-Delta = 0.0; # inelastic splitting
+Delta = 0.01; # inelastic splitting
 inelastic = False
-if Delta > 0: inelastic = True
+if Delta > 0.0: inelastic = True
 Msites = 1; # non contact interaction
 
 #################################################################
 #### replication of continuum solution
 
-if True:
+if False:
     num_plots = 4;
     if inelastic: num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
@@ -52,12 +52,12 @@ if True:
 
     # iter over effective J
     Jvals = np.array([0.5,1.0,5.0,10]);
-    for Ji in range(len(Jvals)):
-        Jeff = Jvals[Ji];
+    for Jvali in range(len(Jvals)):
+        Jval = Jvals[Jvali];
         
         # 2nd qu'd operator for S dot s
         h1e = np.zeros((4,4))
-        g2e = wfm.utils.h_kondo_2e(Jeff, 0.5); # J, spin
+        g2e = wfm.utils.h_kondo_2e(Jval, 0.5); # J, spin
         states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
         hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
 
@@ -92,14 +92,14 @@ if True:
         for _ in range(len(hblocks)-1): tnn.append(-tl*np.eye(*np.shape(hSR)));
         tnn = np.array(tnn);
         tnnn = np.zeros_like(tnn)[:-1];
-        if(verbose and Jeff == 0.1): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
+        if(verbose and Jvali == 0): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
 
         # sweep over range of energies
         # def range
         logElims = -3,0
         Evals = np.logspace(*logElims,myxvals);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
-        jprimevals = Jeff/(4*tl*kavals);
+        jprimevals = Jval/(4*tl*kavals);
         menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -120,16 +120,16 @@ if True:
         # plot tight binding results
         ax0, ax1, ax2, ax3 = 0,1,2,3;
         if inelastic: ax0, ax2 = 0,1
-        axes[ax0].plot(Evals,Tvals[:,flipi], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
-        axes[ax2].plot(Evals,Tvals[:,sourcei], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[ax0].plot(Evals,Tvals[:,flipi], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[ax2].plot(Evals,Tvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         #axes[1].plot(Evals, totals, color="red", label = "total ");
         
         # continuum results
         if inelastic:
             #axes[ax0].axvline(0.025, color = "gray");
-            axes[ax0].plot(Evals, menez_Tf, color = mycolors[Ji],linestyle = "dashed", marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth); 
-            axes[ax2].plot(Evals, menez_Tnf, color = mycolors[Ji],linestyle = "dashed", marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax0].plot(Evals, menez_Tf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth); 
+            axes[ax2].plot(Evals, menez_Tnf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
             axes[ax0].set_ylim(0,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
             axes[ax2].set_ylim(0,1);
@@ -137,15 +137,15 @@ if True:
             
         # differences
         if not inelastic:
-            axes[ax1].plot(Evals,abs(Tvals[:,flipi]-menez_Tf)/menez_Tf,color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
-            axes[ax3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax1].plot(Evals,abs(Tvals[:,flipi]-menez_Tf)/menez_Tf,color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
             axes[ax0].set_ylim(0,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-            #axes[ax1].set_ylim(0,0.1);
+            axes[ax1].set_ylim(0,0.1);
             axes[ax1].set_ylabel('$|T_{f}-T_{f,c}|/T_{f,c}$', fontsize = myfontsize );
             axes[ax2].set_ylim(0,1);
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
-            #axes[ax3].set_ylim(0,0.1);
+            axes[ax3].set_ylim(0,0.1);
             axes[ax3].set_ylabel('|$T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
     
     # show
@@ -164,7 +164,7 @@ if True:
 #################################################################
 #### physical origin
 
-if False:
+if True:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
