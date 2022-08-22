@@ -32,20 +32,93 @@ myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mymarkevery = 5;
+mymarkevery = 50;
 mylinewidth = 1.0;
-mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+mypanels = ["(a)","(b)","(c)","(d)","(e)","(f)","(g)","(h)"];
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
 
 # choose boundary condition
 source = np.zeros(8); 
-source[4] = 1; # down up up
+source[sourcei] = 1; # down up up
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
+
+if False: # check similarity to menezes prediction at diff N
+    num_plots = 3;
+    fig, axes = plt.subplots(num_plots, sharex = True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
+
+    # iter over spatial separation
+    Jval = 1.0;
+    Nvals = [2,5,50];
+    for Nvali in range(len(Nvals)):
+        Nval = Nvals[Nvali];
+
+        # construct hams
+        # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
+        i1, i2 = [1], [Nval];
+        hblocks, tnn = wfm.utils.h_cicc_eff(Jval, tl, i1, i2, pair);
+        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+
+        # sweep over range of energies
+        # def range
+        logElims = -3,0
+        Evals = np.logspace(*logElims,myxvals);
+        kavals = np.arccos((Evals-2*tl)/(-2*tl));
+        jprimevals = Jval/(4*tl*kavals);
+        jprimevals = jprimevals*2*np.sqrt(1/2); # renormalize J!!!
+        menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        Rvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float); 
+        for Evali in range(len(Evals)):
+
+            # energy
+            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+
+            if(Evali < 1): # verbose
+                Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False, verbose = verbose);
+            else: # not verbose
+                 Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False);
+            Rvals[Evali] = Rdum;
+            Tvals[Evali] = Tdum;
+
+        # plot tight binding results
+        axes[0].plot(Evals,Tvals[:,pair[0]], color = mycolors[Nvali], marker = mymarkers[Nvali], markevery = mymarkevery, linewidth = mylinewidth);
+        #axes[2].plot(Evals,Tvals[:,sourcei], color = mycolors[Nvali], marker = mymarkers[Nvali], markevery = mymarkevery, linewidth = mylinewidth);
+        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
+        #axes[3].plot(Evals, totals, color="red", label = "total ");
+
+        # contamination of |+> by |->
+        axes[2].plot(Evals,Tvals[:,pair[1]]/(Tvals[:,pair[0]]+Tvals[:,pair[1]]), color = mycolors[Nvali], marker = mymarkers[Nvali], markevery = mymarkevery, linewidth = mylinewidth);
+
+        # plot differences
+        axes[1].plot(Evals,abs(Tvals[:,pair[0]]-menez_Tf)/menez_Tf,color = mycolors[Nvali], marker = mymarkers[Nvali], markevery = mymarkevery, linewidth = mylinewidth);
+        #axes[3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Nvali], marker = mymarkers[Nvali], markevery = mymarkevery, linewidth = mylinewidth);
+        
+    # format
+    axes[0].set_ylim(0,0.4)
+    axes[0].set_ylabel('$T_{+}$', fontsize = myfontsize );
+    axes[1].set_ylim(0,1.0);
+    axes[1].set_ylabel('$|T_{+}-T_{+,c}|/T_{+,c}$', fontsize = myfontsize );
+    #axes[3].set_ylim(0,1.0);
+    axes[2].set_ylabel('$T_{-}/(T_{+}+T_{-})\,$', fontsize = myfontsize );
+    
+    # show
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.93, y = 0.7, fontsize = myfontsize);
+    plt.tight_layout();
+    plt.savefig('figs/separation.pdf');
+    plt.show();
 
 if False: # compare T- vs N to see how T- is suppressed at small N
     num_plots = 1
@@ -54,7 +127,7 @@ if False: # compare T- vs N to see how T- is suppressed at small N
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # sweep over energy
-    Jeff = 0.1;
+    Jval = 0.1;
     Evals = [10**(-4),10**(-3),10**(-2),10**(-1)];
     for Evali in range(len(Evals)):
 
@@ -75,7 +148,7 @@ if False: # compare T- vs N to see how T- is suppressed at small N
             # construct hams
             # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
             i1, i2 = [1], [1+N0];
-            hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, pair);
+            hblocks, tnn = wfm.utils.h_cicc_eff(Jval, tl, i1, i2, pair);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
@@ -92,23 +165,23 @@ if False: # compare T- vs N to see how T- is suppressed at small N
     axes[-1].set_xlabel('$N$',fontsize = myfontsize);
     axes[0].set_ylabel('$T_{-}$', fontsize = myfontsize );
     plt.tight_layout();
-    plt.savefig('figs/Nlimit.pdf');
+    plt.savefig('figs/Nlimit2.pdf');
     plt.show();
 
 
-if False: # compare T+ vs E at different J
+if True: # compare T+ vs E at different J
     num_plots = 1
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # sweep over J
-    Jvals = [0.1,1,2,10]
+    Jvals = [0.5,1.0,5.0,10.0]
     for Ji in range(len(Jvals)):
-        Jeff = Jvals[Ji];
+        Jval = Jvals[Ji];
 
         # sweep over energy
-        logElims = -3,0
+        logElims = -3,np.log10(3.99)
         Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -124,7 +197,7 @@ if False: # compare T+ vs E at different J
             # construct hams
             # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
             i1, i2 = [1], [1+N0];
-            hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, pair);
+            hblocks, tnn = wfm.utils.h_cicc_eff(Jval, tl, i1, i2, pair);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
@@ -138,11 +211,15 @@ if False: # compare T+ vs E at different J
         #axes[0].plot(Evals, totals, color="red");
 
     # format
+    axes[0].set_ylim(0,0.25);
+    axes[0].set_ylabel('$T_{+}$', fontsize = myfontsize );
+    
+    # show
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    axes[0].set_ylabel('$T_{+}$', fontsize = myfontsize );
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.93, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('figs/Jlimit.pdf');
     plt.show();
@@ -154,9 +231,9 @@ if False: # compare T+ vs N to see Nmax
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # sweep over energy
-    Jeff = 0.01;
+    Jval = 0.01;
     Nmaxvals = np.array([5,10,50,100]);
-    velvals = Nmaxvals*3*Jeff/(2*np.pi);
+    velvals = Nmaxvals*3*Jval/(2*np.pi);
     kavals = np.arcsin(velvals/2);
     Evals = 2*tl - 2*tl*np.cos(kavals)
     for Evali in range(len(Evals)):
@@ -175,7 +252,7 @@ if False: # compare T+ vs N to see Nmax
 
             # construct hams
             # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
-            hblocks, tnn = wfm.utils.h_cicc_hacked(Jeff, tl, NSRval, NSRval+2, pair);
+            hblocks, tnn = wfm.utils.h_cicc_hacked(Jval, tl, NSRval, NSRval+2, pair);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
@@ -255,7 +332,7 @@ if False: # try to find max T+ at Nmax small
     plt.savefig('figs/Jlimit3.pdf');
     plt.show();
 
-if True: # Nmax small and spread out among two spatially separated spins
+if False: # Nmax small and spread out among two spatially separated spins
     num_plots = 1
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];

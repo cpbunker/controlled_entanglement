@@ -30,28 +30,28 @@ mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","
 mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
-mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+mypanels = ["(a)","(b)","(c)","(d)"];
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
-th = 1.0;
 Delta = 0.0; # inelastic splitting
+inelastic = False
+if Delta > 0: inelastic = True
+Msites = 1; # non contact interaction
 
 #################################################################
 #### replication of continuum solution
 
 if True:
-    num_plots = 3
+    num_plots = 4;
+    if inelastic: num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # iter over effective J
-    Jvals = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
-    plot_Jvals = [0.1,0.2,0.4];
-    criticalEs = np.full(len(Jvals),-1.0, dtype = float);
-    critical_diff = 0.1;
+    Jvals = np.array([0.5,1.0,5.0,10]);
     for Ji in range(len(Jvals)):
         Jeff = Jvals[Ji];
         
@@ -82,12 +82,14 @@ if True:
         source[sourcei] = 1;
 
         # package together hamiltonian blocks
-        hblocks = [hLL,hSR];
+        hblocks = [hLL];
+        for _ in range(Msites): hblocks.append(np.copy(hSR));
         hblocks.append(hRL);
         hblocks = np.array(hblocks);
 
         # hopping
-        tnn = [-th*np.eye(*np.shape(hSR)),-th*np.eye(*np.shape(hSR))]; # on and off imp
+        tnn = [];
+        for _ in range(len(hblocks)-1): tnn.append(-tl*np.eye(*np.shape(hSR)));
         tnn = np.array(tnn);
         tnnn = np.zeros_like(tnn)[:-1];
         if(verbose and Jeff == 0.1): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
@@ -96,6 +98,10 @@ if True:
         # def range
         logElims = -3,0
         Evals = np.logspace(*logElims,myxvals);
+        kavals = np.arccos((Evals-2*tl)/(-2*tl));
+        jprimevals = Jeff/(4*tl*kavals);
+        menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float); 
         for Evali in range(len(Evals)):
@@ -111,44 +117,47 @@ if True:
             Rvals[Evali] = Rdum;
             Tvals[Evali] = Tdum;
 
-            # find the critical energy
-            menez_T = Jeff*Jeff/(16*tl*Eval);
-            my_T = Tdum[1];
-            if abs(my_T - menez_T)/menez_T < 0.1 and criticalEs[Ji] == -1.0: # critical and not found yet
-                criticalEs[Ji] = Eval; # > 0 always
-
-        if Jvals[Ji] in plot_Jvals: # only plot some  
-            # plot Tvals vs E
-            colori = plot_Jvals.index(Jeff);
-            axes[0].plot(Evals,Tvals[:,flipi], color = mycolors[colori], marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
-            axes[1].plot(Evals,Tvals[:,sourcei], color = mycolors[colori], marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
-            totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-            #axes[1].plot(Evals, totals, color="red", label = "total ");
-            # menezes prediction for continuum
-            axes[0].plot(Evals, Jeff*Jeff/(16*tl*Evals), color = mycolors[colori],linestyle = "dashed", marker = mymarkers[colori], markevery = mymarkevery, linewidth = mylinewidth);
-
-    # critical E's
-    axes[2].scatter(criticalEs, Jvals, marker = 'D', color = "red");
-    # best fit
-    slope, intercept = np.polyfit(criticalEs, Jvals, deg=1);
-    axes[2].plot(criticalEs, intercept+slope*criticalEs, color = "red");
-    print("slope = ",slope,", intercept = ", intercept);
-    print("K slope = ",1/slope,", K intercept = ", -intercept/slope);
-
-    # format
+        # plot tight binding results
+        ax0, ax1, ax2, ax3 = 0,1,2,3;
+        if inelastic: ax0, ax2 = 0,1
+        axes[ax0].plot(Evals,Tvals[:,flipi], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[ax2].plot(Evals,Tvals[:,sourcei], color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
+        #axes[1].plot(Evals, totals, color="red", label = "total ");
+        
+        # continuum results
+        if inelastic:
+            #axes[ax0].axvline(0.025, color = "gray");
+            axes[ax0].plot(Evals, menez_Tf, color = mycolors[Ji],linestyle = "dashed", marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth); 
+            axes[ax2].plot(Evals, menez_Tnf, color = mycolors[Ji],linestyle = "dashed", marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax0].set_ylim(0,0.4)
+            axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
+            axes[ax2].set_ylim(0,1);
+            axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
+            
+        # differences
+        if not inelastic:
+            axes[ax1].plot(Evals,abs(Tvals[:,flipi]-menez_Tf)/menez_Tf,color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Ji], marker = mymarkers[Ji], markevery = mymarkevery, linewidth = mylinewidth);
+            axes[ax0].set_ylim(0,0.4)
+            axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
+            #axes[ax1].set_ylim(0,0.1);
+            axes[ax1].set_ylabel('$|T_{f}-T_{f,c}|/T_{f,c}$', fontsize = myfontsize );
+            axes[ax2].set_ylim(0,1);
+            axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
+            #axes[ax3].set_ylim(0,0.1);
+            axes[ax3].set_ylabel('|$T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
+    
+    # show
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    axes[0].set_ylim(0,0.4)
-    axes[0].set_ylabel('$T_{flip}$', fontsize = myfontsize );
-    axes[1].set_ylim(0,1.01);
-    axes[1].set_yticks([0,0.5,1.0]);
-    axes[1].set_ylabel('$T_{i}$', fontsize = myfontsize );
-    axes[2].set_ylabel('$J$', fontsize = myfontsize );
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize); 
     plt.tight_layout();
-    plt.savefig('figs/continuum.pdf');
+    if inelastic: fname = 'figs/inelastic.pdf';
+    else: fname = 'figs/continuum.pdf'
+    plt.savefig(fname);
     plt.show();
 
 
@@ -156,29 +165,33 @@ if True:
 #### physical origin
 
 if False:
-    num_plots = 2
+    num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
 
-    # iter over effective J by changing epsilon
-    epsilons = [-27.5,-11.3,-5.3];
-    for epsi in range(len(epsilons)):
-        epsilon = epsilons[epsi];
+    # tight binding parameters
+    th = 1.0;
+    U1 = 0.0;
+    U2 = 100.0;
 
-        # tight binding parameters
-        th = 1.0;
-        U1 = 0.0
-        U2 = 100.0;
-        Jeff = 2*th*th*U2/((U1-epsilon)*(U2+epsilon)); #exactly as in my paper
-        print("Jeff = ",Jeff);
+    # iter over effective J by changing epsilon
+    Jvals = np.array([0.1,0.5,1.0,5.0]);
+    epsvals = (U1-U2)/2 + np.sqrt(U1*U2 + np.power((U1-U2)/2,2) - 2*th*th*(U1+U2)/Jvals);
+    for epsi in range(len(epsvals)):
+        epsilon = epsvals[epsi];
+        Jval = Jvals[epsi];
+        print("Jval = ",Jval);
+        print("U1 - epsilon = ",U1 - epsvals[epsi]);
+        print("U2+epsilon = ",U2+epsvals[epsi]);
 
         # SR physics: site 1 is in chain, site 2 is imp with large U
-        hSR = np.array([[0,-th,th,0], # up down, -
+        hSR = np.array([[U1,-th,th,0], # up down, -
                         [-th,epsilon, 0,-th], # up, down (source)
                         [th, 0, epsilon, th], # down, up (flip)
                         [0,-th,th,U2+2*epsilon]]); # -, up down
-
+        hSR += (Jvals[epsi]/4)*np.eye(4);
+        
         # source = up electron, down impurity
         source = np.zeros(np.shape(hSR)[0]);
         sourcei, flipi = 1,2;
@@ -200,18 +213,18 @@ if False:
             matA = np.array([[0, 0],[0,0]]);
             matB = np.array([[-th,-th],[th,th]]);
             matC = np.array([[-th,th],[-th,th]]);
-            matD = np.array([[-epsilon, 0],[0,U2+epsilon]]);
+            matD = np.array([[U1-epsilon, 0],[0,U2+epsilon]]);
             mat_downfolded = matA - np.dot(matB, np.dot(np.linalg.inv(matD), matC))  
-            #print("mat_df = \n",mat_downfolded);
-            Jeff = 2*abs(mat_downfolded[0,0]);
-            print(">>>Jeff = ",Jeff);
-            mat_downfolded += np.eye(2)*Jeff/4
-            #print("mat_df = \n",mat_downfolded);
+            print("Downfolded J = ",2*abs(mat_downfolded[0,0]) );
         
         # sweep over range of energies
         # def range
         logElims = -3,0
         Evals = np.logspace(*logElims,myxvals);
+        kavals = np.arccos((Evals-2*tl)/(-2*tl));
+        jprimevals = Jval/(4*tl*kavals);
+        menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
@@ -231,18 +244,19 @@ if False:
         #axes[1].plot(Evals, totals, color="red");
 
         # menezes prediction in the continuous case
-        axes[0].plot(Evals, Jeff*Jeff/(16*np.real(Evals)), color = mycolors[epsi], marker = mymarkers[epsi], markevery = mymarkevery, linestyle = "dashed", linewidth = mylinewidth);
+        axes[0].plot(Evals, menez_Tf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth); 
+        axes[1].plot(Evals, menez_Tnf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[0].set_ylim(0,0.4)
+        axes[0].set_ylabel('$T_{f}$', fontsize = myfontsize );
+        axes[1].set_ylim(0,1);
+        axes[1].set_ylabel('$T_{nf}$', fontsize = myfontsize );
 
     # format
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    axes[0].set_ylim(0,0.4)
-    axes[0].set_ylabel('$T_{flip}$', fontsize = myfontsize );
-    axes[1].set_ylim(0,1.01);
-    axes[1].set_yticks([0,0.5,1.0]);
-    axes[1].set_ylabel('$T_{i}$', fontsize = myfontsize );
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('figs/origin.pdf');
     plt.show();
