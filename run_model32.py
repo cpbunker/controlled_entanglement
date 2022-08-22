@@ -68,9 +68,9 @@ J12 = JK/10;
 J12x, J12y, J12z = J12, J12, J12;
             
 #########################################################
-#### generate data
+#### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
+if False: # T+ at different Delta E by changing D
     
     Esplitvals = (1)*np.array([0.0,-0.01,-0.05, -0.1]);
     Dvals = -Esplitvals/2;
@@ -78,7 +78,7 @@ if True: # T+ at different Delta E by changing D
         Dval = Dvals[Di];
 
         # iter over E, getting T
-        logElims = -3,0
+        logElims = -4,0
         Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -140,10 +140,6 @@ if True: # T+ at different Delta E by changing D
         print("Saving data to "+fname);
         np.save(fname, data);
 
-
-########################################################################
-#### plot data
-
 # load data
 def load_data(fname):
     print("Loading data from "+fname);
@@ -173,42 +169,38 @@ def FOM(Ti,Tp, grid=100000):
 
 #### plot
 if True:
-    num_subplots = 2
-    fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
-    fig.set_size_inches(7/2,3*num_subplots/2);
+    num_plots = 2;
+    fig, axes = plt.subplots(num_plots, sharex=True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
     datafs = sys.argv[1:];
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        mymarkevery = (fi*10,50);
+        logElims = -4,-1;
+        #mymarkevery = (fi*10,50);
 
         # plot T+
-        mainax.plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
+        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
         #mainax.plot(xvals, totals, color="red");
 
-        # plot FOM
-        fomvals = np.empty_like(xvals);
-        for xi in range(len(xvals)):
-            fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
-        fomax.plot(xvals, fomvals, color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth);
+        # plot analytical FOM
+        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
 
     # format
-    mainax.set_ylim(0,0.16);
-    mainax.set_yticks([0,0.08,0.16]);
-    mainax.set_ylabel('$T_+$', fontsize = myfontsize);
-    mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
-    fomax.set_xscale('log', subs = []);
-    fomax.set_xlim(10**(logElims[0]),10**(logElims[1]));
-    fomax.set_xticks([10**(logElims[0]),10**(logElims[1])]);
-    fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
-    fomax.set_ylim(0.15,0.25);
-    fomax.set_yticks([0.15,0.2,0.25]);
-    fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
-    fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
+    axes[0].set_ylim(0,0.16);
+    axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
+    axes[1].set_ylim(0.15,0.25);
+    axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
+
+    # show
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('figs/model32.pdf');
     plt.show();
-
-
 
 
 if False: # T+ at different Delta E by changing J12z

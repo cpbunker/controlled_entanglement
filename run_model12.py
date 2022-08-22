@@ -35,7 +35,14 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
+
+# tight binding params
+tl = 1.0;
+
+# choose boundary condition
+source = np.zeros(8); 
+source[sourcei] = 1; # down up up
 
 ##################################################################################
 #### entanglement generation (cicc Fig 6)
@@ -83,9 +90,10 @@ if False: # compare T vs rhoJa for N not fixed
 
 
 if True: # compare T vs rhoJa for N=2 fixed
+    Jval = 0.1;
 
     # iter over E, getting T
-    logElims = -5,0
+    logElims = -4,-1;
     Evals = np.logspace(*logElims,myxvals);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -97,16 +105,13 @@ if True: # compare T vs rhoJa for N=2 fixed
         
         # optical distances, N = 2 fixed
         N0 = 1; # N0 = N - 1
-        ka = np.arccos((Energy)/(-2*tl));
-        kappaa = 0.0*np.pi;
-        Vg = 0;
 
         # construct hams
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
-        i1, i2 = 1, N0+1;
-        hblocks, tnn = wfm.utils.h_cicc_eff(Jeff, tl, i1, i2, i2+2, pair);
-        hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-        hblocks[2] += Vg*np.eye(len(source));
+        i1, i2 = [1], [N0+1];
+        hblocks, tnn = wfm.utils.h_cicc_eff(Jval, tl, i1, i2, pair);
+        #hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
+        #hblocks[2] += Vg*np.eye(len(source));
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
         if(verbose > 3 and Eval == Evals[0]): print(hblocks);
 
@@ -118,11 +123,11 @@ if True: # compare T vs rhoJa for N=2 fixed
     # save data to .npy
     data = np.zeros((2+2*len(source),len(Evals)));
     data[0,0] = tl;
-    data[0,1] = Jeff;
+    data[0,1] = Jval;
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T; # 8 spin dofs
     data[10:,:] = Rvals.T;
-    fname = "data/model12/N"+str(N0+1)+"_Vg0/"+str(int(kappaa*100)/100);
+    fname = "data/model12/N2/"+str(int(Jval*10)/10);
     print("Saving data to "+fname);
     np.save(fname, data);
 
@@ -158,64 +163,48 @@ def FOM(Ti,Tp, grid=100000):
 
 #### plot T+ like cicc figure
 if True:
-    num_subplots = 3
-    fig, axes = plt.subplots(num_subplots, sharex=True);
-    mainax, thetax, fomax = tuple(axes);
-    fig.set_size_inches(7/2,3*num_subplots/2);
+    num_plots = 2;
+    fig, axes = plt.subplots(num_plots, sharex=True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
     dataf = sys.argv[1];
     xvals, Rvals, Tvals, totals = load_data(dataf);
+    logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
 
     # plot Ti, T+, T-
     sigmas = [sourcei,pair[0], pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
-        mainax.plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
-
-    # format
-    mainax.set_ylim(0,1.0);
-    mainax.set_yticks([0,0.5,1]);
-    mainax.set_ylabel('$T_\sigma$', fontsize = myfontsize);
-    mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
+        axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
+    axes[0].set_ylim(0,1.0);
+    axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
-    # plot FOM
-    fomvals = np.empty_like(xvals);
-    for xi in range(len(xvals)):
-        fomvals[xi] = FOM(Tvals[sourcei,xi],Tvals[pair[0],xi]);
-    fomax.plot(xvals, fomvals, color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth);
-
-    # format
-    fomax.set_ylim(0,0.4);
-    fomax.set_yticks([0,0.2,0.4]);
-    fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
-    fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
-
-    # plot at diff theta
-    numtheta = 5;
+    # plot p2 at diff theta
+    numtheta = 7;
     thetavals = np.linspace(0,np.pi,numtheta);
     for thetai in range(numtheta):
         cm_reds = matplotlib.cm.get_cmap("Reds");
         yvals = [];
         for xi in range(len(xvals)):
             yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
-        thetax.plot(xvals, yvals,color = cm_reds((1+thetai)/numtheta));
+        axes[1].plot(xvals, yvals,color = cm_reds((1+thetai)/numtheta));
     if False: # colorbar
         cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
         cb_reds.set_label("$\\theta$",rotation = "horizontal");
         cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
+    axes[1].set_ylim(0,1.0);
+    axes[1].set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
 
-    # format
-    thetax.set_ylim(0,1.0);
-    thetax.set_yticks([0,0.5,1.0]);
-    thetax.set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
+    # plot analytical FOM
+    axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth)
 
-    # overall format
-    for axi in range(len(axes)):
-        axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    # show
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('figs/model12.pdf');
     plt.show();
