@@ -20,7 +20,7 @@ import sys
 verbose = 5;
 
 # fig standardizing
-myxvals = 199;
+myxvals = 299;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
@@ -32,50 +32,47 @@ mypanels = ["(a)","(b)","(c)"];
 #### setup
 
 # def particles and their single particle states
+spin_s = 6;
 species = np.array([1,1,1]); # num of each species, which are one e, elec, spin-3/2, spin-3/2
-spec_strs = ["e","1","2"];
-states = [[0,1],[2,3,4,5],[6,7,8,9]]; # e up, down, spin 1 mz, spin 2 mz
-state_strs = ["0.5_","-0.5_","1.5_","0.5_","-0.5_","-1.5_","1.5_","0.5_","-0.5_","-1.5_"];
-#dets = np.array([xi for xi in itertools.product(*tuple(states))]); # product states
-dets52 = [[0,2,7],[0,3,6],[1,2,6]]; # total spin 5/2 subspace
+states = [[0,1],[2,3,4,5,6,7,8,9,10,11,12,13,14],[15,16,17,18,19,20,21,22,23,24,25,26,27]]; # e up, down, spin 1 mz, spin 2 m#dets = np.array([xi for xi in itertools.product(*tuple(states))]); # product states
+dets_int = [[0,2,16],[0,3,15],[1,2,15]]; # tMSQ subspace
 
-# initialize source vector in down, 3/2, 3/2 state
-sourcei = 2; # |down, 3/2, 3/2 >
-assert(sourcei >= 0 and sourcei < len(dets52));
-source = np.zeros(len(dets52));
+# initialize source vector in down, up, up state
+sourcei = 2; # |down, 6, 6 > in 3 state reduced space
+source = np.zeros(len(dets_int));
 source[sourcei] = 1;
-source_str = "|";
-for si in dets52[sourcei]: source_str += state_strs[si];
-source_str += ">";
-if(verbose): print("\nSource:\n"+source_str);
 
-# entangle pair
-pair = (0,1); # |up, 1/2, 3/2 > and |up, 3/2, 1/2 >
-if(verbose):
-    print("\nEntangled pair:");
-    pair_strs = [];
-    for pi in pair:
-        pair_str = "|";
-        for si in dets52[pi]: pair_str += state_strs[si];
-        pair_str += ">";
-        print(pair_str);
-        pair_strs.append(pair_str);
+# entangled pair
+pair = (0,1); # |up, s, s-1 > and |up, s-1, s >
 
-tl = 1.0;
-tp = 1.0;
-JK = 0.1;
-J12 = JK/10;
-J12x, J12y, J12z = J12, J12, J12;
+# Jie Xiang paper results in cm^-1. Convert immediately to meV
+cm2meV = 1/8.06;
+tl = 100; # in meV
+tp = 100; # in meV
+Dmid = -0.22*cm2meV; # converted from cm^-1 to meV
+J12 = 0.025*cm2meV; # converted from cm^-1 to meV
+JK = 10; # in meV
+#Dmid, J12 = 0, 0;
+
+# convert to units of tl
+tl, tp, Dmid, J12, JK = tl/tl, tp/tl, Dmid/tl, J12/tl, JK/tl;
+
+# constructing the hamiltonian
+def reduced_ham(params, S=6):
+    D1, D2, J12, JK1, JK2 = params;
+
+    ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, 6, 5
+                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, 5, 6
+                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]]); # down, 6, 6
+
+    return ham;
             
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
+if True: # T+ at different Delta E by changing D
     
-    Esplitvals = (-1)*np.array([-0.05]);
-    Dvals = -Esplitvals/2;
-    for Dvali in range(len(Dvals)):
-        Dval = Dvals[Dvali];
+    for _ in range(1):
 
         # iter over E, getting T
         logElims = -4,0
@@ -99,26 +96,26 @@ if False: # T+ at different Delta E by changing D
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = JK;
                 elif(j == impis[1]): JK2 = JK;
-                params = J12x, J12y, J12z, Dval, Dval, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
+                params = Dmid, Dmid, J12, JK1, JK2;
                 # construct h_SR (determinant basis)
-                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
+                hSR = reduced_ham(params); 
                 # transform to eigenbasis
                 hSR_diag = wfm.utils.entangle(hSR, *pair);
                 hblocks.append(np.copy(hSR_diag));
-                if(verbose > 3 and Eval == Evals[0]):
+                if(Evali == 0):
                     print("\nJK1, JK2 = ",JK1, JK2);
                     print(" - ham:\n", np.real(hSR));
                     print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",Esplitvals[Dvali])
+                    print(" - DeltaE = ",(1-2*spin_s)*Dmid);
 
             # finish hblocks
             hblocks = np.array(hblocks);
- # chem potential shift ->           #hblocks[-1] += -Esplitvals[Dvali]*np.eye(*np.shape(hblocks[0]));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl)
+            Esplit = (hblocks[0][0,0] - hblocks[0][2,2])/tl;
+            print("Delta E / t = ", Esplit);
+            
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -135,7 +132,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/chem/Esplit"+str(int(Esplitvals[Dvali]*1000)/1000);
+        fname = "data/manganese/Esplit"+str(int(Esplit*1000)/1000);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -175,20 +172,19 @@ if True:
     datafs = sys.argv[1:];
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,-1;
-        #mymarkevery = (fi*10,50);
+        logElims = -4,0;
 
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
-        #mainax.plot(xvals, totals, color="red");
+        #axes[0].plot(xvals, totals, color="red");
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
 
     # format
-    #axes[0].set_ylim(0,0.16);
+    axes[0].set_ylim(0,0.1);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    #axes[1].set_ylim(0.15,0.25);
+    axes[1].set_ylim(0.0,0.2);
     axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 
     # show
@@ -198,7 +194,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model32.pdf');
+    plt.savefig('figs/manganese.pdf');
     plt.show();
 
 
