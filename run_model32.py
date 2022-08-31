@@ -27,7 +27,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -72,10 +72,10 @@ J12x, J12y, J12z = J12, J12, J12;
 
 if False: # T+ at different Delta E by changing D
     
-    Esplitvals = (1)*np.array([0.0,-0.01,-0.05, -0.1]);
+    Esplitvals = (-1)*np.array([-0.05]);
     Dvals = -Esplitvals/2;
-    for Di in range(len(Dvals)):
-        Dval = Dvals[Di];
+    for Dvali in range(len(Dvals)):
+        Dval = Dvals[Dvali];
 
         # iter over E, getting T
         logElims = -4,0
@@ -110,12 +110,11 @@ if False: # T+ at different Delta E by changing D
                     print("\nJK1, JK2 = ",JK1, JK2);
                     print(" - ham:\n", np.real(hSR));
                     print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",Esplitvals[Di])
+                    print(" - DeltaE = ",Esplitvals[Dvali])
 
             # finish hblocks
             hblocks = np.array(hblocks);
-            #hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            #hblocks[2] += Vg*np.eye(len(source));
+            hblocks[-1] += -Esplitvals[Dvali]*np.eye(*np.shape(hblocks[0]));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
@@ -136,7 +135,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/Esplit"+str(int(Esplitvals[Di]*100)/100);
+        fname = "data/model32/chem/Esplit"+str(int(Esplitvals[Dvali]*1000)/1000);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -187,9 +186,9 @@ if True:
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
 
     # format
-    axes[0].set_ylim(0,0.16);
+    #axes[0].set_ylim(0,0.16);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    axes[1].set_ylim(0.15,0.25);
+    #axes[1].set_ylim(0.15,0.25);
     axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 
     # show

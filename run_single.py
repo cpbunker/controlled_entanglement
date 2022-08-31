@@ -31,7 +31,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -39,17 +39,17 @@ tl = 1.0;
 #################################################################
 #### replication of continuum solution
 
-if False:
+if True:
+
+    # inelastic ?
+    Delta = 0.01; # inelastic splitting
+    inelastic = False
+    if Delta > 0.0: inelastic = True
     num_plots = 4;
     if inelastic: num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
-
-    # inelastic ?
-    Delta = 0.0; # inelastic splitting
-    inelastic = False
-    if Delta > 0.0: inelastic = True
     
     # non contact interaction
     Msites = 1; 
@@ -66,10 +66,10 @@ if False:
         hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
 
         # zeeman splitting
-        hzeeman = np.array([[Delta, 0, 0, 0],
-                        [0,0, 0, 0],
-                        [0, 0, Delta, 0], # spin flip gains PE delta
-                        [0, 0, 0, 0]]);
+        hzeeman = np.array([[0, 0, 0, 0],
+                        [0,Delta, 0, 0],
+                        [0, 0, 0, 0], # spin flip gains PE delta
+                        [0, 0, 0, Delta]]);
         hSR += hzeeman;
 
         # truncate to coupled channels
@@ -81,7 +81,7 @@ if False:
         hRL = np.copy(hzeeman)
 
         # source = up electron, down impurity
-        sourcei, flipi = 0,1
+        sourcei, flipi = 1,0
         source = np.zeros(np.shape(hSR)[0]);
         source[sourcei] = 1;
 
@@ -266,94 +266,6 @@ if False:
     plt.show();
 
 
-#################################################################
-#### superposition spin center
-
-if True:
-    num_plots = 4;
-    fig, axes = plt.subplots(num_plots, sharex = True);
-    if num_plots == 1: axes = [axes];
-    fig.set_size_inches(7/2,3*num_plots/2);
-
-    # tight binding params
-    Jval = 0.1;
-    zeeman = 0.0;
-
-    # iter over degree of superposition (ie theta)
-    thetavals = np.linspace(0,np.pi,5);
-    for thetavali in range(len(thetavals)):
-        thetaval = thetavals[thetavali];
-
-        # superposition + zeeman 
-        source = np.zeros(4)
-        source[2] = np.cos(thetaval/2);
-        source[3] = np.sin(thetaval/2);
-
-        # zeeman splitting
-        hzeeman = np.array([[zeeman, 0, 0, 0],
-                        [0,0, 0, 0],
-                        [0, 0, zeeman, 0], # spin center up has more zeeman energy
-                        [0, 0, 0, 0]]);
-        
-        # 2nd qu'd operator for S dot s
-        h1e = np.zeros((len(source),len(source)));
-        g2e = wfm.utils.h_kondo_2e(Jval, 0.5); # J, spin
-        states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
-        hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
-        hSR += hzeeman;
-        
-        # leads
-        hLL = np.copy(hzeeman);
-        hRL = np.copy(hzeeman)
-
-        # package together hamiltonian blocks
-        hblocks = [hLL];
-        hblocks.append(hRL);
-        hblocks = np.array(hblocks);
-
-        # hopping
-        tnn = [];
-        for _ in range(len(hblocks)-1): tnn.append(-tl*np.eye(*np.shape(hSR)));
-        tnn = np.array(tnn);
-        tnnn = np.zeros_like(tnn)[:-1];
-        if(verbose and thetavali == 0): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
-
-        # sweep over range of energies
-        # def range
-        logElims = -3,0
-        Evals = np.logspace(*logElims,myxvals);
-        kavals = np.arccos((Evals-2*tl)/(-2*tl));
-        Rvals = np.empty((len(Evals),len(source)), dtype = float);
-        Tvals = np.empty((len(Evals),len(source)), dtype = float); 
-        for Evali in range(len(Evals)):
-
-            # energy
-            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
-            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
-
-            if(Evali < 1): # verbose
-                Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False, verbose = verbose);
-            else: # not verbose
-                 Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False);
-            Rvals[Evali] = Rdum;
-            Tvals[Evali] = Tdum;
-
-        # plot tight binding results
-        for axi in range(num_plots):
-            axes[axi].plot(Evals,Tvals[:,axi], color = mycolors[thetavali], marker = mymarkers[thetavali], markevery = mymarkevery, linewidth = mylinewidth);
-        totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
-        axes[-1].plot(Evals, totals, color="red", label = "total ");
-
-    # show
-    axes[-1].set_xscale('log', subs = []);
-    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
-    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
-    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize); 
-    plt.tight_layout();
-    fname = 'figs/superposition.pdf'
-    plt.savefig(fname);
-    plt.show();
 
 
 
