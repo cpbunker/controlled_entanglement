@@ -89,7 +89,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if True: # compare T vs rhoJa for N=2 fixed
+if False: # compare T vs rhoJa for N=2 fixed
     Jval = 0.1;
 
     # iter over E, getting T
@@ -147,6 +147,7 @@ def load_data(fname):
     mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
+    print("- shape Rvals = ", np.shape(myRvals));
     return myxvals, myRvals, myTvals, mytotals;
 
 # p2

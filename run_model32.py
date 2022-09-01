@@ -27,7 +27,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -72,13 +72,13 @@ J12x, J12y, J12z = J12, J12, J12;
 
 if False: # T+ at different Delta E by changing D
     
-    Esplitvals = (-1)*np.array([-0.05]);
+    Esplitvals = (1)*np.array([0.0,-0.01,-0.05,-0.08]);
     Dvals = -Esplitvals/2;
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
         # iter over E, getting T
-        logElims = -4,0
+        logElims = -4,-1
         Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -114,11 +114,11 @@ if False: # T+ at different Delta E by changing D
 
             # finish hblocks
             hblocks = np.array(hblocks);
- # chem potential shift ->           #hblocks[-1] += -Esplitvals[Dvali]*np.eye(*np.shape(hblocks[0]));
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl)
+            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
+
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -135,7 +135,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/chem/Esplit"+str(int(Esplitvals[Dvali]*1000)/1000);
+        fname = "data/model32/Esplit"+str(int(Esplitvals[Dvali]*100)/100);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -146,11 +146,12 @@ def load_data(fname):
     tl = data[0,0];
     Jeff = data[0,1];
     myxvals = data[1];
-    myTvals = data[2:10];
-    myRvals = data[10:];
+    myTvals = data[2:5];
+    myRvals = data[5:];
     mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
+    print("- shape Rvals = ", np.shape(myRvals));
     return myxvals, myRvals, myTvals, mytotals;
 
 # p2
@@ -175,7 +176,7 @@ if True:
     datafs = sys.argv[1:];
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,-1;
+        logElims = -2,0;
         #mymarkevery = (fi*10,50);
 
         # plot T+
@@ -186,9 +187,9 @@ if True:
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
 
     # format
-    #axes[0].set_ylim(0,0.16);
+    axes[0].set_ylim(0,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    #axes[1].set_ylim(0.15,0.25);
+    axes[1].set_ylim(0.2,0.3);
     axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 
     # show
@@ -198,7 +199,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model32.pdf');
+    plt.savefig('figs/model32_detailed.pdf');
     plt.show();
 
 
