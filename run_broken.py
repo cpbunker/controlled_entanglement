@@ -230,11 +230,12 @@ def load_data(fname):
     tl = data[0,0];
     Jeff = data[0,1];
     myxvals = data[1];
-    myTvals = data[2:10];
-    myRvals = data[10:];
+    myTvals = data[2:5];
+    myRvals = data[5:];
     mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
+    print("- shape Rvals = ", np.shape(myRvals));
     return myxvals, myRvals, myTvals, mytotals;
 
 num_subplots = 2
