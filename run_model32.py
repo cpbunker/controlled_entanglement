@@ -27,7 +27,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -177,15 +177,16 @@ if True:
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
         logElims = -2,0;
-        #mymarkevery = (fi*10,50);
 
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
         #mainax.plot(xvals, totals, color="red");
+        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
-
+        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+        
     # format
     axes[0].set_ylim(0,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
@@ -199,7 +200,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model32_detailed.pdf');
+    #plt.savefig('figs/model32_detailed.pdf');
     plt.show();
 
 

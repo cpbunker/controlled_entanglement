@@ -35,7 +35,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
 
 # tight binding params
 tl = 1.0;
@@ -178,6 +178,7 @@ if True:
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
         axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
+    print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
     axes[0].set_ylim(0,1.0);
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
@@ -199,7 +200,7 @@ if True:
 
     # plot analytical FOM
     axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth)
-
+    print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
     # show
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
