@@ -108,7 +108,7 @@ if False: # T+ at different Delta E by changing D
                 hblocks.append(np.copy(hSR_diag));
                 if(verbose > 3 and Eval == Evals[0]):
                     print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", np.real(hSR));
+                    print(" - ham:\n", hSR);
                     print(" - transformed ham:\n", np.real(hSR_diag));
                     print(" - DeltaE = ",Esplitvals[Dvali])
 

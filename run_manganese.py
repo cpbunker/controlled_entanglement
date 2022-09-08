@@ -50,12 +50,13 @@ cm2meV = 1/8.06;
 tl = 100; # in meV
 tp = 100; # in meV
 Dmid = -0.22*cm2meV; # converted from cm^-1 to meV
-J12 = 0.025*cm2meV; # converted from cm^-1 to meV
+J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
 JK = 10; # in meV
 #Dmid, J12 = 0, 0;
 
 # convert to units of tl
 tl, tp, Dmid, J12, JK = tl/tl, tp/tl, Dmid/tl, J12/tl, JK/tl;
+print(tl, tp, Dmid, J12, JK);
 
 # constructing the hamiltonian
 def reduced_ham(params, S=6):
@@ -63,7 +64,8 @@ def reduced_ham(params, S=6):
 
     ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, 6, 5
                     [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, 5, 6
-                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]]); # down, 6, 6
+                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]], # down, 6, 6
+                   dtype = complex);
 
     return ham;
             
@@ -104,8 +106,8 @@ if True: # T+ at different Delta E by changing D
                 hblocks.append(np.copy(hSR_diag));
                 if(Evali == 0):
                     print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", np.real(hSR));
-                    print(" - transformed ham:\n", np.real(hSR_diag));
+                    print(" - ham:\n", hSR);
+                    print(" - transformed ham:\n", np.real(hSR_diag)); 
                     print(" - DeltaE = ",(1-2*spin_s)*Dmid);
 
             # finish hblocks
@@ -178,9 +180,11 @@ if True:
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
         #axes[0].plot(xvals, totals, color="red");
+        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
+        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
 
     # format
     axes[0].set_ylim(0,0.1);
