@@ -17,7 +17,7 @@ import sys
 
 
 #### top level
-#np.set_printoptions(precision = 4, suppress = True);
+np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # fig standardizing
@@ -55,14 +55,15 @@ Jx = 0.209; # convert to hartree
 Jz = 0.124;
 DO = 0.674;
 DT = 0.370;
+#DT = DO;
 
 # convert to Ha
-print("\n>>>params, in meV:\n",tl, tp, JK, Jx, DO, DT); 
+print("\nParams, in meV:\n",tl, tp, JK, Jx, DO, DT); 
 del th, Ucharge;
 #Ha2meV = 27.211386*1000;
 #tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
 tl, tp, JK, Jx, Jz, DO, DT= tl/tl, tp/tl, JK/tl, Jx/tl, Jz/tl, DO/tl, DT/tl;
-print("\n>>>params, in tl:\n",tl, tp, JK, Jx, Jz, DO, DT);
+print("\nParams, in tl:\n",tl, tp, JK, Jx, Jz, DO, DT);
 
 # initialize source vector in down, 3/2, 3/2 state
 sourcei = 2; # |down, 3/2, 3/2 >
@@ -123,26 +124,47 @@ if True:
                 elif(j == impis[1]): JKT = JK
                 params = Jx, Jx, Jz, DO, DT, 0, JKO, JKT;
                 h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
-                # construct h_SR (determinant basis)
+                # construct h_SR, basis = 1/2> |s>|s-1>, |1/2>|s-1>|s>, |-1/2>|s>|s> (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
-                hSR_ent = hSR; #  wfm.utils.entangle(hSR, *pair);
-                # make leads diagonal in this basis
-                if( j==0): 
-                    eigEs, Udiag = np.linalg.eigh(hSR_ent); 
-                    print("\nLead eigenstates:");
-                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |1'>: ", (Udiag[:,0] + Udiag[:,1])/np.sqrt(2)); # not correct
+                if(dummyi == 0 and Evali == 0 and j==0):
+                    # see eigenstates in the determinant basis
+                    eigEs, Udiag = np.linalg.eigh(hSR); 
+                    print("\nDeterminant basis:");
+                    print(" - ham:\n", np.real(hSR));
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+
+                    # find the actual transmitted spin state in the determinant basis
+                    beta = (2*1.5 - 1)*(DO-DT)/(2*1.5*Jx);
+                    alpha11 = (1+np.sqrt(1+beta*beta)-beta)/(2*np.sqrt(1+beta*beta+np.sqrt(1+beta*beta)));
+                    alpha12 = (1-np.sqrt(1+beta*beta)-beta)/(2*np.sqrt(1+beta*beta-np.sqrt(1+beta*beta)));
+                    print("|1'>: ",);
+                    
                     # find von neuman entropy
                     #for coli in [1,0]: get_VNE(Udiag[:,coli]);
-                    assert False;
+
+                # change to the |+>, |->, |i> basis (entangling basis)
+                hSR_ent = wfm.utils.entangle(hSR, *pair);
+                if(dummyi == 0 and Evali == 0 and j==0):
+                    # see eigenstates in the entangling basis
+                    eigEs, Udiag = np.linalg.eigh(hSR_ent);
+                    Dmid = (DO+DT)/2;
+                    print("\nEntangling basis:");
+                    print(" - ent ham:\n", np.real(hSR_ent));
+                    const_term = 2*1.5*1.5*Dmid + (1.5*1.5-1.5)*Jz;
+                    print(" - ent diagonal should be: ",const_term + np.array([1.5*Jx+(1-2*1.5)*Dmid,-1.5*Jx+(1-2*1.5)*Dmid,1.5*Jz]));
+                    print(" - ent off-diagonal should be: ",DO-DT);
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+
+                # change to the |+'>, |-'>, |i> basis (diagonalizing basis)
                 hSR_diag = np.dot(np.linalg.inv(Udiag), np.dot(hSR_ent, Udiag));
-                if(verbose > 3 and Eval == Evals[0] and j == 0):
-                    print("\n - JKO, JKT = ",JKO*Ha2meV, JKT*Ha2meV);
-                    print(" - ham:\n", tl*np.real(hSR));
-                    print(" - ent ham:\n", tl*np.real(hSR_ent));
-                    print(" - ent hame should be: ",tl*np.real(DO-DT),tl*np.real((2*1.5*1.5-2*1.5+1)*(DO+DT)/2 + 1.5*1.5*Jz - 1.5*(Jz-Jx)));
-                    print(" - diag ham:\n", tl*np.real(hSR_diag));
+                if(dummyi == 0 and Evali == 0):
+                    print("\nDiagonalizing basis:");
+                    print(" - JKO, JKT = ",JKO, JKT);
+                    print(" - diag ham:\n", np.real(hSR_diag));
+                    
                 # add to blocks list
                 hblocks.append(np.copy(hSR_diag));
+            assert False;
 
             # finish hblocks
             hblocks = np.array(hblocks);

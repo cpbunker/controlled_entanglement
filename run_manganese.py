@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import sys
 
 #### top level
-#np.set_printoptions(precision = 4, suppress = True);
+np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # fig standardizing
@@ -74,7 +74,7 @@ def reduced_ham(params, S=6):
 
 if True: # T+ at different Delta E by changing D
     
-    for _ in range(1):
+    for dummyi in range(1):
 
         # iter over E, getting T
         logElims = -4,0
@@ -100,15 +100,31 @@ if True: # T+ at different Delta E by changing D
                 elif(j == impis[1]): JK2 = JK;
                 params = Dmid, Dmid, J12, JK1, JK2;
                 # construct h_SR (determinant basis)
-                hSR = reduced_ham(params); 
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-                if(Evali == 0):
-                    print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", hSR);
-                    print(" - transformed ham:\n", np.real(hSR_diag)); 
-                    print(" - DeltaE = ",(1-2*spin_s)*Dmid);
+                hSR = reduced_ham(params);
+                if(dummyi == 0 and Evali == 0 and j == 0):
+                    # see eigenstates in the determinant basis
+                    eigEs, Udiag = np.linalg.eigh(hSR); 
+                    print("\nDeterminant basis:");
+                    print(" - ham:\n", np.real(hSR));
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+
+                # transform the |+>, |->, |i> basis (entangling basis)
+                hSR_ent = wfm.utils.entangle(hSR, *pair);
+                if(dummyi == 0 and Evali == 0 and j == 0):
+                    # see eigenstates in the entangling basis
+                    eigEs, Udiag = np.linalg.eigh(hSR_ent);
+                    print("\nEntangling basis:");
+                    print(" - ent ham:\n", np.real(hSR_ent));
+                    Spin = 6;
+                    const_term = 2*Spin*Spin*Dmid + (Spin*Spin-Spin)*J12;
+                    print(" - ent diagonal should be: ",const_term + np.array([Spin*J12+(1-2*Spin)*Dmid,-1.5*J12+(1-2*Spin)*Dmid,Spin*J12]));
+                    print(" - ent off-diagonal should be: ",0);
+                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+                    print(" - Delta E / t = ", hSR_ent[0,0]-hSR_ent[2,2]);
+
+                # add to blocks list
+                hblocks.append(np.copy(hSR_ent));
+                assert False
 
             # finish hblocks
             hblocks = np.array(hblocks);
