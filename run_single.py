@@ -31,7 +31,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -42,7 +42,7 @@ tl = 1.0;
 if True:
 
     # inelastic ?
-    Delta = 0.01; # inelastic splitting
+    Delta = 0.0; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -150,7 +150,7 @@ if True:
             axes[ax2].set_ylim(0,1);
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
             axes[ax3].set_ylim(0,0.1);
-            axes[ax3].set_ylabel('|$T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
+            axes[ax3].set_ylabel('$|T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
     
     # show
     axes[-1].set_xscale('log', subs = []);
