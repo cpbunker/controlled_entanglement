@@ -183,14 +183,14 @@ if True:
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
     # plot p2 at diff theta
-    numtheta = 9;
+    numtheta = 9; # first 5 plus last
     thetavals = np.linspace(0,np.pi,numtheta);
     for thetai in range(numtheta):
         cm_reds = matplotlib.cm.get_cmap("seismic");
         yvals = [];
         for xi in range(len(xvals)):
             yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
-        axes[1].plot(xvals, yvals,color = cm_reds((1+thetai)/(numtheta)));
+        axes[1].plot(xvals, yvals,color = cm_reds((1+thetai)/(numtheta)),linewidth = mylinewidth);
     if False: # colorbar
         cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
         cb_reds.set_label("$\\theta$",rotation = "horizontal");
