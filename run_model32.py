@@ -24,7 +24,11 @@ myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mymarkevery = 50;
+def mymarkevery(fname,yvalues):
+    if '-' in fname or '0.0.npy' in fname:
+        return (40,40);
+    else:
+        return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -177,8 +181,8 @@ def FOM(Ti,Tp, grid=100000):
     fom = np.trapz(p2vals, thetavals)/np.pi;
     return fom;
 
-#### plot
-if True:
+#### plot T+ and p2 vs Ki at different Delta E
+if False:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex=True);
     if num_plots == 1: axes = [axes];
@@ -186,21 +190,21 @@ if True:
     datafs = sys.argv[1:];
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -2,0;
+        logElims = -4,-1;
 
         # plot T+
-        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
+        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 
         #mainax.plot(xvals, totals, color="red");
         print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
 
         # plot analytical FOM
-        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
+        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
         print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
         
     # format
     axes[0].set_ylim(0,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    axes[1].set_ylim(0.2,0.3);
+    axes[1].set_ylim(0.0,0.3);
     axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
 
     # show
@@ -210,7 +214,43 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model32_detailed.pdf');
+    plt.savefig('figs/model32.pdf');
+    plt.show();
+
+#### plot T+ and p2 vs Delta E
+if True:
+    num_plots = 2;
+    fig, axes = plt.subplots(num_plots, sharex=True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
+    datafs = sys.argv[1:];
+    for fi in range(len(datafs)):
+        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
+        logElims = -4,-1;
+
+        # plot T+
+        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 
+        #mainax.plot(xvals, totals, color="red");
+        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
+
+        # plot analytical FOM
+        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
+        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+        
+    # format
+    axes[0].set_ylim(0,0.2);
+    axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
+    axes[1].set_ylim(0.0,0.3);
+    axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
+
+    # show
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    plt.tight_layout();
+    plt.savefig('figs/model32.pdf');
     plt.show();
 
 
