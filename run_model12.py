@@ -35,7 +35,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = (40,40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
 
 # tight binding params
 tl = 1.0;
@@ -175,9 +175,10 @@ def FOM(Ti,Tp, grid=100000):
 #### plot T+ like cicc figure
 if True:
     num_plots = 2;
-    fig, axes = plt.subplots(num_plots, sharex=True);
+    height_mult = 1;
+    fig, axes = plt.subplots(num_plots, 1, gridspec_kw={'height_ratios':[1,height_mult]}, sharex=True);
     if num_plots == 1: axes = [axes];
-    fig.set_size_inches(7/2,3*num_plots/2);
+    fig.set_size_inches(7/2,3*(1+height_mult)/2);
     dataf = sys.argv[1];
     xvals, Rvals, Tvals, totals = load_data(dataf);
     logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
@@ -193,20 +194,30 @@ if True:
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
     # plot p2 at diff theta
-    numtheta = 5;
+    numtheta = 9;
     thetavals = np.linspace(0,np.pi,numtheta);
-    for thetai in range(numtheta):
-        print(thetavals[thetai]);
+    thetais = [0,1,2,8];
+    endthetavals = [];
+    for thetai in thetais:
         yvals = [];
         for xi in range(len(xvals)):
             yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
         axes[1].plot(xvals, yvals,color = get_color(thetai,numtheta),linewidth = mylinewidth);
-    if False: # colorbar
-        cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
-        cb_reds.set_label("$\\theta$",rotation = "horizontal");
-        cb_reds.set_ticks([0,1],labels=["$\\tilde{\\theta} =$ 0","$\pi$"]);
+        endthetavals.append(np.copy(yvals)[-1]);
+        print(thetavals[thetai]);
+    print(endthetavals);
+    # label LHS with p2 values
     axes[1].set_ylim(0,1.0);
     axes[1].set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
+    # label thetavals with RHS yticks
+    if True:
+        endthetavals[-2] += 0.01;
+        endthetavals[-1] = 0.0;
+        axRHS = axes[1].twinx();
+        axRHS.tick_params(axis='y');
+        axRHS.set_ylim(0,1.0);
+        axRHS.set_yticks(endthetavals);
+        axRHS.set_yticklabels(['0','$\pi/8$','$\pi/4$','$\pi$']);
 
     # plot analytical FOM
     axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth)
@@ -218,7 +229,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model12.pdf');
+    plt.savefig('figs/model12.pdf');
     plt.show();
     
         

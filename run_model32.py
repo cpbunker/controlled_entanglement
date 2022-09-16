@@ -27,7 +27,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = 50;
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 peaks = np.array([ [   1/2 , 0.00 , 0.222490 , 0.298361 ],
