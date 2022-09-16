@@ -1,4 +1,4 @@
-# Scattering solution of interacting Hamiltonia
+# Scattering solution of interacting Hamiltonian
 
 
 
