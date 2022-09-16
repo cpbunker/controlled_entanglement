@@ -30,6 +30,16 @@ mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
+peaks = np.array([ [   1/2 , 0.00 , 0.222490 , 0.298361 ],
+    [3/2 , -0.08 , 0.071040 , 0.199658 ],
+    [3/2 , -0.05 , 0.082684 , 0.211454 ],
+    [3/2 , -0.01 , 0.113272 , 0.234906 ],
+    [3/2 , 0.00  , 0.123194 , 0.242528 ],
+    [3/2 , 0.01  , 0.123384 , 0.249863 ],
+    [3/2 , 0.05  , 0.100259 , 0.257826 ],
+    [3/2 , 0.08  , 0.087848 , 0.252942 ],
+    [6   , 0.003 , 0.042640 , 0.167187 ] ]);
+del peaks;
 
 # def particles and their single particle states
 species = np.array([1,1,1]); # num of each species, which are one e, elec, spin-3/2, spin-3/2

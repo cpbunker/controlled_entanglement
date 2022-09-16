@@ -32,7 +32,7 @@ myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mymarkevery = 50;
+mymarkevery = (40,40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
@@ -150,6 +150,16 @@ def load_data(fname):
     print("- shape Rvals = ", np.shape(myRvals));
     return myxvals, myRvals, myTvals, mytotals;
 
+# colormap
+cm_reds = matplotlib.cm.get_cmap("seismic");
+def get_color(colori,numcolors):
+    denominator = 2*numcolors
+    assert(colori >=0 and colori < numcolors);
+    if colori <= numcolors // 2: # get a blue
+        return cm_reds((1+colori)/denominator);
+    else:
+        return cm_reds((denominator-(numcolors-(colori+1)))/denominator);
+
 # p2
 def p2(Ti,Tp,theta):
     assert isinstance(Ti,float) and isinstance(Tp,float); # vectorized in thetas only
@@ -177,20 +187,20 @@ if True:
     for sigmai in range(len(sigmas)):
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
-        axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=50,linewidth = mylinewidth);
+        axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=mymarkevery,linewidth = mylinewidth);
     print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
     axes[0].set_ylim(0,1.0);
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
     # plot p2 at diff theta
-    numtheta = 9; # first 5 plus last
+    numtheta = 5;
     thetavals = np.linspace(0,np.pi,numtheta);
     for thetai in range(numtheta):
-        cm_reds = matplotlib.cm.get_cmap("seismic");
+        print(thetavals[thetai]);
         yvals = [];
         for xi in range(len(xvals)):
             yvals.append(p2(Tvals[sourcei,xi],Tvals[pair[0],xi],thetavals[thetai]));
-        axes[1].plot(xvals, yvals,color = cm_reds((1+thetai)/(numtheta)),linewidth = mylinewidth);
+        axes[1].plot(xvals, yvals,color = get_color(thetai,numtheta),linewidth = mylinewidth);
     if False: # colorbar
         cb_reds = fig.colorbar(matplotlib.cm.ScalarMappable(cmap=cm_reds),location="right", ax=thetax,);
         cb_reds.set_label("$\\theta$",rotation = "horizontal");
@@ -199,7 +209,7 @@ if True:
     axes[1].set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
 
     # plot analytical FOM
-    axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=50, linewidth = mylinewidth)
+    axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth)
     print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
     # show
     axes[-1].set_xscale('log', subs = []);
@@ -208,7 +218,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model12.pdf');
+    #plt.savefig('figs/model12.pdf');
     plt.show();
     
         
