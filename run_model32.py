@@ -31,19 +31,9 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
-peaks = np.array([ [   1/2 , 0.00 , 0.222490 , 0.298361 ],
-    [3/2 , -0.08 , 0.071040 , 0.199658 ],
-    [3/2 , -0.05 , 0.082684 , 0.211454 ],
-    [3/2 , -0.01 , 0.113272 , 0.234906 ],
-    [3/2 , 0.00  , 0.123194 , 0.242528 ],
-    [3/2 , 0.01  , 0.123384 , 0.249863 ],
-    [3/2 , 0.05  , 0.100259 , 0.257826 ],
-    [3/2 , 0.08  , 0.087848 , 0.252942 ],
-    [6   , 0.003 , 0.042640 , 0.167187 ] ]);
-del peaks;
 
 # def particles and their single particle states
 species = np.array([1,1,1]); # num of each species, which are one e, elec, spin-3/2, spin-3/2
@@ -86,7 +76,7 @@ J12x, J12y, J12z = J12, J12, J12;
 
 if False: # T+ at different Delta E by changing D
     
-    Esplitvals = (1)*np.array([0.0,-0.01,-0.05,-0.08]);
+    Esplitvals = (1)*np.array([-0.12]);
     Dvals = -Esplitvals/2;
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
@@ -182,42 +172,6 @@ def FOM(Ti,Tp, grid=100000):
     return fom;
 
 #### plot T+ and p2 vs Ki at different Delta E
-if False:
-    num_plots = 2;
-    fig, axes = plt.subplots(num_plots, sharex=True);
-    if num_plots == 1: axes = [axes];
-    fig.set_size_inches(7/2,3*num_plots/2);
-    datafs = sys.argv[1:];
-    for fi in range(len(datafs)):
-        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,-1;
-
-        # plot T+
-        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 
-        #mainax.plot(xvals, totals, color="red");
-        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
-
-        # plot analytical FOM
-        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
-        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
-        
-    # format
-    axes[0].set_ylim(0,0.2);
-    axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    axes[1].set_ylim(0.0,0.3);
-    axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
-
-    # show
-    axes[-1].set_xscale('log', subs = []);
-    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
-    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
-    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
-    plt.tight_layout();
-    plt.savefig('figs/model32.pdf');
-    plt.show();
-
-#### plot T+ and p2 vs Delta E
 if True:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex=True);
@@ -250,9 +204,8 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model32.pdf');
+    #plt.savefig('figs/model32.pdf');
     plt.show();
-
 
 if False: # T+ at different Delta E by changing J12z
 

@@ -49,14 +49,13 @@ pair = (0,1); # |up, s, s-1 > and |up, s-1, s >
 cm2meV = 1/8.06;
 tl = 100; # in meV
 tp = 100; # in meV
-Dmid = -0.22*cm2meV; # converted from cm^-1 to meV
+Dmid_real = -0.22*cm2meV; # converted from cm^-1 to meV
 J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
 JK = 10; # in meV
-#Dmid, J12 = 0, 0;
 
 # convert to units of tl
-tl, tp, Dmid, J12, JK = tl/tl, tp/tl, Dmid/tl, J12/tl, JK/tl;
-print(tl, tp, Dmid, J12, JK);
+tl, tp, Dmid_real, J12, JK = tl/tl, tp/tl, Dmid_real/tl, J12/tl, JK/tl;
+print(tl, tp, Dmid_real, J12, JK);
 
 # constructing the hamiltonian
 def reduced_ham(params, S=6):
@@ -72,9 +71,12 @@ def reduced_ham(params, S=6):
 #########################################################
 #### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
-    
-    for dummyi in range(1):
+if False: # T+ at different Delta E by changing D
+
+    # iter over Dvals    
+    Dvals = Dmid_real*np.array([-20,-10,-1,0,10,20]);
+    for Dvali in range(len(Dvals)):
+        
 
         # iter over E, getting T
         logElims = -4,0
@@ -82,6 +84,7 @@ if True: # T+ at different Delta E by changing D
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
+            Dmid = Dvals[Dvali];
 
             # energy
             Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
@@ -101,7 +104,7 @@ if True: # T+ at different Delta E by changing D
                 params = Dmid, Dmid, J12, JK1, JK2;
                 # construct h_SR (determinant basis)
                 hSR = reduced_ham(params);
-                if(dummyi == 0 and Evali == 0 and j == 0):
+                if(Dvali == 0 and Evali == 0 and j == 0):
                     # see eigenstates in the determinant basis
                     eigEs, Udiag = np.linalg.eigh(hSR); 
                     print("\nDeterminant basis:");
@@ -110,7 +113,7 @@ if True: # T+ at different Delta E by changing D
 
                 # transform the |+>, |->, |i> basis (entangling basis)
                 hSR_ent = wfm.utils.entangle(hSR, *pair);
-                if(dummyi == 0 and Evali == 0 and j == 0):
+                if(Dvali == 0 and Evali == 0 and j == 0):
                     # see eigenstates in the entangling basis
                     eigEs, Udiag = np.linalg.eigh(hSR_ent);
                     print("\nEntangling basis:");
@@ -124,7 +127,6 @@ if True: # T+ at different Delta E by changing D
 
                 # add to blocks list
                 hblocks.append(np.copy(hSR_ent));
-                assert False
 
             # finish hblocks
             hblocks = np.array(hblocks);
