@@ -74,17 +74,17 @@ def reduced_ham(params, S=6):
 if False: # T+ at different Delta E by changing D
 
     # iter over Dvals    
-    Dvals = Dmid_real*np.array([-20,-10,-1,0,10,20]);
+    Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01]);
+    Dvals = Esplitvals/(1-2*6);
     for Dvali in range(len(Dvals)):
+        Dmid = Dvals[Dvali];
         
-
         # iter over E, getting T
         logElims = -4,0
         Evals = np.logspace(*logElims,myxvals);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
-            Dmid = Dvals[Dvali];
 
             # energy
             Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
