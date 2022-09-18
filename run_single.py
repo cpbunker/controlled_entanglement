@@ -28,10 +28,10 @@ myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mymarkevery = 50;
+mymarkevery = (40, 40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -39,10 +39,10 @@ tl = 1.0;
 #################################################################
 #### replication of continuum solution
 
-if True:
+if False:
 
     # inelastic ?
-    Delta = 0.0; # inelastic splitting
+    Delta = 0.01; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -130,26 +130,27 @@ if True:
         #axes[1].plot(Evals, totals, color="red", label = "total ");
         
         # continuum results
+        lower_y = 0.05
         if inelastic:
             #axes[ax0].axvline(0.025, color = "gray");
             axes[ax0].plot(Evals, menez_Tf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth); 
             axes[ax2].plot(Evals, menez_Tnf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
-            axes[ax0].set_ylim(0,0.4)
+            axes[ax0].set_ylim(-0.4*lower_y,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-            axes[ax2].set_ylim(0,1);
+            axes[ax2].set_ylim(-1*lower_y,1);
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
             
         # differences
         if not inelastic:
             axes[ax1].plot(Evals,abs(Tvals[:,flipi]-menez_Tf)/menez_Tf,color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
             axes[ax3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
-            axes[ax0].set_ylim(0,0.4)
+            axes[ax0].set_ylim(-0.4*lower_y,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-            axes[ax1].set_ylim(0,0.1);
+            axes[ax1].set_ylim(-0.1*lower_y,0.1);
             axes[ax1].set_ylabel('$|T_{f}-T_{f,c}|/T_{f,c}$', fontsize = myfontsize );
-            axes[ax2].set_ylim(0,1);
+            axes[ax2].set_ylim(-1*lower_y,1);
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
-            axes[ax3].set_ylim(0,0.1);
+            axes[ax3].set_ylim(-0.1*lower_y,0.1);
             axes[ax3].set_ylabel('$|T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
     
     # show
@@ -168,7 +169,7 @@ if True:
 #################################################################
 #### physical origin
 
-if False:
+if True:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
@@ -250,9 +251,10 @@ if False:
         # menezes prediction in the continuous case
         axes[0].plot(Evals, menez_Tf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth); 
         axes[1].plot(Evals, menez_Tnf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth);
-        axes[0].set_ylim(0,0.4)
+        lower_y = 0.05
+        axes[0].set_ylim(-0.4*lower_y,0.4)
         axes[0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-        axes[1].set_ylim(0,1);
+        axes[1].set_ylim(-1*lower_y,1);
         axes[1].set_ylabel('$T_{nf}$', fontsize = myfontsize );
 
     # format
