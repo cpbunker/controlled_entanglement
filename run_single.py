@@ -31,7 +31,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = (40, 40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -39,10 +39,10 @@ tl = 1.0;
 #################################################################
 #### replication of continuum solution
 
-if False:
+if True:
 
     # inelastic ?
-    Delta = 0.01; # inelastic splitting
+    Delta = 0.0; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -55,7 +55,7 @@ if False:
     Msites = 1; 
 
     # iter over effective J
-    Jvals = np.array([0.5,1.0,5.0,10]);
+    Jvals = np.array([0.1,0.5,1.0,5.0]);
     for Jvali in range(len(Jvals)):
         Jval = Jvals[Jvali];
         
@@ -100,7 +100,7 @@ if False:
 
         # sweep over range of energies
         # def range
-        logElims = -3,0
+        logElims = -4,0
         Evals = np.logspace(*logElims,myxvals);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -130,14 +130,14 @@ if False:
         #axes[1].plot(Evals, totals, color="red", label = "total ");
         
         # continuum results
-        lower_y = 0.05
+        lower_y = 0.08
         if inelastic:
             #axes[ax0].axvline(0.025, color = "gray");
             axes[ax0].plot(Evals, menez_Tf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth); 
             axes[ax2].plot(Evals, menez_Tnf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
             axes[ax0].set_ylim(-0.4*lower_y,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-            axes[ax2].set_ylim(-1*lower_y,1);
+            axes[ax2].set_ylim(-1*lower_y,1*(1+lower_y));
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
             
         # differences
@@ -148,7 +148,7 @@ if False:
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
             axes[ax1].set_ylim(-0.1*lower_y,0.1);
             axes[ax1].set_ylabel('$|T_{f}-T_{f,c}|/T_{f,c}$', fontsize = myfontsize );
-            axes[ax2].set_ylim(-1*lower_y,1);
+            axes[ax2].set_ylim(-1*lower_y,1*(1+lower_y));
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
             axes[ax3].set_ylim(-0.1*lower_y,0.1);
             axes[ax3].set_ylabel('$|T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
@@ -158,7 +158,7 @@ if False:
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize); 
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize); 
     plt.tight_layout();
     if inelastic: fname = 'figs/inelastic.pdf';
     else: fname = 'figs/continuum.pdf'
@@ -169,7 +169,7 @@ if False:
 #################################################################
 #### physical origin
 
-if True:
+if False:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
@@ -224,7 +224,7 @@ if True:
         
         # sweep over range of energies
         # def range
-        logElims = -3,0
+        logElims = -4,0
         Evals = np.logspace(*logElims,myxvals);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -251,10 +251,10 @@ if True:
         # menezes prediction in the continuous case
         axes[0].plot(Evals, menez_Tf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth); 
         axes[1].plot(Evals, menez_Tnf, color = mycolors[epsi],linestyle = "dashed", marker = mymarkers[epsi], markevery = mymarkevery, linewidth = mylinewidth);
-        lower_y = 0.05
+        lower_y = 0.08
         axes[0].set_ylim(-0.4*lower_y,0.4)
         axes[0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-        axes[1].set_ylim(-1*lower_y,1);
+        axes[1].set_ylim(-1*lower_y,1*(1+lower_y));
         axes[1].set_ylabel('$T_{nf}$', fontsize = myfontsize );
 
     # format
@@ -262,7 +262,7 @@ if True:
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize);
     plt.tight_layout();
     plt.savefig('figs/origin.pdf');
     plt.show();

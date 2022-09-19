@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 
@@ -76,7 +76,7 @@ if True:
 
     # plot T+
     # for s=1/2
-    axes[0].axhline(peaks12[0,indT], color=mycolors[0]);
+    axes[0].scatter(peaks12[:,indE], peaks12[:,indT], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
     #for s=3/2
     axes[0].scatter(peaks32[:,indE], peaks32[:,indT], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
     #for s=6
@@ -87,7 +87,7 @@ if True:
        
     # plot analytical FOM
     # for s=1/2
-    axes[1].axhline(peaks12[0,indp], color=mycolors[0]);
+    axes[1].scatter(peaks12[:,indE], peaks12[:,indp], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
     # for s=3/2
     axes[1].scatter(peaks32[:,indE], peaks32[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
     # for s=6
@@ -95,16 +95,22 @@ if True:
     # for s=6
     axes[1].scatter(peaks6_real[:1,indE], peaks6_real[:1,indp], color=mycolors[0], marker='x', linewidth = mylinewidth);
 
+    # try arrow
+    lowest_x, lowest_y = peaks32[np.argmin(peaks32[:,indp]),indE], peaks32[np.argmin(peaks32[:,indp]),indp];
+    highest_x, highest_y = peaks32[np.argmax(peaks32[:,indp]),indE], peaks32[np.argmax(peaks32[:,indp]),indp];
+    #plt.arrow(lowest_x, highest_y, lowest_x - lowest_x, lowest_y - highest_y, color = "darkslategray", length_includes_head = True);
+
     # format
     axes[0].set_ylim(0.0,0.24);
-    axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
-    axes[1].set_ylim(0.08,0.32);
-    axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
+    axes[0].set_ylabel('max($T_+$)', fontsize = myfontsize);
+    axes[1].set_ylim(0.15,0.31);
+    axes[1].set_ylabel('max($\overline{p^2}(\\tilde{\\theta})$)', fontsize = myfontsize);
 
     # show
     axes[-1].set_xlabel('$\Delta E/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.6, fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
+    plt.savefig('figs/peaks.pdf');
     plt.show();
 
 
