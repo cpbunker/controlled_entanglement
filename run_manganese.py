@@ -20,11 +20,11 @@ np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # fig standardizing
-myxvals = 299;
+myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
-mymarkevery = 50;
+mymarkevery = (40,40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -52,11 +52,13 @@ tp = 100; # in meV
 Dmid_real = -0.22*cm2meV; # converted from cm^-1 to meV
 J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
 JK = 10; # in meV
+print('>>',Dmid_real*(1-2*6))
 
 # convert to units of tl
 tl, tp, Dmid_real, J12, JK = tl/tl, tp/tl, Dmid_real/tl, J12/tl, JK/tl;
 print(tl, tp, Dmid_real, J12, JK);
-
+print('>>',Dmid_real*(1-2*6))
+assert False;
 # constructing the hamiltonian
 def reduced_ham(params, S=6):
     D1, D2, J12, JK1, JK2 = params;

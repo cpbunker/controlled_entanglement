@@ -171,7 +171,7 @@ def h_cicc_eff(J, t, i1, i2, pair):
             h_cicc.append(np.zeros_like(Se_dot_S1) );
         else:
             raise Exception;
-    h_cicc = np.array(h_cicc);
+    h_cicc = np.array(h_cicc, dtype = complex);
 
     # hopping connects like spin orientations only, ie is identity
     tblocks = []

@@ -91,6 +91,8 @@ if False: # compare T vs rhoJa for N not fixed
 
 if False: # compare T vs rhoJa for N=2 fixed
     Jval = 0.1;
+    Esplit = 0.0;
+    Delta = -Esplit;
 
     # iter over E, getting T
     logElims = -4,-1;
@@ -110,13 +112,18 @@ if False: # compare T vs rhoJa for N=2 fixed
         # since t=tl everywhere, can use h_cicc_eff to get LL, RL blocks directly
         i1, i2 = [1], [N0+1];
         hblocks, tnn = wfm.utils.h_cicc_eff(Jval, tl, i1, i2, pair);
-        #hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-        #hblocks[2] += Vg*np.eye(len(source));
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+        # Zeeman splitting effects. NB s=1/2 so 2s-1=0
+        hzeeman = np.zeros_like(hblocks[0]);
+        hzeeman[sourcei, sourcei] = Delta;
+        for hbi in range(len(hblocks)): hblocks[hbi] += np.copy(hzeeman);
+        # shift so hblocks[0,i,i] = 0
+        Eshift = hblocks[0,sourcei, sourcei];
+        for hbi in range(len(hblocks)): hblocks[hbi] += -Eshift*np.eye(len(hblocks[0]));
         if(verbose > 3 and Eval == Evals[0]): print(hblocks);
 
         # get R, T coefs
-        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
+        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
         Rvals[Evali] = Rdum;
         Tvals[Evali] = Tdum;
 
@@ -127,7 +134,8 @@ if False: # compare T vs rhoJa for N=2 fixed
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T; # 8 spin dofs
     data[10:,:] = Rvals.T;
-    fname = "data/model12/N2/"+str(int(Jval*10)/10);
+    #fname = "data/model12/N2/"+str(int(Jval*10)/10);
+    fname = "data/model12/N2/Esplit"+str(int(Esplit*100)/100);
     print("Saving data to "+fname);
     np.save(fname, data);
 
@@ -229,7 +237,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model12.pdf');
+    #plt.savefig('figs/model12.pdf');
     plt.show();
     
         

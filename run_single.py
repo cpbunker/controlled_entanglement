@@ -162,7 +162,7 @@ if True:
     plt.tight_layout();
     if inelastic: fname = 'figs/inelastic.pdf';
     else: fname = 'figs/continuum.pdf'
-    plt.savefig(fname);
+    #plt.savefig(fname);
     plt.show();
 
 

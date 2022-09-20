@@ -35,7 +35,11 @@ plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 
-peaks12 = np.array([ [ 0.00 , 0.222490 , 0.298361 ]]);
+peaks12 = np.array([ [-0.05 , 0.089667 , 0.223979 ],
+                     [-0.01 , 0.152587 , 0.272373 ],
+                     [ 0.00 , 0.222490 , 0.298361 ],
+                     [ 0.01 , 0.233674 , 0.314810 ],
+                     [ 0.05 , 0.106960 , 0.285130 ]]);
 peaks32 = np.array([
      [-0.12 , 0.061207 , 0.188055 ],
      [-0.08 , 0.071040 , 0.199658 ],
@@ -82,7 +86,7 @@ if True:
     #for s=6
     axes[0].scatter(peaks6[:,indE], peaks6[:,indT], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
     #for s=6 real
-    axes[0].scatter(peaks6_real[:1,indE], peaks6_real[:1,indT], color=mycolors[0], marker='x', linewidth = mylinewidth);
+    axes[0].scatter(peaks6_real[:1,indE], peaks6_real[:1,indT], color='red', marker='x', linewidth = mylinewidth);
  
        
     # plot analytical FOM
@@ -93,7 +97,7 @@ if True:
     # for s=6
     axes[1].scatter(peaks6[:,indE], peaks6[:,indp], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
     # for s=6
-    axes[1].scatter(peaks6_real[:1,indE], peaks6_real[:1,indp], color=mycolors[0], marker='x', linewidth = mylinewidth);
+    axes[1].scatter(peaks6_real[:1,indE], peaks6_real[:1,indp], color='red', marker='x', linewidth = mylinewidth);
 
     # try arrow
     lowest_x, lowest_y = peaks32[np.argmin(peaks32[:,indp]),indE], peaks32[np.argmin(peaks32[:,indp]),indp];
