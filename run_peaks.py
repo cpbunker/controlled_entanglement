@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 
@@ -40,6 +40,7 @@ peaks12 = np.array([ [-0.05 , 0.089667 , 0.223979 ],
                      [ 0.00 , 0.222490 , 0.298361 ],
                      [ 0.01 , 0.233674 , 0.314810 ],
                      [ 0.05 , 0.106960 , 0.285130 ]]);
+peaks12 = np.array([ [ 0.00 , 0.222490 , 0.298361 ]]);
 peaks32 = np.array([
      [-0.12 , 0.061207 , 0.188055 ],
      [-0.08 , 0.071040 , 0.199658 ],
@@ -108,7 +109,7 @@ if True:
     axes[0].set_ylim(0.0,0.24);
     axes[0].set_ylabel('max($T_+$)', fontsize = myfontsize);
     axes[1].set_ylim(0.15,0.31);
-    axes[1].set_ylabel('max($\overline{p^2}(\\tilde{\\theta})$)', fontsize = myfontsize);
+    axes[1].set_ylabel('max($\overline{p^2}$)', fontsize = myfontsize);
 
     # show
     axes[-1].set_xlabel('$\Delta E/t$',fontsize = myfontsize);
