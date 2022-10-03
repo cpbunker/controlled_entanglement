@@ -86,10 +86,10 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
     Ts = np.zeros(n_loc_dof, dtype = float); 
     for sigma in range(n_loc_dof): # iter over spin dofs
 
-        # T given in my manuscript as Eq 20
+        # given in appendix A of manuscript, eq:Tcoef
         T = G_0sigma0[-n_loc_dof+sigma]*np.conj(G_0sigma0[-n_loc_dof+sigma])*v_R[sigma]*v_L[sigma0];
         
-        # R given in my manuscript as Eq 21
+        # given in appendix A of manuscript, eq:Rcoef
         R = (complex(0,1)*G_0sigma0[0+sigma]*v_L[sigma0] - Ajsigma[sigma])*np.conj(complex(0,1)*G_0sigma0[0+sigma]*v_L[sigma0] - Ajsigma[sigma])*v_L[sigma]/v_L[sigma0];  
 
         # benchmarking
