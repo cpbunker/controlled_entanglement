@@ -36,27 +36,20 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
     if(not isinstance(h, np.ndarray)): raise TypeError;
     if(not isinstance(tnn, np.ndarray)): raise TypeError;
     if(not isinstance(tnnn, np.ndarray)): raise TypeError;
-
     
     # check that lead hams are diagonal
     for hi in [0, -1]: # LL, RL
         isdiag = h[hi] - np.diagflat(np.diagonal(h[hi])); # subtract off diag
         if(all_debug and np.any(isdiag)): # True if there are nonzero off diag terms
             raise Exception("Not diagonal\n"+str(h[hi]))
-    for i in range(len(Ajsigma)): # always set incident mu = 0
-        if(Ajsigma[i] != 0):
-            assert(h[0,i,i] == 0);
+    for sigma in range(len(Ajsigma)): # always set incident mu = 0
+        if(Ajsigma[sigma] != 0):
+            pass;
+            #assert(h[0,sigma,sigma] == 0);
 
     # check incident amplitude
     assert( isinstance(Ajsigma, np.ndarray));
     assert( len(Ajsigma) == np.shape(h[0])[0] );
-    sigma0 = -1; # incident spin channel
-    for sigma in range(len(Ajsigma)): # ensure there is only one incident spin config
-        if(Ajsigma[sigma] != 0):
-            if( sigma0 != -1): # then there was already a nonzero element, bad
-                raise(Exception("Ajsigma has too many nonzero elements:\n"+str(Ajsigma)));
-            else: sigma0 = sigma;
-    assert(sigma0 != -1);
 
     # unpack
     N = len(h) - 2; # num scattering region sites
@@ -70,42 +63,26 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
 
     # green's function
     if(verbose): print("\nEnergy = {:.6f}".format(np.real(E+2*tl))); # start printouts
-    G = Green(h, tnn, tnnn, tl, E, verbose = verbose);
+    Gmat = Green(h, tnn, tnnn, tl, E, verbose = verbose); # spatial and spin indices separate
 
-    # contract G with source to pick out matrix elements we need
-    Avector = np.zeros(np.shape(G)[0], dtype = complex); # go from spin space to spin+site space
-    for sigma in range(n_loc_dof):
-        Avector[sigma] = Ajsigma[sigma]; # fill from spin space
-    
-    G_0sigma0 = np.dot(G, Avector); # G contracted with incident amplitude
-                                    # picks out matrix elements of incident
-                                    # still has 1 free spatial, spin index for transmitted
+    # determine matrix elements
+    i_flux = np.sqrt(np.dot(Ajsigma, Ajsigma*np.real(v_L))); # sqrt of i flux
 
-    # compute reflection and transmission coeffs
+    # from matrix elements, determine R and T coefficients
+    # (eq:Rcoef and eq:Tcoef in paper)
     Rs = np.zeros(n_loc_dof, dtype = float); # force as float bc we check that imag part is tiny
-    Ts = np.zeros(n_loc_dof, dtype = float); 
+    Ts = np.zeros(n_loc_dof, dtype = float);
     for sigma in range(n_loc_dof): # iter over spin dofs
-
-        # given in appendix A of manuscript, eq:Tcoef
-        T = G_0sigma0[-n_loc_dof+sigma]*np.conj(G_0sigma0[-n_loc_dof+sigma])*v_R[sigma]*v_L[sigma0];
-        
-        # given in appendix A of manuscript, eq:Rcoef
-        R = (complex(0,1)*G_0sigma0[0+sigma]*v_L[sigma0] - Ajsigma[sigma])*np.conj(complex(0,1)*G_0sigma0[0+sigma]*v_L[sigma0] - Ajsigma[sigma])*v_L[sigma]/v_L[sigma0];  
-
-        # benchmarking
-        if(verbose > 1): print(" - sigma = "+str(sigma)+",   T = {:.4f}+{:.4f}j, R = {:.4f}+{:.4f}j"
-                               .format(np.real(T), np.imag(T), np.real(R), np.imag(R)));
-        # check that the imag part is tiny
-        # fails if E < barrier (evanescent)
-        if(all_debug and abs(np.imag(T)) > 1e-10 ): raise(Exception("T = "+str(T)+" must be real")); 
-        if(all_debug and abs(np.imag(R)) > 1e-10 ): raise(Exception("R = "+str(R)+" must be real"));
-
-        # in view of passing the above check, can drop the imag part
-        Rs[sigma] = R;
-        Ts[sigma] = T;
+        # sqrt of r flux, numerator of eq:Rcoef in manuscript
+        r_flux = (np.complex(0,1)*np.dot(Gmat[0,0,sigma], Ajsigma*v_L)-Ajsigma[sigma])*np.sqrt(np.real(v_L[sigma]));
+        r_el = r_flux/i_flux;
+        Rs[sigma] = np.real(r_el*np.conjugate(r_el));
+        # sqrt of t flux, numerator of eq:Tcoef in manuscript
+        t_flux = np.complex(0,1)*np.dot(Gmat[N+1,0,sigma], Ajsigma*v_L)*np.sqrt(np.real(v_L[sigma]));
+        t_el = t_flux/i_flux;
+        Ts[sigma] = np.real(t_el*np.conjugate(t_el));
     
     return Rs, Ts;
-
 
 def Hmat(h, tnn, tnnn, verbose = 0):
     '''
@@ -115,24 +92,26 @@ def Hmat(h, tnn, tnnn, verbose = 0):
     -h, 2d array, on site blocks at each of the N+2 sites of the system
     -tnn, 2d array, nearest neighbor hopping btwn sites, N-1 blocks
     -tnnn, 2d array, next nearest neighbor hopping btwn sites, N-2 blocks
+
+    returns 2d array with spatial and spin indices mixed
     '''
     if(not len(tnn) +1 == len(h)): raise ValueError;
     if(not len(tnnn)+2 == len(h)): raise ValueError;
 
     # unpack
-    N = len(h) - 2; # num scattering region sites, ie N+2 = num spatial dof
-    n_loc_dof = np.shape(h[0])[0]; # dofs that will be mapped onto row in H
+    N = len(h) - 2; # num scattering region sites
+    n_loc_dof = np.shape(h[0])[0]; # general dofs that are not the site number
     H =  np.zeros((n_loc_dof*(N+2), n_loc_dof*(N+2) ), dtype = complex);
     # outer shape: num sites x num sites (0 <= j <= N+1)
-    # shape at each site: n_loc_dof, runs over all other degrees of freedom)
+    # shape at each site: n_loc_dof, runs over all other degrees of freedom
 
-    # first construct matrix of matrices
+    # construct H
     for sitei in range(0,N+2): # iter site dof only
         for sitej in range(0,N+2): # same
                 
             for loci in range(np.shape(h[0])[0]): # iter over local dofs
                 for locj in range(np.shape(h[0])[0]):
-                    
+
                     # site, loc indices -> overall indices
                     ovi = sitei*n_loc_dof + loci;
                     ovj = sitej*n_loc_dof + locj;
@@ -151,7 +130,7 @@ def Hmat(h, tnn, tnnn, verbose = 0):
 
                     elif(sitei+2 == sitej): # input from tnnn to 2nd upper diag
                         H[ovi, ovj] = tnnn[sitei][loci, locj];
-
+                        
     return H; # end Hmat
 
 def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
@@ -163,14 +142,16 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
     -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
     -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
     -tl, float, hopping in leads, distinct from hopping within SR def'd by tnn, tnnn
+
+    returns 2d array with spatial and spin indices mixed
     '''
 
     # unpack
     N = len(h) - 2; # num scattering region sites
-    n_loc_dof = np.shape(h[0])[0];
+    n_loc_dof = np.shape(h[0])[0]; # general dofs that are not the site number
 
     # base hamiltonian
-    Hp = Hmat(h, tnn, tnnn, verbose = verbose); # H matrix from SR on site, hopping blocks
+    Hp = Hmat(h, tnn, tnnn, verbose = verbose); # SR on site, hopping blocks
     
     # self energies in LL
     # need a self energy for all incoming/outgoing spin states (all local dof)
@@ -224,6 +205,32 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
 
     return Hp;
 
+def convert_to_4d(mat, n_loc_dof):
+    '''
+    Take a 2d matrix (ie with spatial and spin dofs mixed)
+    to a 4d matrix (ie with spatial and spin dofs separated)
+    '''
+    if( not isinstance(mat, np.ndarray)): raise TypeError;
+    if( len(mat) % n_loc_dof != 0): raise ValueError;
+
+    # unpack
+    n_spatial_dof = len(mat) // n_loc_dof;
+    new_mat = np.zeros((n_spatial_dof, n_spatial_dof, n_loc_dof, n_loc_dof), dtype=complex);
+
+    # convert
+    for sitei in range(n_spatial_dof): # iter site dof only
+        for sitej in range(n_spatial_dof): # same
+                
+            for loci in range(n_loc_dof): # iter over local dofs
+                for locj in range(n_loc_dof):
+
+                    # site, loc indices -> overall indices
+                    ovi = sitei*n_loc_dof + loci;
+                    ovj = sitej*n_loc_dof + locj;
+
+                    new_mat[sitei, sitej, loci, locj] = mat[ovi,ovj];
+
+    return new_mat;
 
 def Green(h, tnn, tnnn, tl, E, verbose = 0):
     '''
@@ -234,20 +241,23 @@ def Green(h, tnn, tnnn, tl, E, verbose = 0):
     -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
     -tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
     -E, float, incident energy
+
+    returns 4d array with spatial and spin indices separate
     '''
 
     # unpack
     N = len(h) - 2; # num scattering region sites
     n_loc_dof = np.shape(h[0])[0];
 
-    # get green's function matrix
-    Hp = Hprime(h, tnn, tnnn, tl, E, verbose = verbose);
+    # get 2d green's function matrix
+    Hp = Hprime(h, tnn, tnnn, tl, E, verbose=verbose); # for easy inversion, 2d array with spatial and spin indices mixed
     #if(verbose): print(">>> H' = \n", Hp );
     #if(verbose): print(">>> EI - H' = \n", E*np.eye(np.shape(Hp)[0]) - Hp );
-    G = np.linalg.inv( E*np.eye(np.shape(Hp)[0] ) - Hp );
+    Gmat = np.linalg.inv( E*np.eye(*np.shape(Hp)) - Hp );
 
-    # of interest is the qith row which contracts with the source q
-    return G;
+    # make 4d
+    Gmat = convert_to_4d(Gmat, n_loc_dof); # separates spatial and spin indices
+    return Gmat;
 
 
 

@@ -74,16 +74,16 @@ J12x, J12y, J12z = J12, J12, J12;
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
+if True: # T+ at different Delta E by changing D
     
-    Esplitvals = (1)*np.array([-0.12]);
+    Esplitvals = (-1)*np.array([-0.08,-0.05,-0.01,0.0]);
     Dvals = -Esplitvals/2;
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
         # iter over E, getting T
         logElims = -4,-1
-        Evals = np.logspace(*logElims,myxvals);
+        Evals = np.logspace(*logElims,myxvals, dtype = complex);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
