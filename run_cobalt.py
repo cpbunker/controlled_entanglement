@@ -58,7 +58,7 @@ Jx = 0.209; # convert to hartree
 Jz = 0.124;
 DO = 0.674;
 DT = 0.370;
-#DT = DO;
+DO=DT;
 
 # convert to Ha
 print("\nParams, in meV:\n",tl, tp, JK, Jx, DO, DT); 
@@ -126,7 +126,7 @@ if True:
                 if (j == impis[0]): JKO = JK # J S dot sigma is onsite only
                 elif(j == impis[1]): JKT = JK
                 params = Jx, Jx, Jz, DO, DT, 0, JKO, JKT;
-                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
+                h1e, g2e = wfm.utils.h_spin32_2q(params); # construct ham
                 # construct h_SR, basis = 1/2> |s>|s-1>, |1/2>|s-1>|s>, |-1/2>|s>|s> (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
                 if(dummyi == 0 and Evali == 0 and j==0):

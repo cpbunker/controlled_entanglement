@@ -41,6 +41,16 @@ peaks12 = np.array([ [-0.05 , 0.089667 , 0.223979 ],
                      [ 0.01 , 0.233674 , 0.314810 ],
                      [ 0.05 , 0.106960 , 0.285130 ]]);
 peaks12 = np.array([ [ 0.00 , 0.222490 , 0.298361 ]]);
+peaks1 = np.array([
+     [-0.12 , 0.081899 , 0.213875 ],
+     [-0.08 , 0.094447 , 0.225977 ],
+     [-0.05 , 0.109244 , 0.238067 ],
+     [-0.01 , 0.148408 , 0.261165 ],
+     [ 0.00 , 0.162989 , 0.268366 ],
+     [ 0.01 , 0.168571 , 0.268366 ],
+     [ 0.05 , 0.148591 , 0.289001 ],
+     [ 0.08 , 0.132247 , 0.289522 ],
+     [ 0.12 , 0.122127 , 0.286590 ] ]);
 peaks32 = np.array([
      [-0.12 , 0.061207 , 0.188055 ],
      [-0.08 , 0.071040 , 0.199658 ],
@@ -93,10 +103,12 @@ if True:
     # plot analytical FOM
     # for s=1/2
     axes[1].scatter(peaks12[:,indE], peaks12[:,indp], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
+    # for s=1
+    axes[1].scatter(peaks1[:,indE], peaks1[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
     # for s=3/2
-    axes[1].scatter(peaks32[:,indE], peaks32[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
+    axes[1].scatter(peaks32[:,indE], peaks32[:,indp], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
     # for s=6
-    axes[1].scatter(peaks6[:,indE], peaks6[:,indp], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
+    axes[1].scatter(peaks6[:,indE], peaks6[:,indp], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
     # for s=6
     axes[1].scatter(peaks6_real[:1,indE], peaks6_real[:1,indp], color='red', marker='x', linewidth = mylinewidth);
 

@@ -303,143 +303,91 @@ def h_kondo_2e(J,s2):
     return h;
 
 
-def h_switzer(D1, D2, JH, JK1, JK2):
+def h_spin1_2q(params):
     '''
     Eric's model for spin coupling of itinerant spin 1/2 to two spin 1
     impurities, in second quantized form
     '''
 
-    h = np.zeros((8,8));
-    g = np.zeros((8,8,8,8));
-
-    # spin anisotropy
-    h[2,2] = D1;
-    h[4,4] = D1;
-    h[5,5] = D2;
-    h[7,7] = D2;
-
-    # heisenberg
-    g[2,3,6,5] += JH;
-    g[6,5,2,3] += JH;
-    g[2,3,7,6] += JH;
-    g[7,6,2,3] += JH;
-    g[3,2,5,6] += JH;
-    g[5,6,3,2] += JH;
-    g[3,2,6,7] += JH;
-    g[6,7,3,2] += JH;
-    g[3,4,6,5] += JH;
-    g[6,5,3,4] += JH;
-    g[3,4,7,6] += JH;
-    g[7,6,3,4] += JH;
-    g[4,3,5,6] += JH;
-    g[5,6,3,4] += JH;
-    g[4,3,6,7] += JH;
-    g[6,7,4,3] += JH;
-    g[2,2,5,5] += JH;
-    g[5,5,2,2] += JH;
-    g[2,2,7,7] += -JH;
-    g[7,7,2,2] += -JH;
-    g[4,4,5,5] += -JH;
-    g[5,5,4,4] += -JH;
-    g[4,4,7,7] += JH;
-    g[7,7,4,4] += JH;
-
-    # K1
-    g[2,3,1,0] += JK1/np.sqrt(2);
-    g[1,0,2,3] += JK1/np.sqrt(2);
-    g[3,2,0,1] += JK1/np.sqrt(2);
-    g[0,1,3,2] += JK1/np.sqrt(2);
-    g[3,4,1,0] += JK1/np.sqrt(2);
-    g[1,0,3,4] += JK1/np.sqrt(2);
-    g[4,3,0,1] += JK1/np.sqrt(2);
-    g[0,1,4,3] += JK1/np.sqrt(2);
-    g[2,2,0,0] += JK1/2;
-    g[0,0,2,2] += JK1/2;
-    g[2,2,1,1] += -JK1/2;
-    g[1,1,2,2] += -JK1/2;
-    g[4,4,0,0] += -JK1/2;
-    g[0,0,4,4] += -JK1/2;
-    g[4,4,1,1] += JK1/2;
-    g[1,1,4,4] += JK1/2;
-
-    # K2
-    g[5,6,1,0] += JK2/np.sqrt(2);
-    g[1,0,5,6] += JK2/np.sqrt(2);
-    g[6,5,0,1] += JK2/np.sqrt(2);
-    g[0,1,6,5] += JK2/np.sqrt(2);
-    g[6,7,1,0] += JK1/np.sqrt(2);
-    g[1,0,6,7] += JK2/np.sqrt(2);
-    g[7,6,0,1] += JK2/np.sqrt(2);
-    g[0,1,7,6] += JK2/np.sqrt(2);
-    g[5,5,0,0] += JK2/2;
-    g[0,0,5,5] += JK2/2;
-    g[5,5,1,1] += -JK2/2;
-    g[1,1,5,5] += -JK2/2;
-    g[7,7,0,0] += -JK2/2;
-    g[0,0,7,7] += -JK2/2;
-    g[7,7,1,1] += JK2/2;
-    g[1,1,7,7] += JK2/2;
-
-    return h, g;
-
-
-def h_manganese_2q(params):
-    '''
-    Generate second quantized form of the Co dimer spin hamiltonian
-
-    Returns:
-    h1e, one body part of second quantized ham
-    g2e, two body part of second quantized ham
-    '''
-
     # basis size
-    Nb = 2+13+13; # e + 13 m states each imp
+    Nb = 2+3+3; # e + 3 m states each imp
 
     # unpack params
-    J12, D1, D2, JK1, JK2 = params;
+    Jx, Jy, Jz, D1, D2, An, JK1, JK2 = params;
+    assert(Jx == Jy and Jx == Jz); # isotropic only
+    assert(An == 0); # not supported
+    JH = Jx;
 
-    # 1 particle terms
-    h1e = np.zeros((Nb, Nb), dtype = complex);
+    h1e = np.zeros((Nb,Nb), dtype = complex);
+    g2e = np.zeros((Nb,Nb,Nb,Nb), dtype=complex);
 
-    # spin 1 anisitropy
-    for i1 in range(2,2+13):
-        m1 = 6+2-i1; # integer steps from +6 to -6
-        h1e[i1, i1] = D1*m1*m1
+    # spin anisotropy
+    h1e[2,2] = D1;
+    h1e[4,4] = D1;
+    h1e[5,5] = D2;
+    h1e[7,7] = D2;
 
-    # spin 2 anisitropy
-    for i2 in range(15,15+13):
-        m2 = 6+15-i2; # integer steps from +6 to -6
-        h1e[i2, i2] = D1*m2*m2
+    # heisenberg
+    g2e[2,3,6,5] += JH;
+    g2e[6,5,2,3] += JH;
+    g2e[2,3,7,6] += JH;
+    g2e[7,6,2,3] += JH;
+    g2e[3,2,5,6] += JH;
+    g2e[5,6,3,2] += JH;
+    g2e[3,2,6,7] += JH;
+    g2e[6,7,3,2] += JH;
+    g2e[3,4,6,5] += JH;
+    g2e[6,5,3,4] += JH;
+    g2e[3,4,7,6] += JH;
+    g2e[7,6,3,4] += JH;
+    g2e[4,3,5,6] += JH;
+    g2e[5,6,3,4] += JH;
+    g2e[4,3,6,7] += JH;
+    g2e[6,7,4,3] += JH;
+    g2e[2,2,5,5] += JH;
+    g2e[5,5,2,2] += JH;
+    g2e[2,2,7,7] += -JH;
+    g2e[7,7,2,2] += -JH;
+    g2e[4,4,5,5] += -JH;
+    g2e[5,5,4,4] += -JH;
+    g2e[4,4,7,7] += JH;
+    g2e[7,7,4,4] += JH;
 
-    # 2 particle terms
-    g2e = np.zeros((Nb,Nb,Nb,Nb), dtype = complex);
+    # K1
+    g2e[2,3,1,0] += JK1/np.sqrt(2);
+    g2e[1,0,2,3] += JK1/np.sqrt(2);
+    g2e[3,2,0,1] += JK1/np.sqrt(2);
+    g2e[0,1,3,2] += JK1/np.sqrt(2);
+    g2e[3,4,1,0] += JK1/np.sqrt(2);
+    g2e[1,0,3,4] += JK1/np.sqrt(2);
+    g2e[4,3,0,1] += JK1/np.sqrt(2);
+    g2e[0,1,4,3] += JK1/np.sqrt(2);
+    g2e[2,2,0,0] += JK1/2;
+    g2e[0,0,2,2] += JK1/2;
+    g2e[2,2,1,1] += -JK1/2;
+    g2e[1,1,2,2] += -JK1/2;
+    g2e[4,4,0,0] += -JK1/2;
+    g2e[0,0,4,4] += -JK1/2;
+    g2e[4,4,1,1] += JK1/2;
+    g2e[1,1,4,4] += JK1/2;
 
-    # Manganese spin matrix elements
-    def S6(a,b):
-        '''
-        Spin matrix (\hbar = 1) in the ith direction of an S=6 localized spin
-        a, b are m indices
-        '''
-        snum = 6
-        k_delta = np.eye(2*snum+1);
-        Sx_ab = (k_delta[a,b+1]+k_delta[a+1,b])/2 *sqrt((snum+1)*(a+b-1)-a*b);
-        Sy_ab = complex(0,1)*(k_delta[a,b+1]-k_delta[a+1,b])/2 *sqrt((snum+1)*(a+b-1)-a*b);
-        Sz_ab = (snum + 1 - a)*k_delta[a,b];
-        Svec = [Sx_ab, Sy_ab, Sz_ab]
-
-    # Kondo terms
-    xeops = [(0,1),(1,0)];
-    xecoefs = np.array([1,1])/2;
-    g2e = fci_mod.terms_to_g2e(g2e, xeops, JK1*xecoefs, xOops, xOcoefs);
-    g2e = fci_mod.terms_to_g2e(g2e, xeops, JK2*xecoefs, xTops, xTcoefs);
-    yeops = [(0,1),(1,0)];
-    yecoefs = complex(0,1)*np.array([-1,1])/2;
-    g2e = fci_mod.terms_to_g2e(g2e, yeops, JK1*yecoefs, yOops, yOcoefs);
-    g2e = fci_mod.terms_to_g2e(g2e, yeops, JK2*yecoefs, yTops, yTcoefs);
-    zeops = [(0,0),(1,1)];
-    zecoefs = np.array([1,-1])/2;
-    g2e = fci_mod.terms_to_g2e(g2e, zeops, JK1*zecoefs, zOops, zOcoefs);
-    g2e = fci_mod.terms_to_g2e(g2e, zeops, JK2*zecoefs, zTops, zTcoefs);
+    # K2
+    g2e[5,6,1,0] += JK2/np.sqrt(2);
+    g2e[1,0,5,6] += JK2/np.sqrt(2);
+    g2e[6,5,0,1] += JK2/np.sqrt(2);
+    g2e[0,1,6,5] += JK2/np.sqrt(2);
+    g2e[6,7,1,0] += JK1/np.sqrt(2);
+    g2e[1,0,6,7] += JK2/np.sqrt(2);
+    g2e[7,6,0,1] += JK2/np.sqrt(2);
+    g2e[0,1,7,6] += JK2/np.sqrt(2);
+    g2e[5,5,0,0] += JK2/2;
+    g2e[0,0,5,5] += JK2/2;
+    g2e[5,5,1,1] += -JK2/2;
+    g2e[1,1,5,5] += -JK2/2;
+    g2e[7,7,0,0] += -JK2/2;
+    g2e[0,0,7,7] += -JK2/2;
+    g2e[7,7,1,1] += JK2/2;
+    g2e[1,1,7,7] += JK2/2;
 
     # check hermicity
     assert(not np.any(h1e - np.conj(h1e.T)));
@@ -447,9 +395,9 @@ def h_manganese_2q(params):
     return h1e, g2e;
 
 
-def h_cobalt_2q(params):
+def h_spin32_2q(params):
     '''
-    Generate second quantized form of the Co dimer spin hamiltonian
+    Generate second quantized form of the Co dimer (s=3/2) spin hamiltonian
 
     Returns:
     h1e, one body part of second quantized ham
@@ -461,6 +409,7 @@ def h_cobalt_2q(params):
 
     # unpack params
     Jx, Jy, Jz, DO, DT, An, JK1, JK2 = params;
+    assert(An == 0); # supported but we're not interested
 
     # 1 particle terms
     h1e = np.zeros((Nb, Nb), dtype = complex);

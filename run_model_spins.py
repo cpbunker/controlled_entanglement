@@ -69,14 +69,24 @@ tl = 1.0;
 tp = 1.0;
 JK = 0.1;
 J12 = JK/10;
-J12x, J12y, J12z = J12, J12, J12;
+
+# constructing the hamiltonian
+def reduced_ham(params, S):
+    D1, D2, J12, JK1, JK2 = params;
+
+    ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, 6, 5
+                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, 5, 6
+                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]], # down, 6, 6
+                   dtype = complex);
+
+    return ham;
             
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
-    
-    Esplitvals = (-1)*np.array([-0.08,-0.05,-0.01,0.0]);
+if True: # T+ at different Delta E by changing D
+    myspinS = 1;
+    Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01,0.0]);
     Dvals = -Esplitvals/2;
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
@@ -103,10 +113,9 @@ if False: # T+ at different Delta E by changing D
                 JK1, JK2 = 0, 0;
                 if(j == impis[0]): JK1 = JK;
                 elif(j == impis[1]): JK2 = JK;
-                params = J12x, J12y, J12z, Dval, Dval, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_spin32_2q(params); # construct ham
+                params = Dval, Dval, J12, JK1, JK2;
                 # construct h_SR (determinant basis)
-                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
+                hSR = reduced_ham(params,S=myspinS);           
                 # transform to eigenbasis
                 hSR_diag = wfm.utils.entangle(hSR, *pair);
                 hblocks.append(np.copy(hSR_diag));
@@ -139,7 +148,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/Esplit"+str(int(Esplitvals[Dvali]*100)/100);
+        fname = "data/model"+str(myspinS)+"/Esplit"+str(int(Esplitvals[Dvali]*100)/100);
         print("Saving data to "+fname);
         np.save(fname, data);
 
