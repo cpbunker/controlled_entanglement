@@ -35,33 +35,40 @@ plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 
-peaks12 = np.array([ [-0.05 , 0.089667 , 0.223979 ],
-                     [-0.01 , 0.152587 , 0.272373 ],
-                     [ 0.00 , 0.222490 , 0.298361 ],
-                     [ 0.01 , 0.233674 , 0.314810 ],
-                     [ 0.05 , 0.106960 , 0.285130 ]]);
-peaks12 = np.array([ [ 0.00 , 0.222490 , 0.298361 ]]);
+peaks12 = np.array([ [ 0.00 , 0.227299 , 0.301378 ]]);
 peaks1 = np.array([
-     [-0.12 , 0.081899 , 0.213875 ],
-     [-0.08 , 0.094447 , 0.225977 ],
-     [-0.05 , 0.109244 , 0.238067 ],
-     [-0.01 , 0.148408 , 0.261165 ],
-     [ 0.00 , 0.162989 , 0.268366 ],
-     [ 0.01 , 0.168571 , 0.268366 ],
-     [ 0.05 , 0.148591 , 0.289001 ],
-     [ 0.08 , 0.132247 , 0.289522 ],
-     [ 0.12 , 0.122127 , 0.286590 ] ]);
+     [-0.12 , 0.062 , 0.191 ],
+     [-0.08 , 0.073 , 0.205 ],
+     [-0.05 , 0.087 , 0.219 ],
+     [-0.01 , 0.135 , 0.254 ],
+     [ 0.00 , 0.163 , 0.268 ],
+     [ 0.01 , 0.166 , 0.281 ],
+     [ 0.05 , 0.131 , 0.286 ],
+     [ 0.08 , 0.114 , 0.282 ],
+     [ 0.12 , 0.082 , 0.258 ] ]);
 peaks32 = np.array([
-     [-0.12 , 0.061207 , 0.188055 ],
-     [-0.08 , 0.071040 , 0.199658 ],
-     [-0.05 , 0.082684 , 0.211454 ],
-     [-0.01 , 0.113272 , 0.234906 ],
-     [ 0.00 , 0.123194 , 0.242528 ],
-     [ 0.01 , 0.123384 , 0.249863 ],
-     [ 0.05 , 0.100259 , 0.257826 ],
-     [ 0.08 , 0.087848 , 0.252942 ],
-     [ 0.12 , 0.077284 , 0.244709 ] ]);
+     [-0.12 , 0.061 , 0.188 ],
+     [-0.08 , 0.071 , 0.200 ],
+     [-0.05 , 0.083 , 0.212 ],
+     [-0.01 , 0.114 , 0.236 ],
+     [ 0.00 , 0.125 , 0.244 ],
+     [ 0.01 , 0.125 , 0.252 ],
+     [ 0.05 , 0.101 , 0.259 ],
+     [ 0.08 , 0.087 , 0.254 ],
+     [ 0.12 , 0.078 , 0.246 ] ]);
 peaks6 = np.array([
+     [-0.12 , 0.042, 0.162 ],
+     [-0.08 , 0.043, 0.164 ],
+     [-0.05 , 0.043, 0.165 ],
+     [-0.01 , 0.043, 0.167 ],
+     [ 0.00 , 0.043, 0.167 ],
+     [ 0.01 , 0.042, 0.167 ],
+     [ 0.05 , 0.041, 0.168],
+     [ 0.08 , 0.040, 0.169 ],
+     [ 0.12 , 0.039, 0.169 ] ]);
+
+#### real data
+peaks6_real = np.array([
      [-0.12 , 0.042421, 0.162669 ],
      [-0.08 , 0.043014, 0.164255 ],
      [-0.05 , 0.043184, 0.165394 ],
@@ -72,13 +79,7 @@ peaks6 = np.array([
      [ 0.08 , 0.040290, 0.168872 ],
      [ 0.12 , 0.038848, 0.169136 ] ]);
 peaks6_real = np.array([
-     [ 0.003, 0.042640, 0.167187 ],
-     [-0.060, 0.043160, 0.165020 ],
-     [-0.030, 0.043117, 0.166109 ],
-     [-0.003, 0.042759, 0.167005 ],
-     [ 0.003, 0.042640, 0.167187 ],
-     [ 0.030, 0.041956, 0.167935 ],
-     [ 0.060, 0.040989, 0.168579 ] ]); 
+     [ 0.003, 0.042640, 0.167187 ]]);
 
 #### plot T+ and p2 vs Delta E
 if True:
@@ -92,25 +93,23 @@ if True:
     # plot T+
     # for s=1/2
     axes[0].scatter(peaks12[:,indE], peaks12[:,indT], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
-    #for s=3/2
-    axes[0].scatter(peaks32[:,indE], peaks32[:,indT], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
-    #for s=6
-    axes[0].scatter(peaks6[:,indE], peaks6[:,indT], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
-    #for s=6 real
-    axes[0].scatter(peaks6_real[:1,indE], peaks6_real[:1,indT], color='red', marker='x', linewidth = mylinewidth);
- 
+    # for s=3/2
+    axes[0].scatter(peaks32[:,indE], peaks32[:,indT], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
+    # for s=1
+    axes[0].scatter(peaks1[:,indE], peaks1[:,indT], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
+     # for s=6
+    axes[0].scatter(peaks6[:,indE], peaks6[:,indT], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
+
        
     # plot analytical FOM
     # for s=1/2
     axes[1].scatter(peaks12[:,indE], peaks12[:,indp], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
-    # for s=1
-    axes[1].scatter(peaks1[:,indE], peaks1[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
     # for s=3/2
     axes[1].scatter(peaks32[:,indE], peaks32[:,indp], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
-    # for s=6
+    # for s=1
+    axes[1].scatter(peaks1[:,indE], peaks1[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
+     # for s=6
     axes[1].scatter(peaks6[:,indE], peaks6[:,indp], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
-    # for s=6
-    axes[1].scatter(peaks6_real[:1,indE], peaks6_real[:1,indp], color='red', marker='x', linewidth = mylinewidth);
 
     # try arrow
     lowest_x, lowest_y = peaks32[np.argmin(peaks32[:,indp]),indE], peaks32[np.argmin(peaks32[:,indp]),indp];
@@ -120,7 +119,7 @@ if True:
     # format
     axes[0].set_ylim(0.0,0.24);
     axes[0].set_ylabel('max($T_+$)', fontsize = myfontsize);
-    axes[1].set_ylim(0.15,0.31);
+    axes[1].set_ylim(0.08,0.32);
     axes[1].set_ylabel('max($\overline{p^2}$)', fontsize = myfontsize);
 
     # show

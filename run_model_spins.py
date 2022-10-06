@@ -84,15 +84,15 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
-    myspinS = 1;
+if False: # T+ at different Delta E by changing D
+    myspinS = 6;
     Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01,0.0]);
-    Dvals = -Esplitvals/2;
+    Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
         # iter over E, getting T
-        logElims = -4,-1
+        logElims = -4,0
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -130,7 +130,7 @@ if True: # T+ at different Delta E by changing D
             E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
             for hb in hblocks:
                 hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
+            if(verbose > 3 and Eval == Evals[0]): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
 
             # hopping
             tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
@@ -213,7 +213,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model32_positive.pdf');
+    #plt.savefig('figs/model1.pdf');
     plt.show();
 
 if False: # T+ at different Delta E by changing J12z
