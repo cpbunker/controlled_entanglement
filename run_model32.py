@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -74,7 +74,7 @@ J12x, J12y, J12z = J12, J12, J12;
 #########################################################
 #### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
+if False: # T+ at different Delta E by changing D
     
     Esplitvals = (-1)*np.array([-0.08,-0.05,-0.01,0.0]);
     Dvals = -Esplitvals/2;
@@ -195,7 +195,7 @@ if True:
     axes[0].set_ylim(0,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
     axes[1].set_ylim(0.0,0.3);
-    axes[1].set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
+    axes[1].set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
 
     # show
     axes[-1].set_xscale('log', subs = []);
@@ -204,7 +204,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model32.pdf');
+    plt.savefig('figs/model32_positive.pdf');
     plt.show();
 
 if False: # T+ at different Delta E by changing J12z
