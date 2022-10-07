@@ -54,7 +54,7 @@ JK = 4*th*th/Ucharge;
 
 # Ab initio params, in meV:
 Ha2meV = 27.211386*1000; # 1 hartree is 27 eV
-Jx = 0.209; # convert to hartree
+Jx = 0.209; 
 Jz = 0.124;
 DO = 0.674;
 DT = 0.370;
