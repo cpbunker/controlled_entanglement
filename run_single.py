@@ -31,7 +31,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = (40, 40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -42,7 +42,7 @@ tl = 1.0;
 if True:
 
     # inelastic ?
-    Delta = 0.0; # inelastic splitting
+    Delta = 0.01; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -101,7 +101,7 @@ if True:
         # sweep over range of energies
         # def range
         logElims = -4,0
-        Evals = np.logspace(*logElims,myxvals);
+        Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
         menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
@@ -225,7 +225,7 @@ if False:
         # sweep over range of energies
         # def range
         logElims = -4,0
-        Evals = np.logspace(*logElims,myxvals);
+        Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
         menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));

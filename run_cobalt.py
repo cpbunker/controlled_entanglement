@@ -21,9 +21,12 @@ np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # fig standardizing
+myxvals = 199;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mystyles = ["solid", "dashed","dotted","dashdot"];
+mymarkers = ["o","^","s","d","X","P","*"];
+mystyles = ["solid","dashed"];
+mymarkevery = (40,40)
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -51,11 +54,11 @@ JK = 4*th*th/Ucharge;
 
 # Ab initio params, in meV:
 Ha2meV = 27.211386*1000; # 1 hartree is 27 eV
-Jx = 0.209; # convert to hartree
+Jx = 0.209; 
 Jz = 0.124;
 DO = 0.674;
 DT = 0.370;
-#DT = DO;
+DO=DT;
 
 # convert to Ha
 print("\nParams, in meV:\n",tl, tp, JK, Jx, DO, DT); 
@@ -123,7 +126,7 @@ if True:
                 if (j == impis[0]): JKO = JK # J S dot sigma is onsite only
                 elif(j == impis[1]): JKT = JK
                 params = Jx, Jx, Jz, DO, DT, 0, JKO, JKT;
-                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
+                h1e, g2e = wfm.utils.h_spin32_2q(params); # construct ham
                 # construct h_SR, basis = 1/2> |s>|s-1>, |1/2>|s-1>|s>, |-1/2>|s>|s> (determinant basis)
                 hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);               
                 if(dummyi == 0 and Evali == 0 and j==0):
@@ -164,7 +167,7 @@ if True:
                     
                 # add to blocks list
                 hblocks.append(np.copy(hSR_diag));
-            assert False;
+            #assert False;
 
             # finish hblocks
             hblocks = np.array(hblocks);
@@ -181,7 +184,7 @@ if True:
             tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
-            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source);
+            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
             Rvals[Evali] = Rdum;
             Tvals[Evali] = Tdum;
             
@@ -216,28 +219,25 @@ if True: # plot
     print("- shape Rvals = ", np.shape(Rvals));
 
     # plot T vs logE
-    axes[0].plot(xvals, Tvals[pair[0]]+Tvals[pair[1]], color = mycolors[0], linestyle = mystyles[0], linewidth = mylinewidth);  
-    #axes[0].plot(xvals, Tvals[sourcei], color = mycolors[0], linestyle = mystyles[1], linewidth = mylinewidth); 
-    axes[0].plot(xvals, totals, color="red");
-    axes[0].set_ylim(0,0.1);
-    axes[0].set_yticks([0,0.05,0.1]);
-    axes[0].set_ylabel("$T_{+'} + T_{-'}$", fontsize = myfontsize);
+    for pairi in range(len(pair)):
+        axes[0].plot(xvals, Tvals[pair[pairi]], color=mycolors[0],linestyle=mystyles[pairi], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth);      
+    axes[0].set_ylabel("$T_\sigma$", fontsize = myfontsize);
 
     # plot T/T vs logE
-    axes[1].plot(xvals, (Tvals[pair[0]]+Tvals[pair[1]])/Tvals[sourcei], color = mycolors[0], linestyle = mystyles[0], linewidth = mylinewidth);   
-    axes[1].set_ylim(0,2);
-    axes[1].set_yticks([0,1,2]);
-    axes[1].set_ylabel("$(T_{+'} + T_{-'})/T_0$", fontsize = myfontsize); 
+    fomvals = np.sqrt(Tvals[sourcei]*(Tvals[pair[0]]+Tvals[pair[1]])); 
+    axes[1].plot(xvals, fomvals, color = mycolors[0], linestyle = mystyles[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth);  
+    axes[1].set_ylabel("$\overline{p'^2}$", fontsize = myfontsize); 
 
-    # format
-    axes[0].set_title(mypanels[0], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[1].set_title(mypanels[1], x=0.93, y = 0.7, fontsize = myfontsize);
-    axes[-1].set_xscale('log');
-    axes[-1].set_xlim(10**(-6), 10**(-1));
-    axes[-1].set_xticks([10**(-6),10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-    axes[-1].set_xlabel('$(E+2t)/t$', fontsize = myfontsize);
+    # show
+    logElims = -6,-1;
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize); 
     plt.tight_layout();
-    plt.savefig('cobalt.pdf');
+    plt.savefig('figs/cobalt.pdf');
+    plt.show();
 
 
 

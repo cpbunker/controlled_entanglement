@@ -32,131 +32,160 @@ mypanels = ["(a)","(b)","(c)"];
 #### setup
 
 # def particles and their single particle states
-spin_s = 6;
-species = np.array([1,1,1]); # num of each species, which are one e, elec, spin-3/2, spin-3/2
-states = [[0,1],[2,3,4,5,6,7,8,9,10,11,12,13,14],[15,16,17,18,19,20,21,22,23,24,25,26,27]]; # e up, down, spin 1 mz, spin 2 m#dets = np.array([xi for xi in itertools.product(*tuple(states))]); # product states
-dets_int = [[0,2,16],[0,3,15],[1,2,15]]; # tMSQ subspace
+#species = np.array([1,1,1]); # num of each species, which are one e, elec, spin-3/2, spin-3/2
+#states = [[0,1],[2,3,4,5,6,7,8,9,10,11,12,13,14],[15,16,17,18,19,20,21,22,23,24,25,26,27]]; # e up, down, spin 1 mz, spin 2 m#dets = np.array([xi for xi in itertools.product(*tuple(states))]); # product states
+#dets_int = [[0,2,16],[0,3,15],[1,2,15]]; # tMSQ subspace
 
 # initialize source vector in down, up, up state
 sourcei = 2; # |down, 6, 6 > in 3 state reduced space
-source = np.zeros(len(dets_int));
+source = np.zeros(3);
 source[sourcei] = 1;
 
 # entangled pair
 pair = (0,1); # |up, s, s-1 > and |up, s-1, s >
 
-# Jie Xiang paper results in cm^-1. Convert immediately to meV
-cm2meV = 1/8.06;
-tl = 100; # in meV
-tp = 100; # in meV
-Dmid_real = -0.22*cm2meV; # converted from cm^-1 to meV
-J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
-JK = 10; # in meV
-print('>>',Dmid_real*(1-2*6))
-
-# convert to units of tl
-tl, tp, Dmid_real, J12, JK = tl/tl, tp/tl, Dmid_real/tl, J12/tl, JK/tl;
-print(tl, tp, Dmid_real, J12, JK);
-print('>>',Dmid_real*(1-2*6))
-assert False;
 # constructing the hamiltonian
-def reduced_ham(params, S=6):
+def reduced_ham(params, S):
     D1, D2, J12, JK1, JK2 = params;
-
-    ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, 6, 5
-                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, 5, 6
-                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]], # down, 6, 6
+    assert(D1 == D2);
+    ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, s, s-1
+                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, s-1, s
+                    [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]], # down, s, s
                    dtype = complex);
 
     return ham;
-            
-#########################################################
-#### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
+################################################################################        
+#### material data
+material = "MnPc";
 
-    # iter over Dvals    
-    Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01]);
-    Dvals = Esplitvals/(1-2*6);
-    for Dvali in range(len(Dvals)):
-        Dmid = Dvals[Dvali];
+# universal
+tl = 100; # in meV
+tp = 100; # in meV
+JK = tl/100; 
+
+if material == "Mn":
+    myspinS = 6;
+
+    # Jie Xiang paper results in cm^-1. Convert immediately to meV
+    cm2meV = 1/8.06;
+    D1 = -0.22*cm2meV; # converted from cm^-1 to meV
+    D2 = D1;
+    J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
+
+elif material == "MnPc":
+    myspinS = 3/2;
+
+    # Jie Xiang paper results in cm^-1. Convert immediately to meV
+    cm2meV = 1/8.06;
+    D1 = 1.0;
+    D2 = D1;
+    J12 = 20.0;
+
+elif material == "Co":
+    myspinS = 3/2;
+
+    # Jie-Xiang manuscript results in meV
+    D1 = 0.674;
+    D2 = 0.370;
+    D1 = D2;
+    Jx = 0.209; 
+    Jz = 0.124;
+    J12 = 0;
+    
+else: raise Exception("Material "+material+" not supported");
+
+# convert to units of tl
+tl, tp, D1, D2, J12, JK = tl/tl, tp/tl, D1/tl, D2/tl, J12/tl, JK/tl;
+
+print("*"*50);
+print("Material = "+material);
+print("params = ",tl, tp, D1, D2, J12, JK);
+
+################################################################################        
+#### run code
+
+if True: # T+ at different Delta E by changing D
+
         
-        # iter over E, getting T
-        logElims = -4,0
-        Evals = np.logspace(*logElims,myxvals);
-        Rvals = np.empty((len(Evals),len(source)), dtype = float);
-        Tvals = np.empty((len(Evals),len(source)), dtype = float);
-        for Evali in range(len(Evals)):
+    # iter over E, getting T
+    logElims = -4,0
+    Evals = np.logspace(*logElims,myxvals, dtype = complex);
+    Rvals = np.empty((len(Evals),len(source)), dtype = float);
+    Tvals = np.empty((len(Evals),len(source)), dtype = float);
+    for Evali in range(len(Evals)):
 
-            # energy
-            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
-            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+        # energy
+        Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+        Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+        
+        # optical distances, N = 2 fixed
+        N0 = 1; # N0 = N - 1
+
+        # construct hblocks
+        hblocks = [];
+        impis = [1,2];
+        for j in range(4): # LL, imp 1, imp 2, RL
+            # define all physical params
+            JK1, JK2 = 0, 0;
+            if(j == impis[0]): JK1 = JK;
+            elif(j == impis[1]): JK2 = JK;
+            params = D1, D2, J12, JK1, JK2;
+            # construct h_SR (determinant basis)
+            hSR = reduced_ham(params, myspinS);
+            if( Evali == 0 and j == 0):
+                # see eigenstates in the determinant basis
+                eigEs, Udiag = np.linalg.eigh(hSR); 
+                print("\nDeterminant basis:");
+                print(" - ham:\n", np.real(hSR));
+                print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+
+            # transform the |+>, |->, |i> basis (entangling basis)
+            hSR_ent = wfm.utils.entangle(hSR, *pair);
+            if( Evali == 0 and j == 0):
+                # see eigenstates in the entangling basis
+                eigEs, Udiag = np.linalg.eigh(hSR_ent);
+                print("\nEntangling basis:");
+                print(" - ent ham:\n", np.real(hSR_ent));
+                const_term = 2*myspinS*myspinS*(D1+D2)/2 + (myspinS*myspinS-myspinS)*J12;
+                print(" - ent diagonal should be: ",const_term + np.array([myspinS*J12+(1-2*myspinS)*(D1+D2)/2,-1.5*J12+(1-2*myspinS)*(D1+D2)/2,myspinS*J12]));
+                print(" - ent off-diagonal should be: ",0);
+                print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+                print(" - Delta E / t = ", hSR_ent[0,0]-hSR_ent[2,2]);
+
+            # add to blocks list
+            hblocks.append(np.copy(hSR_ent));
+
+        # finish hblocks
+        hblocks = np.array(hblocks);
+        E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
+        for hb in hblocks:
+            hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
+        Esplit = (hblocks[0][0,0] - hblocks[0][2,2])/tl;
+        if(Evali == 0): print("Delta E / t = ", Esplit);
             
-            # optical distances, N = 2 fixed
-            N0 = 1; # N0 = N - 1
+        # hopping
+        tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
+        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = JK;
-                elif(j == impis[1]): JK2 = JK;
-                params = Dmid, Dmid, J12, JK1, JK2;
-                # construct h_SR (determinant basis)
-                hSR = reduced_ham(params);
-                if(Dvali == 0 and Evali == 0 and j == 0):
-                    # see eigenstates in the determinant basis
-                    eigEs, Udiag = np.linalg.eigh(hSR); 
-                    print("\nDeterminant basis:");
-                    print(" - ham:\n", np.real(hSR));
-                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
+        # get R, T coefs
+        Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
+        Rvals[Evali] = Rdum;
+        Tvals[Evali] = Tdum;
+        
+    # save data to .npy
+    data = np.zeros((2+2*len(source),len(Evals)));
+    data[0,0] = tl;
+    data[0,1] = JK;
+    data[1,:] = Evals;
+    data[2:2+len(source),:] = Tvals.T;
+    data[2+len(source):2+2*len(source),:] = Rvals.T;
+    fname = "data/"+material
+    print("Saving data to "+fname);
+    np.save(fname, data);
 
-                # transform the |+>, |->, |i> basis (entangling basis)
-                hSR_ent = wfm.utils.entangle(hSR, *pair);
-                if(Dvali == 0 and Evali == 0 and j == 0):
-                    # see eigenstates in the entangling basis
-                    eigEs, Udiag = np.linalg.eigh(hSR_ent);
-                    print("\nEntangling basis:");
-                    print(" - ent ham:\n", np.real(hSR_ent));
-                    Spin = 6;
-                    const_term = 2*Spin*Spin*Dmid + (Spin*Spin-Spin)*J12;
-                    print(" - ent diagonal should be: ",const_term + np.array([Spin*J12+(1-2*Spin)*Dmid,-1.5*J12+(1-2*Spin)*Dmid,Spin*J12]));
-                    print(" - ent off-diagonal should be: ",0);
-                    print(" - |+'>: ",Udiag[:,1],"\n - |-'>: ", Udiag[:,0],"\n - |i'>: ", Udiag[:,2]);
-                    print(" - Delta E / t = ", hSR_ent[0,0]-hSR_ent[2,2]);
-
-                # add to blocks list
-                hblocks.append(np.copy(hSR_ent));
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            Esplit = (hblocks[0][0,0] - hblocks[0][2,2])/tl;
-            print("Delta E / t = ", Esplit);
-            
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-
-            # get R, T coefs
-            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
-            Rvals[Evali] = Rdum;
-            Tvals[Evali] = Tdum;
-         
-        # save data to .npy
-        data = np.zeros((2+2*len(source),len(Evals)));
-        data[0,0] = tl;
-        data[0,1] = JK;
-        data[1,:] = Evals;
-        data[2:2+len(source),:] = Tvals.T;
-        data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/manganese/Esplit"+str(int(Esplit*1000)/1000);
-        print("Saving data to "+fname);
-        np.save(fname, data);
+################################################################################        
+#### plot
 
 # load data
 def load_data(fname):
@@ -219,119 +248,5 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/manganese.pdf');
     plt.show();
-
-
-if False: # T+ at different Delta E by changing J12z
-
-    Dvals = np.array([1/10]);#  0,1/1000,1/100,2/100]);
-    Dval = 0;
-    DeltaEvals = -2*Dvals;
-    DeltaJvals = (DeltaEvals+2*Dval)/(-3/2); # this is Jz - Jx
-    J12zvals = J12x + DeltaJvals;
-    for Di in range(len(J12zvals)):
-        J12z = J12zvals[Di];
-
-        # iter over E, getting T
-        logElims = -5,-1
-        Evals = np.logspace(*logElims,199);
-        Rvals = np.empty((len(Evals),len(source)), dtype = float);
-        Tvals = np.empty((len(Evals),len(source)), dtype = float);
-        for Evali in range(len(Evals)):
-
-            # energy
-            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
-            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
-            
-            # optical distances, N = 2 fixed
-            N0 = 1; # N0 = N - 1
-            ka = np.arccos((Energy)/(-2*tl));
-
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = JK;
-                elif(j == impis[1]): JK2 = JK;
-                params = J12x, J12y, J12z, Dval, Dval, 0, JK1, JK2;
-                h1e, g2e = wfm.utils.h_cobalt_2q(params); # construct ham
-                # construct h_SR (determinant basis)
-                hSR = fci_mod.single_to_det(h1e, g2e, species, states, dets_interest = dets52);            
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-                if(verbose > 3 and Eval == Evals[0]):
-                    print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", np.real(hSR));
-                    print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",-Dval*(2*1.5-1))
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            hblocks[1] += Vg*np.eye(len(source)); # Vg shift in SR
-            hblocks[2] += Vg*np.eye(len(source));
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl)
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
-
-            # get R, T coefs
-            Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
-            Rvals[Evali] = Rdum;
-            Tvals[Evali] = Tdum;
-         
-        # save data to .npy
-        data = np.zeros((2+2*len(source),len(Evals)));
-        data[0,0] = tl;
-        data[0,1] = JK;
-        data[1,:] = Evals;
-        data[2:2+len(source),:] = Tvals.T;
-        data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model32/J12z"+str(int(J12z*1000)/1000);
-        print("Saving data to "+fname);
-        np.save(fname, data);
-
-#### plot
-if False:
-    num_subplots = 2
-    fig, axes = plt.subplots(num_subplots, sharex = True);
-    fig.set_size_inches(7/2,3*num_subplots/2);
-    datadir = "data/model32/";
-    datafs_neg = ["J12z0.01.npy","J12z0.008.npy","J12z-0.003.npy","J12z-0.016.npy"];
-    datafs_pos = ["J12z0.01_copy.npy","J12z0.011.npy","J12z0.023.npy","J12z0.143.npy"];
-    datafs = datafs_neg[:]; datafs.extend(datafs_pos);
-    for fi in range(len(datafs)):
-        xvals, Rvals, Tvals, totals = load_data(datadir+datafs[fi]);
-        mymarkevery = (fi*10,50);
-
-        if datafs[fi] in datafs_neg:
-            # plot T+ for negative case
-            axes[1].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
-            #axes[0].plot(xvals, totals, color="red");
-
-        if datafs[fi] in datafs_pos:
-            # plot T+ for positive case
-            axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi-len(datafs_neg)], marker=mymarkers[fi-len(datafs_neg)], markevery=(10*(fi-len(datafs_neg)),50), linewidth = mylinewidth); 
-            #axes[1].plot(xvals, totals, color="red");
-
-    # format
-    for axi in range(len(axes)):
-        axes[-1].set_xscale('log', subs = []);
-        axes[-1].set_xlim(10**(-5),10**(-1));
-        axes[-1].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)])
-        axes[-1].set_xlabel('$K_i/t$', fontsize = myfontsize);
-        axes[axi].set_ylim(0,0.16);
-        axes[axi].set_yticks([0.0,0.08,0.16]);
-        axes[axi].set_ylabel('$T_+$', fontsize = myfontsize);
-        axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
-    plt.tight_layout();
-    plt.show();
-
-
 

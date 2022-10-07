@@ -171,23 +171,23 @@ if False: # compare T- vs N to see how T- is suppressed at small N
 ##################################################################################
 #### effects of J
 
-if False: # compare T+ vs E at different J
+if True: # compare T+ vs E at different J
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # sweep over J
-    Jvals = [0.5,1.0,5.0,10.0]
+    Jvals = np.array([-0.01,-0.1,-1.0,-5.0]);
     for Jvali in range(len(Jvals)):
         Jval = Jvals[Jvali];
 
         # sweep over energy
-        logElims = -3,np.log10(3.99)
+        logElims = -5,np.log10(3.99)
         Evals = np.logspace(*logElims,myxvals);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
-        jprimevals = jprimevals*2*np.sqrt(1/2); # renormalize J!!!
+        jprimevals = jprimevals*np.sqrt(2*1) # renormalize J!!!
         menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -212,7 +212,7 @@ if False: # compare T+ vs E at different J
             Rvals[Evali] = Rdum;
             Tvals[Evali] = Tdum;
 
-        # plot T_+ vs N
+        # plot T_+ vs E
         axes[0].plot(Evals,Tvals[:,pair[0]], color = mycolors[Jvali], marker=mymarkers[Jvali], markevery = 50, linewidth = mylinewidth);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         #axes[0].plot(Evals, totals, color="red");
@@ -411,7 +411,7 @@ if False: # compare T+ vs M_1 = N/2 to see if T_+=8/9 can be realized
     plt.savefig('figs/switzer_nonoverlap.pdf');
     plt.show();
 
-if True: # compare T+ vs K_i, with M_1 fixed small by J to try to see T_+=8/9 again
+if False: # compare T+ vs K_i, with M_1 fixed small by J to try to see T_+=8/9 again
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];

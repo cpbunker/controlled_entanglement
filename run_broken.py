@@ -25,7 +25,7 @@ myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
 mymarkers = ["o","^","s","d","X","P","*"];
 mystyles = ["solid","dashed"];
-mymarkevery = 50;
+mymarkevery = (40,40)
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
@@ -101,7 +101,7 @@ if False:
     J12xvals = 2*DeltaD/(3*betavals)
     for J12xi in range(len(J12xvals)):
         J12x = J12xvals[J12xi]; # reassign J12x to get desired beta value
-        beta = betavals[J12xi]
+        beta = betavals[J12xi];
 
         # iter over E, getting T
         logElims = -3,0
@@ -238,33 +238,36 @@ def load_data(fname):
     print("- shape Rvals = ", np.shape(myRvals));
     return myxvals, myRvals, myTvals, mytotals;
 
-num_subplots = 2
-fig, (mainax, fomax) = plt.subplots(num_subplots, sharex = True);
-fig.set_size_inches(7/2,3*num_subplots/2);
-datafs = sys.argv[1:];
-for fi in range(len(datafs)):
-    xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-    mymarkevery = (0,50);
+if True:
+    num_plots = 2;
+    fig, axes = plt.subplots(num_plots, sharex = True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
+    datafs = sys.argv[1:];
+    for fi in range(len(datafs)):
+        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
+        mymarkevery = (0,50);
 
-    # plot T vs logE
-    for pairi in range(len(pair)):
-        mainax.plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth);   
-    #fomax.plot(xvals, Tvals[pair[0]]/Tvals[pair[pair[1]]], color=mycolors[fi]);
+        # plot T vs logE
+        for pairi in range(len(pair)):
+            axes[0].plot(xvals, Tvals[pair[pairi]], color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth);   
+       
+        # plot figure of merit
+        fomvals = np.sqrt(Tvals[sourcei]*(Tvals[pair[0]]+Tvals[pair[1]]));
+        axes[1].plot(xvals, fomvals, color=mycolors[fi],linestyle=mystyles[pairi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth); 
 
-# format
-logElims = -3,0
-mainax.set_ylim(0,0.16);
-mainax.set_yticks([0,0.08,0.16]);
-mainax.set_ylabel('$T_\sigma$',fontsize = myfontsize);
-mainax.set_title(mypanels[0], x=0.07, y = 0.7, fontsize = myfontsize);
-fomax.set_xscale('log', subs = []);
-fomax.set_xlim(10**(logElims[0]),10**(logElims[1]));
-fomax.set_xticks([10**(logElims[0]),10**(logElims[1])]);
-fomax.set_xlabel('$K_i/t$', fontsize = myfontsize);
-fomax.set_ylim(0,0.16);
-fomax.set_yticks([0,0.08,0.16]);
-fomax.set_ylabel('$\overline{p^2}(\\tilde{\\theta})$', fontsize = myfontsize);
-fomax.set_title(mypanels[1], x=0.07, y = 0.7, fontsize = myfontsize);
-plt.tight_layout();
-plt.savefig('figs/broken.pdf');
-plt.show();
+    # format
+    logElims = -3,0;
+    axes[0].set_ylabel("$T_\sigma$",fontsize = myfontsize);
+    axes[1].set_ylabel("$\overline{p'^2}$",fontsize = myfontsize);
+
+    # show
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize); 
+    plt.tight_layout();
+    plt.tight_layout();
+    plt.savefig('figs/broken.pdf');
+    plt.show();

@@ -35,7 +35,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = (40,40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
 
 # tight binding params
 tl = 1.0;
@@ -96,7 +96,7 @@ if False: # compare T vs rhoJa for N=2 fixed
 
     # iter over E, getting T
     logElims = -4,-1;
-    Evals = np.logspace(*logElims,myxvals);
+    Evals = np.logspace(*logElims,myxvals, dtype = complex);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
     for Evali in range(len(Evals)):
