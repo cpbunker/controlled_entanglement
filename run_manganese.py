@@ -57,55 +57,47 @@ def reduced_ham(params, S):
 
 ################################################################################        
 #### material data
-material = "Co";
+material = "MnPc";
+
+# universal
+tl = 100; # in meV
+tp = 100; # in meV
+JK = tl/100; 
 
 if material == "Mn":
     myspinS = 6;
 
     # Jie Xiang paper results in cm^-1. Convert immediately to meV
     cm2meV = 1/8.06;
-    tl = 100; # in meV
-    tp = 100; # in meV
     D1 = -0.22*cm2meV; # converted from cm^-1 to meV
     D2 = D1;
     J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
-    JK = tl/50; 
 
-    # convert to units of tl
-    tl, tp, D1, D2, J12, JK = tl/tl, tp/tl, D1/tl, D2/tl, J12/tl, JK/tl;
-
-if material == "MnPc":
+elif material == "MnPc":
     myspinS = 3/2;
 
     # Jie Xiang paper results in cm^-1. Convert immediately to meV
     cm2meV = 1/8.06;
-    tl = 100; # in meV
-    tp = 100; # in meV
     D1 = 1.0;
     D2 = D1;
     J12 = 20.0;
-    JK = tl/50; 
-
-    # convert to units of tl
-    tl, tp, D1, D2, J12, JK = tl/tl, tp/tl, D1/tl, D2/tl, J12/tl, JK/tl;
 
 elif material == "Co":
     myspinS = 3/2;
 
     # Jie-Xiang manuscript results in meV
-    tl = 100; # in meV
-    tp = 100; # in meV
     D1 = 0.674;
     D2 = 0.370;
+    D1 = D2;
     Jx = 0.209; 
     Jz = 0.124;
     J12 = 0;
-    JK = tl/10;
-    D1 = D2;
-    # convert to units of tl
-    tl, tp, D1, D2, J12, JK = tl/tl, tp/tl, D1/tl, D2/tl, J12/tl, JK/tl;
-
+    
 else: raise Exception("Material "+material+" not supported");
+
+# convert to units of tl
+tl, tp, D1, D2, J12, JK = tl/tl, tp/tl, D1/tl, D2/tl, J12/tl, JK/tl;
+
 print("*"*50);
 print("Material = "+material);
 print("params = ",tl, tp, D1, D2, J12, JK);

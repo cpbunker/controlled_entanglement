@@ -178,7 +178,7 @@ if True: # compare T+ vs E at different J
     fig.set_size_inches(7/2,3*num_plots/2);
 
     # sweep over J
-    Jvals = [0.02,0.1,0.5,5.0,]
+    Jvals = np.array([-0.01,-0.1,-1.0,-5.0]);
     for Jvali in range(len(Jvals)):
         Jval = Jvals[Jvali];
 
@@ -187,7 +187,7 @@ if True: # compare T+ vs E at different J
         Evals = np.logspace(*logElims,myxvals);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
-        jprimevals = jprimevals*2*np.sqrt(1/2); # renormalize J!!!
+        jprimevals = jprimevals*np.sqrt(2*1) # renormalize J!!!
         menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -212,7 +212,7 @@ if True: # compare T+ vs E at different J
             Rvals[Evali] = Rdum;
             Tvals[Evali] = Tdum;
 
-        # plot T_+ vs N
+        # plot T_+ vs E
         axes[0].plot(Evals,Tvals[:,pair[0]], color = mycolors[Jvali], marker=mymarkers[Jvali], markevery = 50, linewidth = mylinewidth);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         #axes[0].plot(Evals, totals, color="red");

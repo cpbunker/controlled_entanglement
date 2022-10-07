@@ -31,9 +31,10 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
+real = True;
 
 peaks12 = np.array([ [ 0.00 , 0.227299 , 0.301378 ]]);
 peaks1 = np.array([
@@ -68,6 +69,9 @@ peaks6 = np.array([
      [ 0.12 , 0.039, 0.169 ] ]);
 
 #### real data
+peaks12_real = np.zeros_like(peaks12);
+peaks1_real = np.zeros_like(peaks1);
+peaks32_real = np.zeros_like(peaks32);
 peaks6_real = np.array([
      [-0.12 , 0.042421, 0.162669 ],
      [-0.08 , 0.043014, 0.164255 ],
@@ -80,6 +84,8 @@ peaks6_real = np.array([
      [ 0.12 , 0.038848, 0.169136 ] ]);
 peaks6_real = np.array([
      [ 0.003, 0.042640, 0.167187 ]]);
+
+if real: peaks12, peaks1, peaks32, peaks6 = peaks12_real, peaks1_real, peaks32_real, peaks6_real;
 
 #### plot T+ and p2 vs Delta E
 if True:
@@ -126,7 +132,9 @@ if True:
     axes[-1].set_xlabel('$\Delta E/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/peaks.pdf');
+    fname = 'figs/peaks.pdf';
+    if real: fname = 'figs/peaks_real.pdf'
+    plt.savefig(fname);
     plt.show();
 
 
