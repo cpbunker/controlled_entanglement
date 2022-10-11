@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -67,7 +67,7 @@ if(verbose):
 
 tl = 1.0;
 tp = 1.0;
-JK = 0.1;
+JK = -tl/100;
 J12 = JK/10;
 
 # constructing the hamiltonian
@@ -85,14 +85,15 @@ def reduced_ham(params, S):
 #### effects of Ki and Delta E
 
 if False: # T+ at different Delta E by changing D
-    myspinS = 6;
-    Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01,0.0]);
+    myspinS = 3/2;
+    # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
+    Esplitvals = (1)*np.array([-0.02,-0.01,-0.005,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
         # iter over E, getting T
-        logElims = -4,0
+        logElims = -5,-1
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -148,7 +149,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model"+str(myspinS)+"/Esplit"+str(int(Esplitvals[Dvali]*100)/100);
+        fname = "data/model"+str(myspinS)+"/Esplit"+str(int(Esplitvals[Dvali]*100000)/100000);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -189,7 +190,7 @@ if True:
     datafs = sys.argv[1:];
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,-1;
+        logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
 
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 

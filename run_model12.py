@@ -90,12 +90,12 @@ if False: # compare T vs rhoJa for N not fixed
 
 
 if False: # compare T vs rhoJa for N=2 fixed
-    Jval = 0.1;
+    Jval = -tl/100;
     Esplit = 0.0;
     Delta = -Esplit;
 
     # iter over E, getting T
-    logElims = -4,-1;
+    logElims = -5,-3;
     Evals = np.logspace(*logElims,myxvals, dtype = complex);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -134,8 +134,7 @@ if False: # compare T vs rhoJa for N=2 fixed
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T; # 8 spin dofs
     data[10:,:] = Rvals.T;
-    #fname = "data/model12/N2/"+str(int(Jval*10)/10);
-    fname = "data/model12/N2/Esplit"+str(int(Esplit*100)/100);
+    fname = "data/model0.5/N2/"+str(int(Jval*100)/100);
     print("Saving data to "+fname);
     np.save(fname, data);
 
@@ -195,7 +194,7 @@ if True:
     sigmas = [sourcei,pair[0], pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
-        if sigmas[sigmai] == pair[1]: factor = 1000; # blow up T-
+        if sigmas[sigmai] == pair[1]: factor = 5*10**4; # blow up T-
         axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=mymarkevery,linewidth = mylinewidth);
     print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
     axes[0].set_ylim(0,1.0);
