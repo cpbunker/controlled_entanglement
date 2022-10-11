@@ -57,38 +57,54 @@ def reduced_ham(params, S):
 
 ################################################################################        
 #### material data
-material = "MnPc";
+material = "SMM_F";
 
 # universal
 tl = 100; # in meV
 tp = 100; # in meV
 JK = tl/100; 
 
-if material == "Mn":
+if material == "Mn": # Jie Xiang paper
     myspinS = 6;
 
-    # Jie Xiang paper results in cm^-1. Convert immediately to meV
+    # results in cm^-1. Convert to meV
     cm2meV = 1/8.06;
-    D1 = -0.22*cm2meV; # converted from cm^-1 to meV
+    D1 = -0.22*cm2meV; 
     D2 = D1;
-    J12 = -2*0.025*cm2meV; # converted from cm^-1 to meV
+    J12 = -2*0.025*cm2meV; 
 
-elif material == "MnPc":
+elif material == "MnPc": # Haechan paper
     myspinS = 3/2;
 
-    # Jie Xiang paper results in cm^-1. Convert immediately to meV
-    cm2meV = 1/8.06;
+    # results in meV
     D1 = 1.0;
     D2 = D1;
     J12 = 20.0;
 
-elif material == "Co":
+elif material == "Mn4": # Christou / Wernsdorfer paper
+    myspinS = 9/2;
+
+    # results in K. Convert to meV
+    K2meV = 8.617/100;
+    D1 = -0.72*K2meV;
+    D2 = D1;
+    J12 = 0.1*K2meV;
+
+elif material == "SMM_F": # Christou / Ruffle paper
+    myspinS = 9/2;
+
+    # results in cm^-1. Convert to meV
+    cm2meV = 1/8.06;
+    D1 = -0.379*cm2meV; 
+    D2 = D1;
+    J12 = 0; 
+
+elif material == "Co": # Jie xiang results
     myspinS = 3/2;
 
-    # Jie-Xiang manuscript results in meV
+    # results in meV
     D1 = 0.674;
     D2 = 0.370;
-    D1 = D2;
     Jx = 0.209; 
     Jz = 0.124;
     J12 = 0;
@@ -107,9 +123,13 @@ print("params = ",tl, tp, D1, D2, J12, JK);
 
 if True: # T+ at different Delta E by changing D
 
+    num_plots = 2;
+    fig, axes = plt.subplots(num_plots, sharex=True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
         
     # iter over E, getting T
-    logElims = -4,0
+    logElims = -5,-1
     Evals = np.logspace(*logElims,myxvals, dtype = complex);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -172,68 +192,15 @@ if True: # T+ at different Delta E by changing D
         Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
         Rvals[Evali] = Rdum;
         Tvals[Evali] = Tdum;
-        
-    # save data to .npy
-    data = np.zeros((2+2*len(source),len(Evals)));
-    data[0,0] = tl;
-    data[0,1] = JK;
-    data[1,:] = Evals;
-    data[2:2+len(source),:] = Tvals.T;
-    data[2+len(source):2+2*len(source),:] = Rvals.T;
-    fname = "data/"+material
-    print("Saving data to "+fname);
-    np.save(fname, data);
 
-################################################################################        
-#### plot
+    # plot T+
+    axes[0].plot(Evals, Tvals[:,pair[0]], color=mycolors[0], marker=mymarkers[0], markevery=mymarkevery, linewidth = mylinewidth); 
+    #axes[0].plot(xvals, totals, color="red");
+    print(">>> T+ max = ",np.max(Tvals[:,pair[0]])," at Ki = ",Evals[np.argmax(Tvals[:,pair[0]])]);
 
-# load data
-def load_data(fname):
-    print("Loading data from "+fname);
-    data = np.load(fname);
-    tl = data[0,0];
-    Jeff = data[0,1];
-    myxvals = data[1];
-    myTvals = data[2:5];
-    myRvals = data[5:];
-    mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
-    print("- shape xvals = ", np.shape(myxvals));
-    print("- shape Tvals = ", np.shape(myTvals));
-    print("- shape Rvals = ", np.shape(myRvals));
-    return myxvals, myRvals, myTvals, mytotals;
-
-# p2
-def p2(Ti,Tp,theta):
-    assert isinstance(Ti,float) and isinstance(Tp,float); # vectorized in thetas only
-    if Tp == 0.0: Tp = 1e-10;
-    return Ti*Tp/(Tp*np.cos(theta/2)*np.cos(theta/2)+Ti*np.sin(theta/2)*np.sin(theta/2));
-
-# figure of merit
-def FOM(Ti,Tp, grid=100000):
-    thetavals = np.linspace(0,np.pi,grid);
-    p2vals = p2(Ti,Tp,thetavals);
-    fom = np.trapz(p2vals, thetavals)/np.pi;
-    return fom;
-
-#### plot
-if True:
-    num_plots = 2;
-    fig, axes = plt.subplots(num_plots, sharex=True);
-    if num_plots == 1: axes = [axes];
-    fig.set_size_inches(7/2,3*num_plots/2);
-    datafs = sys.argv[1:];
-    for fi in range(len(datafs)):
-        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,0;
-
-        # plot T+
-        axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery, linewidth = mylinewidth); 
-        #axes[0].plot(xvals, totals, color="red");
-        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
-
-        # plot analytical FOM
-        axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery, linewidth = mylinewidth)
-        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+    # plot analytical FOM
+    axes[1].plot(Evals, np.sqrt(Tvals[:,sourcei]*Tvals[:,pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth)
+    print(">>> p2 max = ",np.max(np.sqrt(Tvals[:,sourcei]*Tvals[:,pair[0]]))," at Ki = ",Evals[np.argmax(np.sqrt(Tvals[:,sourcei]*Tvals[:,pair[0]]))]);
 
     # format
     axes[0].set_ylim(0,0.1);

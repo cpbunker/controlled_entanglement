@@ -84,10 +84,10 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
-    myspinS = 3/2;
+if True: # T+ at different Delta E by changing D
+    myspinS = 9/2;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
-    Esplitvals = (1)*np.array([-0.02,-0.01,-0.005,-0.001,0.0]);
+    Esplitvals = (1)*np.array([-0.02,-0.01,0.0,0.01,0.02]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];

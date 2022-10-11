@@ -191,13 +191,14 @@ if True:
     logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
 
     # plot Ti, T+, T-
-    sigmas = [sourcei,pair[0], pair[1]];
+    lower_y = 0.08;
+    sigmas = [sourcei,pair[0],pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
         if sigmas[sigmai] == pair[1]: factor = 5*10**4; # blow up T-
         axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=mymarkevery,linewidth = mylinewidth);
     print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
-    axes[0].set_ylim(0,1.0);
+    axes[0].set_ylim(-lower_y,1.0);
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
     # plot p2 at diff theta
@@ -213,8 +214,14 @@ if True:
         endthetavals.append(np.copy(yvals)[-1]);
         print(thetavals[thetai]);
     print(endthetavals);
+
+    # plot analytical FOM
+    axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth)
+    print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+
     # label LHS with p2 values
-    axes[1].set_ylim(0,1.0);
+    ax1ylim = (0,1.0);
+    axes[1].set_ylim(*ax1ylim);
     axes[1].set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
     # label thetavals with RHS yticks
     if True:
@@ -222,13 +229,11 @@ if True:
         endthetavals[-1] = 0.0;
         axRHS = axes[1].twinx();
         axRHS.tick_params(axis='y');
-        axRHS.set_ylim(0,1.0);
+        axRHS.set_ylim(*ax1ylim);
         axRHS.set_yticks(endthetavals);
         axRHS.set_yticklabels(['0','$\pi/8$','$\pi/4$','$\pi$']);
 
-    # plot analytical FOM
-    axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[0], marker=mymarkers[0],markevery=mymarkevery, linewidth = mylinewidth)
-    print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+
     # show
     axes[-1].set_xscale('log', subs = []);
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
@@ -239,129 +244,5 @@ if True:
     #plt.savefig('figs/model12.pdf');
     plt.show();
     
-        
-#### plot data at different vals of kx0
-if False:
-    folder = sys.argv[1];
-    myrows, mycols = 3,2;
-    fig, axes = plt.subplots(nrows = myrows, ncols = mycols, sharex = 'col', sharey = 'row'); # cols are T, R
-    sigmas = [pair[0],pair[1],sourcei];
-    nvals = np.array([0,1,1.25,1.5,1.75,2]);
-    for ni in range(len(nvals)):
-        pival = int(np.pi*nvals[ni]*100)/100
-        dataf = "data/model12/"+folder+"/"+str(pival)+".npy";
-        xvals, Rvals, Tvals, totals = load_data(dataf);
-
-        # plot R+, R-, Ri
-        for rowi in range(myrows):
-            axes[rowi,0].plot(xvals, Rvals[sigmas[rowi]], color = mycolors[ni], label = nvals[ni]);
-        #axes[1,0].plot(xvals, Rvals[pair[1]], color = mycolors[ni], label = nvals[ni]);
-        #axes[2,0].plot(xvals, Rvals[sourcei], color = mycolors[ni], label = nvals[ni]);
-
-        # plot T+, T-, Ti
-        for rowi in range(myrows):
-            axes[rowi,1].plot(xvals, Tvals[sigmas[rowi]], color = mycolors[ni], label = nvals[ni]);
-
-        # plot totals
-        axes[-1,-1].plot(xvals, totals, color='red');
-
-    # format
-    stems = ['$R','$T'];
-    subscripts = ['_+$','_-$','_i$'];
-    for coli in range(mycols):
-        axes[-1,coli].set_xscale('log', subs = []);
-        axes[-1,coli].set_xlim(10**(-5), 10**(-1));
-        axes[-1,coli].set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-        axes[-1,coli].set_xlabel('$K_i/t$',fontsize = myfontsize);
-        axes[-1,coli].legend();
-        for rowi in range(myrows):
-            axes[rowi,coli].set_ylabel(stems[coli]+subscripts[rowi],rotation = "horizontal");
-    plt.tight_layout();
-    plt.show();
-        
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### plot T_- / T_+ at different Vg
-if False:
-    fig, ax = plt.subplots();
-    datafs = sys.argv[1:];
-    for datafi in range(len(datafs)):
-        dataf = datafs[datafi];
-        print("Loading data from "+dataf);
-        data = np.load(dataf);
-        tl = data[0,0];
-        Jeff = data[0,1];
-        xvals = data[1];
-        Tvals = data[2:10];
-        Rvals = data[10:];
-        #ax.plot(xvals, Tvals[pair[1]]/Tvals[pair[0]],color = mycolors[datafi],linewidth = mylinewidth);
-        ax.plot(xvals, Tvals[pair[1]],color = mycolors[datafi],linewidth = mylinewidth);
-        ax.set_xscale('log', subs = []);
-        ax.set_xlim(10**(-5), 10**(-1));
-        ax.set_xticks([10**(-5),10**(-4),10**(-3),10**(-2),10**(-1)]);
-
-    # format
-    ax.set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
-    ax.set_ylabel('$T$', fontsize = myfontsize);  
-    plt.tight_layout();
-    plt.show();
-
-#### plot data side by side
-if False:
-    # open command line file
-    datafs = sys.argv[1:];
-    fig, axes = plt.subplots(1,len(datafs), sharey = True);
-    fig.set_size_inches(7/2,6/2);
-    if( len(datafs)== 1): axes = [axes];
-    for fi in range(len(datafs)):
-        dataf = datafs[fi];
-        print("Loading data from "+dataf);
-        data = np.load(dataf);
-        tl = data[0,0];
-        Jeff = data[0,1];
-        xvals = data[1];
-        Tvals = data[2:10];
-        Rvals = data[10:];
-        totals = np.sum(Tvals, axis = 0) + np.sum(Rvals, axis = 0);
-        print("- shape xvals = ", np.shape(xvals));
-        print("- shape Tvals = ", np.shape(Tvals));
-        print(np.max(Tvals[pair[0]]))
-
-        # plot
-        axes[fi].set_title(mypanels[fi], x=0.12, y = 0.88);
-        axes[fi].plot(xvals, Tvals[sourcei],color = "black", linestyle = "solid",linewidth = mylinewidth);
-        axes[fi].plot(xvals, Tvals[pair[0]], color = "black", linestyle = "dashed", linewidth = mylinewidth);
-        #axes[fi].plot(xvals, Tvals[pair[1]], color = "black", linestyle = "dotted", linewidth = mylinewidth);
-        axes[fi].plot(xvals, totals, color="red");
-        axes[fi].set_xscale('log', subs = []);
-        axes[fi].set_xlim(10**(-4), 10**(-1));
-        axes[fi].set_xticks([10**(-4),10**(-3),10**(-2),10**(-1)])
-        axes[fi].set_xlabel('$(E+2t)/t$',fontsize = myfontsize);
-        
-    # format
-    axes[0].set_ylim(0,1.0);
-    axes[0].set_yticks([0,0.5,1]);
-    axes[0].set_ylabel('$T$', fontsize = myfontsize);  
-    plt.tight_layout();
-    plt.show();
-    #plt.savefig('model12.pdf');
-
-
-
 
     
