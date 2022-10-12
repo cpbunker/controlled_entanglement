@@ -68,7 +68,7 @@ if(verbose):
 tl = 1.0;
 tp = 1.0;
 JK = -tl/100;
-J12 = JK/10;
+J12 = tl/1000;
 
 # constructing the hamiltonian
 def reduced_ham(params, S):
