@@ -89,13 +89,13 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if False: # compare T vs rhoJa for N=2 fixed
-    Jval = -tl/100;
+if True: # compare T vs rhoJa for N=2 fixed
+    Jval = -0.5*tl/100;
     Esplit = 0.0;
     Delta = -Esplit;
 
     # iter over E, getting T
-    logElims = -5,-3;
+    logElims = -6,-4;
     Evals = np.logspace(*logElims,myxvals, dtype = complex);
     Rvals = np.empty((len(Evals),len(source)), dtype = float);
     Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -134,7 +134,7 @@ if False: # compare T vs rhoJa for N=2 fixed
     data[1,:] = Evals;
     data[2:10,:] = Tvals.T; # 8 spin dofs
     data[10:,:] = Rvals.T;
-    fname = "data/model0.5/N2/"+str(int(Jval*100)/100);
+    fname = "data/model0.5/N2/"+str(int(Jval*1000)/1000);
     print("Saving data to "+fname);
     np.save(fname, data);
 

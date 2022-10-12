@@ -67,8 +67,8 @@ if(verbose):
 
 tl = 1.0;
 tp = 1.0;
-JK = -tl/100;
-J12 = tl/1000;
+JK = -0.5*tl/100;
+J12 = tl/100;
 
 # constructing the hamiltonian
 def reduced_ham(params, S):
@@ -87,13 +87,13 @@ def reduced_ham(params, S):
 if True: # T+ at different Delta E by changing D
     myspinS = 9/2;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
-    Esplitvals = (1)*np.array([-0.02,-0.01,0.0,0.01,0.02]);
+    Esplitvals = (1)*np.array([-0.02,-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
         # iter over E, getting T
-        logElims = -5,-1
+        logElims = -6,-2
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -166,6 +166,7 @@ def load_data(fname):
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
     print("- shape Rvals = ", np.shape(myRvals));
+    Eindex = 0;
     return myxvals, myRvals, myTvals, mytotals;
 
 # p2
@@ -188,6 +189,7 @@ if True:
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
     datafs = sys.argv[1:];
+    peaks = np.zeros((len(datafs),3));
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
         logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
@@ -195,11 +197,16 @@ if True:
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 
         #mainax.plot(xvals, totals, color="red");
-        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
+        Tpmax = np.max(Tvals[pair[0]])
+        print(">>> T+ max = ",Tpmax," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
-        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+        p2max = np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))
+        print(">>> p2 max = ",p2max," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+
+        # record peaks
+        peaks[fi,:] = []
         
     # format
     axes[0].set_ylim(0,0.2);
