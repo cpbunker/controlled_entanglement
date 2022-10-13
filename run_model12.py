@@ -35,7 +35,7 @@ mymarkers = ["o","^","s","d","X","P","*"];
 mymarkevery = (40,40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"});
 
 # tight binding params
 tl = 1.0;
@@ -195,7 +195,7 @@ if True:
     sigmas = [sourcei,pair[0],pair[1]];
     for sigmai in range(len(sigmas)):
         factor = 1;
-        if sigmas[sigmai] == pair[1]: factor = 5*10**4; # blow up T-
+        if sigmas[sigmai] == pair[1]: factor = 10**5; # blow up T-
         axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=mymarkevery,linewidth = mylinewidth);
     print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
     axes[0].set_ylim(-lower_y,1.0);
@@ -225,8 +225,6 @@ if True:
     axes[1].set_ylabel('$p^2(\\tilde{\\theta})$', fontsize = myfontsize);
     # label thetavals with RHS yticks
     if True:
-        endthetavals[-2] += 0.01;
-        endthetavals[-1] = 0.0;
         axRHS = axes[1].twinx();
         axRHS.tick_params(axis='y');
         axRHS.set_ylim(*ax1ylim);
@@ -241,7 +239,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model12.pdf');
+    plt.savefig('figs/model12.pdf');
     plt.show();
     
 

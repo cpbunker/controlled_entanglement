@@ -22,8 +22,9 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","X","P","*"];
+mycolors = np.array(["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"]);
+mymarkers = np.array(["o","^","s","d","X","P","*"]);
+mycolors, mymarkers = np.append(mycolors,mycolors), np.append(mymarkers, mymarkers);
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
         return (40,40);
@@ -31,7 +32,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -84,13 +85,51 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
-    myspinS = 9/2;
+if False: # T+ at different Delta E by changing D
+    myspinS = 1;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
-    Esplitvals = (1)*np.array([-0.02,-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004]);
+    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
+    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
+
+        # optical distances, N = 2 fixed
+        N0 = 1; # N0 = N - 1
+
+        # construct hblocks
+        hblocks = [];
+        impis = [1,2];
+        for j in range(4): # LL, imp 1, imp 2, RL
+            # define all physical params
+            JK1, JK2 = 0, 0;
+            if(j == impis[0]): JK1 = JK;
+            elif(j == impis[1]): JK2 = JK;
+            params = Dval, Dval, J12, JK1, JK2;
+            # construct h_SR (determinant basis)
+            hSR = reduced_ham(params,S=myspinS);           
+            # transform to eigenbasis
+            hSR_diag = wfm.utils.entangle(hSR, *pair);
+            hblocks.append(np.copy(hSR_diag));
+            if(verbose > 3 ):
+                print("\nJK1, JK2 = ",JK1, JK2);
+                print(" - ham:\n", hSR);
+                print(" - transformed ham:\n", np.real(hSR_diag));
+                print(" - DeltaE = ",Esplitvals[Dvali])
+
+        # finish hblocks
+        hblocks = np.array(hblocks);
+        E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
+        for hb in hblocks:
+            hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
+        if(verbose > 3 ): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
+
+        # constant shift in right lead to bring transmitted |+> on resonance
+        #hblocks[-1] += -1*Esplitvals[Dvali]*np.eye(np.shape(hblocks[0])[0]);
+
+        # hopping
+        tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
+        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
         # iter over E, getting T
         logElims = -6,-2
@@ -102,40 +141,6 @@ if True: # T+ at different Delta E by changing D
             # energy
             Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
             Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
-            
-            # optical distances, N = 2 fixed
-            N0 = 1; # N0 = N - 1
-
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = JK;
-                elif(j == impis[1]): JK2 = JK;
-                params = Dval, Dval, J12, JK1, JK2;
-                # construct h_SR (determinant basis)
-                hSR = reduced_ham(params,S=myspinS);           
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-                if(verbose > 3 and Eval == Evals[0]):
-                    print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", hSR);
-                    print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",Esplitvals[Dvali])
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            if(verbose > 3 and Eval == Evals[0]): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
-
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
             Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
@@ -163,11 +168,15 @@ def load_data(fname):
     myTvals = data[2:5];
     myRvals = data[5:];
     mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
+    Eindex = fname.find("Esplit")+5;
+    dotindex = fname.find(".npy");
+    Esplit = float(fname[Eindex+1:dotindex]);
+    folder = fname[:Eindex-5];
+    print("- Esplit = ",Esplit);
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
     print("- shape Rvals = ", np.shape(myRvals));
-    Eindex = 0;
-    return myxvals, myRvals, myTvals, mytotals;
+    return myxvals, myRvals, myTvals, mytotals, Esplit, folder;
 
 # p2
 def p2(Ti,Tp,theta):
@@ -188,10 +197,10 @@ if True:
     fig, axes = plt.subplots(num_plots, sharex=True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
-    datafs = sys.argv[1:];
+    datafs = sys.argv[1:][::-1];
     peaks = np.zeros((len(datafs),3));
     for fi in range(len(datafs)):
-        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
+        xvals, Rvals, Tvals, totals, Esplit, folder = load_data(datafs[fi]);
         logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
 
         # plot T+
@@ -206,7 +215,10 @@ if True:
         print(">>> p2 max = ",p2max," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
 
         # record peaks
-        peaks[fi,:] = []
+        peaks[fi,:] = [Esplit,Tpmax,p2max];
+    peaksfname = folder+"peaks.npy";
+    print("Saving peaks data to "+peaksfname);
+    #np.save(peaksfname, peaks);    
         
     # format
     axes[0].set_ylim(0,0.2);
@@ -221,6 +233,6 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model1.pdf');
+    plt.savefig('figs/model1_positive.pdf');
     plt.show();
 

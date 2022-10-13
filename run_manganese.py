@@ -57,7 +57,7 @@ def reduced_ham(params, S):
 
 ################################################################################        
 #### material data
-material = "Mn2";
+material = "MnPc";
 
 # universal
 tl = 100; # in meV
@@ -68,9 +68,9 @@ if material == "MnPc": # Haechan paper
     myspinS = 3/2;
 
     # results in meV
-    D1 = -1.0;
+    D1 = -0.985;
     D2 = D1;
-    J12 = 20.0;
+    J12 = -0.77;
 
 elif material == "Mn4_72": # Christou / Wernsdorfer 2007 paper
     myspinS = 7/2;
@@ -84,7 +84,7 @@ elif material == "Mn4_72": # Christou / Wernsdorfer 2007 paper
     K2meV = 8.617/100;
     J12 = 2*(-0.04)*K2meV;
 
-elif material == "Mn2":
+elif material == "MnIII": # christou / wernsdorfer 2005 paper
     myspinS = 4;
 
     # results in cm^-1. Convert to meV
