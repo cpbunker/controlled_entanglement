@@ -57,23 +57,14 @@ def reduced_ham(params, S):
 
 ################################################################################        
 #### material data
-material = "Co";
+material = "Mn2";
 
 # universal
 tl = 100; # in meV
 tp = 100; # in meV
-JK = -tl/100; 
+JK = -0.5*tl/100; 
 
-if material == "Mn3": # Jie Xiang paper
-    myspinS = 6;
-
-    # results in cm^-1. Convert to meV
-    cm2meV = 1/8.06;
-    D1 = -0.22*cm2meV; 
-    D2 = D1;
-    J12 = -2*0.025*cm2meV; 
-
-elif material == "MnPc": # Haechan paper
+if material == "MnPc": # Haechan paper
     myspinS = 3/2;
 
     # results in meV
@@ -81,7 +72,28 @@ elif material == "MnPc": # Haechan paper
     D2 = D1;
     J12 = 20.0;
 
-elif material == "Mn4": # Christou / Wernsdorfer paper
+elif material == "Mn4_72": # Christou / Wernsdorfer 2007 paper
+    myspinS = 7/2;
+
+    # results in cm^-1. Convert to meV
+    cm2meV = 1/8.06;
+    D1 = -0.85*cm2meV;
+    D2 = D1;
+
+    # results in K. Convert to meV
+    K2meV = 8.617/100;
+    J12 = 2*(-0.04)*K2meV;
+
+elif material == "Mn2":
+    myspinS = 4;
+
+    # results in cm^-1. Convert to meV
+    cm2meV = 1/8.06;
+    D1 = -0.65*cm2meV;
+    D2 = D1;
+    J12 = -2*(2.13)*cm2meV;
+
+elif material == "Mn4": # Christou / Wernsdorfer 2002 paper
     myspinS = 9/2;
 
     # results in K. Convert to meV
@@ -90,14 +102,14 @@ elif material == "Mn4": # Christou / Wernsdorfer paper
     D2 = D1;
     J12 = 0.1*K2meV;
 
-elif material == "SMM_F": # Christou / Ruffle paper
-    myspinS = 9/2;
+elif material == "Mn3": # Jie Xiang paper
+    myspinS = 6;
 
     # results in cm^-1. Convert to meV
     cm2meV = 1/8.06;
-    D1 = -0.379*cm2meV; 
+    D1 = -0.22*cm2meV; 
     D2 = D1;
-    J12 = 0; 
+    J12 = -2*0.025*cm2meV; 
 
 elif material == "Co": # Jie xiang results
     myspinS = 3/2;
