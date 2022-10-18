@@ -31,7 +31,7 @@ mymarkers = ["o","^","s","d","*","X","P"];
 mymarkevery = (40, 40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -42,7 +42,7 @@ tl = 1.0;
 if False:
 
     # inelastic ?
-    Delta = 0.001; # inelastic splitting
+    Delta = 0.000; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -55,7 +55,7 @@ if False:
     Msites = 1; 
 
     # iter over effective J
-    Jvals = np.array([-0.01,-0.05,-0.1,-0.5]);
+    Jvals = np.array([-0.005,-0.05,-0.5,-5.0]);
     for Jvali in range(len(Jvals)):
         Jval = Jvals[Jvali];
         
@@ -100,7 +100,7 @@ if False:
 
         # sweep over range of energies
         # def range
-        logElims = -5,-1
+        logElims = -6,0
         Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -146,11 +146,11 @@ if False:
             axes[ax3].plot(Evals,abs(Tvals[:,sourcei]-menez_Tnf)/menez_Tnf,color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
             axes[ax0].set_ylim(-0.4*lower_y,0.4)
             axes[ax0].set_ylabel('$T_{f}$', fontsize = myfontsize );
-            axes[ax1].set_ylim(-0.04*lower_y,0.04);
+            axes[ax1].set_ylim(-0.1*lower_y,0.1);
             axes[ax1].set_ylabel('$|T_{f}-T_{f,c}|/T_{f,c}$', fontsize = myfontsize );
             axes[ax2].set_ylim(-1*lower_y,1*(1+lower_y));
             axes[ax2].set_ylabel('$T_{nf}$', fontsize = myfontsize );
-            axes[ax3].set_ylim(-0.04*lower_y,0.04);
+            axes[ax3].set_ylim(-0.1*lower_y,0.1);
             axes[ax3].set_ylabel('$|T_{nf}-T_{nf,c}|/T_{nf,c}$', fontsize = myfontsize );
     
     # show
@@ -162,7 +162,7 @@ if False:
     plt.tight_layout();
     if inelastic: fname = 'figs/inelastic.pdf';
     else: fname = 'figs/continuum.pdf'
-    #plt.savefig(fname);
+    plt.savefig(fname);
     plt.show();
 
 
@@ -181,7 +181,7 @@ if True:
     U2 = 100.0;
 
     # iter over effective J by changing epsilon
-    Jvals = np.array([-0.01,-0.05,-0.1,-0.5]);
+    Jvals = np.array([-0.005,-0.05,-0.5,-5.0]);
     epsvals = (U1-U2)/2 + np.sqrt(U1*U2 + np.power((U1-U2)/2,2) - 2*th*th*(U1+U2)/Jvals);
     for epsi in range(len(epsvals)):
         epsilon = epsvals[epsi];
@@ -224,7 +224,7 @@ if True:
         
         # sweep over range of energies
         # def range
-        logElims = -5,-1
+        logElims = -6,0
         Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -264,7 +264,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/origin.pdf');
+    plt.savefig('figs/origin.pdf');
     plt.show();
 
 
