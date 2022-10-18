@@ -22,8 +22,8 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = np.array(["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"]);
-mymarkers = np.array(["o","^","s","d","X","P","*"]);
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
+mymarkers = ["o","^","s","d","*","X","P"];
 mycolors, mymarkers = np.append(mycolors,mycolors), np.append(mymarkers, mymarkers);
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
@@ -86,10 +86,10 @@ def reduced_ham(params, S):
 #### effects of Ki and Delta E
 
 if False: # T+ at different Delta E by changing D
-    myspinS = 1;
+    myspinS = 4.5;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
     Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
-    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
+    #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
@@ -197,7 +197,7 @@ if True:
     fig, axes = plt.subplots(num_plots, sharex=True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
-    datafs = sys.argv[1:][::-1];
+    datafs = sys.argv[1:];
     peaks = np.zeros((len(datafs),3));
     for fi in range(len(datafs)):
         xvals, Rvals, Tvals, totals, Esplit, folder = load_data(datafs[fi]);
@@ -214,14 +214,19 @@ if True:
         p2max = np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))
         print(">>> p2 max = ",p2max," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
 
+        # replot with markers as needed
+        if("-" not in datafs[fi] and "0.0.npy" not in datafs[fi]):
+            pass;
+
         # record peaks
         peaks[fi,:] = [Esplit,Tpmax,p2max];
     peaksfname = folder+"peaks.npy";
     print("Saving peaks data to "+peaksfname);
-    #np.save(peaksfname, peaks);    
+    np.save(peaksfname, peaks);    
         
     # format
-    axes[0].set_ylim(0,0.2);
+    lower_y = 0.08;
+    axes[0].set_ylim(-lower_y*0.2,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
     axes[1].set_ylim(0.0,0.3);
     axes[1].set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
@@ -233,6 +238,6 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/model1_positive.pdf');
+    #plt.savefig('figs/model1.pdf');
     plt.show();
 

@@ -22,8 +22,8 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","X","P","*"];
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
+mymarkers = ["o","^","s","d","*","X","P"];
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
         return (40,40);
