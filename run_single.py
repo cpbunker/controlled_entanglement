@@ -264,7 +264,7 @@ if True:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/origin.pdf');
+    #plt.savefig('figs/origin.pdf');
     plt.show();
 
 
