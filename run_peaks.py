@@ -31,10 +31,10 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
-real = True;
+real = False;
 
 peaks12 = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
 peaks1 = np.load("data/model1/peaks.npy");
@@ -129,7 +129,7 @@ if True:
     plt.tight_layout();
     fname = 'figs/peaks.pdf';
     if real: fname = 'figs/peaks_real.pdf'
-    plt.savefig(fname);
+    #plt.savefig(fname);
     plt.show();
 
 

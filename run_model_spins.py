@@ -220,6 +220,8 @@ if True:
 
         # record peaks
         peaks[fi,:] = [Esplit,Tpmax,p2max];
+    # sort and save peaks
+    peaks = peaks[peaks[:,0].argsort()]
     peaksfname = folder+"peaks.npy";
     print("Saving peaks data to "+peaksfname);
     np.save(peaksfname, peaks);    

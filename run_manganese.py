@@ -57,7 +57,7 @@ def reduced_ham(params, S):
 
 ################################################################################        
 #### material data
-material = "MnPc";
+material = "Mn3";
 
 # universal
 tl = 100; # in meV
