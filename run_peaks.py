@@ -22,8 +22,8 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","X","P","*"];
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
+mymarkers = ["o","^","s","d","*","X","P"];
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
         return (40,40);
@@ -34,107 +34,102 @@ mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
-real = True;
+real = False;
 
-peaks12 = np.array([ [ 0.00 , 0.227299 , 0.301378 ]]);
-peaks1 = np.array([
-     [-0.12 , 0.062 , 0.191 ],
-     [-0.08 , 0.073 , 0.205 ],
-     [-0.05 , 0.087 , 0.219 ],
-     [-0.01 , 0.135 , 0.254 ],
-     [ 0.00 , 0.163 , 0.268 ],
-     [ 0.01 , 0.166 , 0.281 ],
-     [ 0.05 , 0.131 , 0.286 ],
-     [ 0.08 , 0.114 , 0.282 ],
-     [ 0.12 , 0.082 , 0.258 ] ]);
-peaks32 = np.array([
-     [-0.12 , 0.061 , 0.188 ],
-     [-0.08 , 0.071 , 0.200 ],
-     [-0.05 , 0.083 , 0.212 ],
-     [-0.01 , 0.114 , 0.236 ],
-     [ 0.00 , 0.125 , 0.244 ],
-     [ 0.01 , 0.125 , 0.252 ],
-     [ 0.05 , 0.101 , 0.259 ],
-     [ 0.08 , 0.087 , 0.254 ],
-     [ 0.12 , 0.078 , 0.246 ] ]);
-peaks6 = np.array([
-     [-0.12 , 0.042, 0.162 ],
-     [-0.08 , 0.043, 0.164 ],
-     [-0.05 , 0.043, 0.165 ],
-     [-0.01 , 0.043, 0.167 ],
-     [ 0.00 , 0.043, 0.167 ],
-     [ 0.01 , 0.042, 0.167 ],
-     [ 0.05 , 0.041, 0.168],
-     [ 0.08 , 0.040, 0.169 ],
-     [ 0.12 , 0.039, 0.169 ] ]);
+peaks12 = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
+peaks1 = np.load("data/model1/peaks.npy");
+peaks32 = np.load("data/model1.5/peaks.npy");
+peaks72 = np.load("data/model3.5/peaks.npy"); # not plotted as of now
+peaks4 = np.load("data/model4/peaks.npy");
+peaks92 = np.load("data/model4.5/peaks.npy");
+peaks6 = np.load("data/model6/peaks.npy");
 
 #### real data
-peaks12_real = np.zeros_like(peaks12);
-peaks1_real = np.zeros_like(peaks1);
-peaks32_real = np.zeros_like(peaks32);
-peaks6_real = np.array([
-     [-0.12 , 0.042421, 0.162669 ],
-     [-0.08 , 0.043014, 0.164255 ],
-     [-0.05 , 0.043184, 0.165394 ],
-     [-0.01 , 0.042881, 0.166785 ],
-     [ 0.003, 0.042640, 0.167187 ],
-     [ 0.01 , 0.042486, 0.167398 ],
-     [ 0.05 , 0.041329, 0.168386],
-     [ 0.08 , 0.040290, 0.168872 ],
-     [ 0.12 , 0.038848, 0.169136 ] ]);
-peaks6_real = np.array([
-     [ 0.003, 0.042640, 0.167187 ]]);
+peaks12_real = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
+peaks1_real = np.zeros_like(peaks12);
+peaks32_real = np.array([
+    [ 0.020, 0.002, 0.047 ]]); # MnPc
+peaks72_real = np.array([
+    [ 0.006327, 0.017, 0.126 ]]); # Mn4_72 # not plotted as of now
+peaks4_real = np.array([
+    [ 0.005645, 0.016, 0.122 ]]); # Mn2
+peaks92_real = np.array([
+    [ 0.004963, 0.018, 0.131 ]]); # Mn4
+peaks6_real = np.array([        
+    [ 0.003, 0.021, 0.138 ]]);  # Mn3
 
-if real: peaks12, peaks1, peaks32, peaks6 = peaks12_real, peaks1_real, peaks32_real, peaks6_real;
+if real: peaks12, peaks1, peaks32, peaks72, peaks4, peaks92, peaks6 = peaks12_real, peaks1_real, peaks32_real, peaks72_real, peaks4_real, peaks92_real, peaks6_real;
 
 #### plot T+ and p2 vs Delta E
 if True:
     num_plots = 2;
-    fig, axes = plt.subplots(num_plots, sharex=True);
+    fig, axes = plt.subplots(nrows = num_plots, ncols = num_plots, sharex="col", sharey = "row", gridspec_kw={'width_ratios' : [9,1]});
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
     indE, indT, indp = 0,1,2;
 
+    # convert real data to meV
+    convert = 100;
 
-    # plot T+
-    # for s=1/2
-    axes[0].scatter(peaks12[:,indE], peaks12[:,indT], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
-    # for s=3/2
-    axes[0].scatter(peaks32[:,indE], peaks32[:,indT], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
-    # for s=1
-    axes[0].scatter(peaks1[:,indE], peaks1[:,indT], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
-     # for s=6
-    axes[0].scatter(peaks6[:,indE], peaks6[:,indT], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
-
-       
-    # plot analytical FOM
-    # for s=1/2
-    axes[1].scatter(peaks12[:,indE], peaks12[:,indp], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
-    # for s=3/2
-    axes[1].scatter(peaks32[:,indE], peaks32[:,indp], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
-    # for s=1
-    axes[1].scatter(peaks1[:,indE], peaks1[:,indp], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
-     # for s=6
-    axes[1].scatter(peaks6[:,indE], peaks6[:,indp], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
-
-    # try arrow
-    lowest_x, lowest_y = peaks32[np.argmin(peaks32[:,indp]),indE], peaks32[np.argmin(peaks32[:,indp]),indp];
-    highest_x, highest_y = peaks32[np.argmax(peaks32[:,indp]),indE], peaks32[np.argmax(peaks32[:,indp]),indp];
-    #plt.arrow(lowest_x, highest_y, lowest_x - lowest_x, lowest_y - highest_y, color = "darkslategray", length_includes_head = True);
-
+    # plot data on both x axes
+    dataindex = [indT, indp];
+    for yaxi in range(np.shape(axes)[0]):
+        for xaxi in range(np.shape(axes)[1]):
+            # for s=1/2
+            axes[yaxi, xaxi].plot(convert*peaks12[:,indE], peaks12[:,dataindex[yaxi]], color=mycolors[0], marker = mymarkers[0], linewidth = mylinewidth);
+            # for s=1
+            if not real: axes[yaxi, xaxi].plot(convert*peaks1[:,indE], peaks1[:,dataindex[yaxi]], color=mycolors[1], marker=mymarkers[1], linewidth = mylinewidth);
+            # for s=3/2
+            axes[yaxi, xaxi].plot(convert*peaks32[:,indE], peaks32[:,dataindex[yaxi]], color=mycolors[2], marker=mymarkers[2], linewidth = mylinewidth);
+            # for s=7/2
+            #axes[yaxi, xaxi].plot(convert*peaks72[:,indE], peaks72[:,dataindex[yaxi]], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
+            # for s=4
+            axes[yaxi, xaxi].plot(convert*peaks4[:,indE], peaks4[:,dataindex[yaxi]], color=mycolors[3], marker=mymarkers[3], linewidth = mylinewidth);
+            # for s=9/2
+            axes[yaxi, xaxi].plot(convert*peaks92[:,indE], peaks92[:,dataindex[yaxi]], color=mycolors[4], marker=mymarkers[4], linewidth = mylinewidth);
+            # for s=6
+            axes[yaxi, xaxi].plot(convert*peaks6[:,indE], peaks6[:,dataindex[yaxi]], color=mycolors[-1], marker=mymarkers[-1], linewidth = mylinewidth);
+           
     # format
-    axes[0].set_ylim(0.0,0.24);
-    axes[0].set_ylabel('max($T_+$)', fontsize = myfontsize);
-    axes[1].set_ylim(0.08,0.32);
-    axes[1].set_ylabel('max($\overline{p^2}$)', fontsize = myfontsize);
+    lower_y = 0.08
+    axes[0,0].set_ylim(-lower_y*0.24,0.24);
+    axes[0,0].set_ylabel('max($T_+$)', fontsize = myfontsize);
+    axes[1,0].set_ylim(-lower_y*0.32,0.32);
+    axes[1,0].set_ylabel('max($\overline{p^2}$)', fontsize = myfontsize);
 
     # show
-    axes[-1].set_xlabel('$\Delta E/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    if not real: xdatadelta = convert*abs(peaks1[0,indE]-peaks1[1,indE])/2;
+    else: xdatadelta = convert*0.001/2;
+    myxlabel = '$\Delta E$ (meV)';
+    axes[-1,0].set_xlabel(myxlabel, fontsize = myfontsize);
+    for yaxi in range(np.shape(axes)[0]): 
+        if not real:
+            axes[yaxi,0].set_title(mypanels[yaxi], x=0.07, y = 0.7, fontsize = myfontsize);
+            axes[yaxi,0].set_xlim(convert*-0.004-xdatadelta,convert*0.004+xdatadelta);
+            axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
+            axes[yaxi,1].set_xticks([0.02*convert]);
+        else:
+            axes[yaxi,1].set_title(mypanels[yaxi], x=0.4, y = 0.7, fontsize = myfontsize);
+            axes[yaxi,0].set_xlim(convert*0.0-xdatadelta,convert*0.008+xdatadelta);
+            axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
+            axes[yaxi,1].set_xticks([0.02*convert]);
+        axes[yaxi,0].spines['right'].set_visible(False);
+        axes[yaxi,1].spines['left'].set_visible(False);
+        axes[yaxi,1].yaxis.set_visible(False);
+        # break axes
+        break_size = 0.12; # in display coordinates
+        break_offset = (-6,-9)
+        break_kw = dict(transform=axes[yaxi,1].transAxes, color='black', clip_on=False);
+        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
+        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
+        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth, **break_kw);
+        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth, **break_kw);
+        # connect to breaks
+        #axes[yaxi,1].plot((break_offset[0]*break_size-break_size,0),(0,0),linewidth = mylinewidth, **break_kw);
     plt.tight_layout();
     fname = 'figs/peaks.pdf';
     if real: fname = 'figs/peaks_real.pdf'
-    plt.savefig(fname);
+    #plt.savefig(fname);
     plt.show();
 
 

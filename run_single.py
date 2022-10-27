@@ -26,12 +26,12 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","X","P","*"];
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
+mymarkers = ["o","^","s","d","*","X","P"];
 mymarkevery = (40, 40);
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)","(d)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 # tight binding params
 tl = 1.0;
@@ -39,10 +39,10 @@ tl = 1.0;
 #################################################################
 #### replication of continuum solution
 
-if True:
+if False:
 
     # inelastic ?
-    Delta = 0.01; # inelastic splitting
+    Delta = 0.000; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
@@ -55,7 +55,7 @@ if True:
     Msites = 1; 
 
     # iter over effective J
-    Jvals = np.array([0.1,0.5,1.0,5.0]);
+    Jvals = np.array([-0.005,-0.05,-0.5,-5.0]);
     for Jvali in range(len(Jvals)):
         Jval = Jvals[Jvali];
         
@@ -100,7 +100,7 @@ if True:
 
         # sweep over range of energies
         # def range
-        logElims = -4,0
+        logElims = -6,0
         Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -130,7 +130,7 @@ if True:
         #axes[1].plot(Evals, totals, color="red", label = "total ");
         
         # continuum results
-        lower_y = 0.08
+        lower_y = 0.08;
         if inelastic:
             #axes[ax0].axvline(0.025, color = "gray");
             axes[ax0].plot(Evals, menez_Tf, color = mycolors[Jvali],linestyle = "dashed", marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth); 
@@ -162,14 +162,14 @@ if True:
     plt.tight_layout();
     if inelastic: fname = 'figs/inelastic.pdf';
     else: fname = 'figs/continuum.pdf'
-    #plt.savefig(fname);
+    plt.savefig(fname);
     plt.show();
 
 
 #################################################################
 #### physical origin
 
-if False:
+if True:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
@@ -181,7 +181,7 @@ if False:
     U2 = 100.0;
 
     # iter over effective J by changing epsilon
-    Jvals = np.array([0.1,0.5,1.0,5.0]);
+    Jvals = np.array([-0.005,-0.05,-0.5,-5.0]);
     epsvals = (U1-U2)/2 + np.sqrt(U1*U2 + np.power((U1-U2)/2,2) - 2*th*th*(U1+U2)/Jvals);
     for epsi in range(len(epsvals)):
         epsilon = epsvals[epsi];
@@ -224,7 +224,7 @@ if False:
         
         # sweep over range of energies
         # def range
-        logElims = -4,0
+        logElims = -6,0
         Evals = np.logspace(*logElims,myxvals, dtype=complex);
         kavals = np.arccos((Evals-2*tl)/(-2*tl));
         jprimevals = Jval/(4*tl*kavals);
@@ -264,7 +264,7 @@ if False:
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('figs/origin.pdf');
+    #plt.savefig('figs/origin.pdf');
     plt.show();
 
 

@@ -48,9 +48,7 @@ dets52 = [[0,2,7],[0,3,6],[1,2,6]]; # total spin 5/2 subspace
 # params, all in units meV
 tl = 100;
 tp = 100;
-th = tl/4;
-Ucharge = 1000;
-JK = 4*th*th/Ucharge;
+JK = -1;
 
 # Ab initio params, in meV:
 Ha2meV = 27.211386*1000; # 1 hartree is 27 eV
@@ -62,7 +60,6 @@ DO=DT;
 
 # convert to Ha
 print("\nParams, in meV:\n",tl, tp, JK, Jx, DO, DT); 
-del th, Ucharge;
 #Ha2meV = 27.211386*1000;
 #tl, tp, JK, Jx, Jz, DO, DT= tl/Ha2meV, tp/Ha2meV, JK/Ha2meV, Jx/Ha2meV, Jz/Ha2meV, DO/Ha2meV, DT/Ha2meV;
 tl, tp, JK, Jx, Jz, DO, DT= tl/tl, tp/tl, JK/tl, Jx/tl, Jz/tl, DO/tl, DT/tl;
@@ -94,7 +91,7 @@ if(verbose):
 #########################################################
 #### generation
 
-if True: 
+if False: 
 
     dummyvals = [0];
     for dummyi in range(len(dummyvals)):
@@ -115,7 +112,7 @@ if True:
             N0 = 1; # N0 = N - 1
             ka = np.arccos((Energy)/(-2*tl));
             kappaa = 0.0*np.pi;
-            Vg = Energy+2*tl*np.cos(kappaa);
+            Vg = 0
 
             # construct hblocks
             hblocks = [];
@@ -196,7 +193,7 @@ if True:
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/cobalt/JK"+str(int(JK*1000)/1000);
+        fname = "data/cobalt";
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -236,7 +233,7 @@ if True: # plot
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
     for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.74, fontsize = myfontsize); 
     plt.tight_layout();
-    plt.savefig('figs/cobalt.pdf');
+    #plt.savefig('figs/cobalt.pdf');
     plt.show();
 
 

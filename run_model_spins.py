@@ -22,8 +22,9 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkmagenta","darkgray","darkcyan"];
-mymarkers = ["o","^","s","d","X","P","*"];
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
+mymarkers = ["o","^","s","d","*","X","P"];
+mycolors, mymarkers = np.append(mycolors,mycolors), np.append(mymarkers, mymarkers);
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
         return (40,40);
@@ -67,8 +68,8 @@ if(verbose):
 
 tl = 1.0;
 tp = 1.0;
-JK = 0.1;
-J12 = JK/10;
+JK = -0.5*tl/100;
+J12 = tl/100;
 
 # constructing the hamiltonian
 def reduced_ham(params, S):
@@ -85,14 +86,53 @@ def reduced_ham(params, S):
 #### effects of Ki and Delta E
 
 if False: # T+ at different Delta E by changing D
-    myspinS = 6;
-    Esplitvals = (-1)*np.array([-0.12,-0.08,-0.05,-0.01,0.0]);
+    myspinS = 4.5;
+    # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
+    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
+    #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
 
+        # optical distances, N = 2 fixed
+        N0 = 1; # N0 = N - 1
+
+        # construct hblocks
+        hblocks = [];
+        impis = [1,2];
+        for j in range(4): # LL, imp 1, imp 2, RL
+            # define all physical params
+            JK1, JK2 = 0, 0;
+            if(j == impis[0]): JK1 = JK;
+            elif(j == impis[1]): JK2 = JK;
+            params = Dval, Dval, J12, JK1, JK2;
+            # construct h_SR (determinant basis)
+            hSR = reduced_ham(params,S=myspinS);           
+            # transform to eigenbasis
+            hSR_diag = wfm.utils.entangle(hSR, *pair);
+            hblocks.append(np.copy(hSR_diag));
+            if(verbose > 3 ):
+                print("\nJK1, JK2 = ",JK1, JK2);
+                print(" - ham:\n", hSR);
+                print(" - transformed ham:\n", np.real(hSR_diag));
+                print(" - DeltaE = ",Esplitvals[Dvali])
+
+        # finish hblocks
+        hblocks = np.array(hblocks);
+        E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
+        for hb in hblocks:
+            hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
+        if(verbose > 3 ): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
+
+        # constant shift in right lead to bring transmitted |+> on resonance
+        #hblocks[-1] += -1*Esplitvals[Dvali]*np.eye(np.shape(hblocks[0])[0]);
+
+        # hopping
+        tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
+        tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
+
         # iter over E, getting T
-        logElims = -4,0
+        logElims = -6,-2
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
@@ -101,40 +141,6 @@ if False: # T+ at different Delta E by changing D
             # energy
             Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
             Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
-            
-            # optical distances, N = 2 fixed
-            N0 = 1; # N0 = N - 1
-
-            # construct hblocks
-            hblocks = [];
-            impis = [1,2];
-            for j in range(4): # LL, imp 1, imp 2, RL
-                # define all physical params
-                JK1, JK2 = 0, 0;
-                if(j == impis[0]): JK1 = JK;
-                elif(j == impis[1]): JK2 = JK;
-                params = Dval, Dval, J12, JK1, JK2;
-                # construct h_SR (determinant basis)
-                hSR = reduced_ham(params,S=myspinS);           
-                # transform to eigenbasis
-                hSR_diag = wfm.utils.entangle(hSR, *pair);
-                hblocks.append(np.copy(hSR_diag));
-                if(verbose > 3 and Eval == Evals[0]):
-                    print("\nJK1, JK2 = ",JK1, JK2);
-                    print(" - ham:\n", hSR);
-                    print(" - transformed ham:\n", np.real(hSR_diag));
-                    print(" - DeltaE = ",Esplitvals[Dvali])
-
-            # finish hblocks
-            hblocks = np.array(hblocks);
-            E_shift = hblocks[0,sourcei,sourcei]; # const shift st hLL[sourcei,sourcei] = 0
-            for hb in hblocks:
-                hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
-            if(verbose > 3 and Eval == Evals[0]): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
-
-            # hopping
-            tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
-            tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
 
             # get R, T coefs
             Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy , source, all_debug = False);
@@ -148,7 +154,7 @@ if False: # T+ at different Delta E by changing D
         data[1,:] = Evals;
         data[2:2+len(source),:] = Tvals.T;
         data[2+len(source):2+2*len(source),:] = Rvals.T;
-        fname = "data/model"+str(myspinS)+"/Esplit"+str(int(Esplitvals[Dvali]*100)/100);
+        fname = "data/model"+str(myspinS)+"/Esplit"+str(int(Esplitvals[Dvali]*100000)/100000);
         print("Saving data to "+fname);
         np.save(fname, data);
 
@@ -162,10 +168,15 @@ def load_data(fname):
     myTvals = data[2:5];
     myRvals = data[5:];
     mytotals = np.sum(myTvals, axis = 0) + np.sum(myRvals, axis = 0);
+    Eindex = fname.find("Esplit")+5;
+    dotindex = fname.find(".npy");
+    Esplit = float(fname[Eindex+1:dotindex]);
+    folder = fname[:Eindex-5];
+    print("- Esplit = ",Esplit);
     print("- shape xvals = ", np.shape(myxvals));
     print("- shape Tvals = ", np.shape(myTvals));
     print("- shape Rvals = ", np.shape(myRvals));
-    return myxvals, myRvals, myTvals, mytotals;
+    return myxvals, myRvals, myTvals, mytotals, Esplit, folder;
 
 # p2
 def p2(Ti,Tp,theta):
@@ -187,21 +198,37 @@ if True:
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
     datafs = sys.argv[1:];
+    peaks = np.zeros((len(datafs),3));
     for fi in range(len(datafs)):
-        xvals, Rvals, Tvals, totals = load_data(datafs[fi]);
-        logElims = -4,-1;
+        xvals, Rvals, Tvals, totals, Esplit, folder = load_data(datafs[fi]);
+        logElims = np.log10(xvals[0]), np.log10(xvals[-1]);
 
         # plot T+
         axes[0].plot(xvals, Tvals[pair[0]], color=mycolors[fi], marker=mymarkers[fi], markevery=mymarkevery(datafs[fi],Tvals[pair[0]]), linewidth = mylinewidth); 
         #mainax.plot(xvals, totals, color="red");
-        print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
+        Tpmax = np.max(Tvals[pair[0]])
+        print(">>> T+ max = ",Tpmax," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
-        print(">>> p2 max = ",np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+        p2max = np.max(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))
+        print(">>> p2 max = ",p2max," at Ki = ",xvals[np.argmax(np.sqrt(Tvals[sourcei]*Tvals[pair[0]]))]);
+
+        # replot with markers as needed
+        if("-" not in datafs[fi] and "0.0.npy" not in datafs[fi]):
+            pass;
+
+        # record peaks
+        peaks[fi,:] = [Esplit,Tpmax,p2max];
+    # sort and save peaks
+    peaks = peaks[peaks[:,0].argsort()]
+    peaksfname = folder+"peaks.npy";
+    print("Saving peaks data to "+peaksfname);
+    np.save(peaksfname, peaks);    
         
     # format
-    axes[0].set_ylim(0,0.2);
+    lower_y = 0.08;
+    axes[0].set_ylim(-lower_y*0.2,0.2);
     axes[0].set_ylabel('$T_+$', fontsize = myfontsize);
     axes[1].set_ylim(0.0,0.3);
     axes[1].set_ylabel('$\overline{p^2}$', fontsize = myfontsize);
