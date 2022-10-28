@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 real = False;
@@ -127,9 +127,9 @@ if True:
         # connect to breaks
         #axes[yaxi,1].plot((break_offset[0]*break_size-break_size,0),(0,0),linewidth = mylinewidth, **break_kw);
     plt.tight_layout();
-    fname = 'figs/peaks.pdf';
+    fname = 'figs/peaks_10_wide.pdf';
     if real: fname = 'figs/peaks_real.pdf'
-    #plt.savefig(fname);
+    plt.savefig(fname);
     plt.show();
 
 
