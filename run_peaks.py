@@ -39,7 +39,7 @@ real = False;
 peaks12 = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
 peaks1 = np.load("data/model1/peaks.npy");
 peaks32 = np.load("data/model1.5/peaks.npy");
-peaks72 = np.load("data/model3.5/peaks.npy"); # not plotted as of now
+#peaks72 = np.load("data/model3.5/peaks.npy"); # not plotted as of now
 peaks4 = np.load("data/model4/peaks.npy");
 peaks92 = np.load("data/model4.5/peaks.npy");
 peaks6 = np.load("data/model6/peaks.npy");
@@ -105,9 +105,9 @@ if True:
     for yaxi in range(np.shape(axes)[0]): 
         if not real:
             axes[yaxi,0].set_title(mypanels[yaxi], x=0.07, y = 0.7, fontsize = myfontsize);
-            axes[yaxi,0].set_xlim(convert*-0.004-xdatadelta,convert*0.004+xdatadelta);
-            axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
-            axes[yaxi,1].set_xticks([0.02*convert]);
+            axes[yaxi,0].set_xlim(convert*-0.04-xdatadelta,convert*0.04+xdatadelta);
+            axes[yaxi,1].set_xlim(convert*0.2-xdatadelta, convert*0.2+xdatadelta);
+            axes[yaxi,1].set_xticks([0.2*convert]);
         else:
             axes[yaxi,1].set_title(mypanels[yaxi], x=0.4, y = 0.7, fontsize = myfontsize);
             axes[yaxi,0].set_xlim(convert*0.0-xdatadelta,convert*0.008+xdatadelta);
