@@ -39,14 +39,14 @@ tl = 1.0;
 #################################################################
 #### replication of continuum solution
 
-if False:
+if True:
 
     # inelastic ?
-    Delta = 0.000; # inelastic splitting
+    Delta = 0.001; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
-    if inelastic: num_plots = 2;
+    if inelastic: num_plots = 4;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
@@ -128,6 +128,8 @@ if False:
         axes[ax2].plot(Evals,Tvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         #axes[1].plot(Evals, totals, color="red", label = "total ");
+        axes[2].plot(Evals,Rvals[:,flipi], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[3].plot(Evals,Rvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
         
         # continuum results
         lower_y = 0.08;
@@ -162,14 +164,14 @@ if False:
     plt.tight_layout();
     if inelastic: fname = 'figs/inelastic.pdf';
     else: fname = 'figs/continuum.pdf'
-    plt.savefig(fname);
+    #plt.savefig(fname);
     plt.show();
 
 
 #################################################################
 #### physical origin
 
-if True:
+if False:
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];

@@ -31,10 +31,10 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
-real = False;
+real = True;
 
 peaks12 = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
 peaks1 = np.load("data/model1/peaks.npy");
@@ -118,7 +118,7 @@ if True:
         axes[yaxi,1].yaxis.set_visible(False);
         # break axes
         break_size = 0.12; # in display coordinates
-        break_offset = (-6,-9)
+        break_offset = (-1,-5)
         break_kw = dict(transform=axes[yaxi,1].transAxes, color='black', clip_on=False);
         axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
         axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
@@ -126,6 +126,7 @@ if True:
         axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth, **break_kw);
         # connect to breaks
         #axes[yaxi,1].plot((break_offset[0]*break_size-break_size,0),(0,0),linewidth = mylinewidth, **break_kw);
+    plt.subplots_adjust(wspace = 10.0);
     plt.tight_layout();
     fname = 'figs/peaks.pdf';
     if real: fname = 'figs/peaks_real.pdf'
