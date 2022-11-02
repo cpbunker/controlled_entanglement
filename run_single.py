@@ -24,7 +24,7 @@ np.set_printoptions(precision = 4, suppress = True);
 verbose = 5;
 
 # fig standardizing
-myxvals = 199;
+myxvals = 499;
 myfontsize = 14;
 mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan", "darkmagenta","darkgray"];
 mymarkers = ["o","^","s","d","*","X","P"];
@@ -46,7 +46,7 @@ if True:
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
-    if inelastic: num_plots = 4;
+    if inelastic: num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex = True);
     if num_plots == 1: axes = [axes];
     fig.set_size_inches(7/2,3*num_plots/2);
@@ -128,8 +128,8 @@ if True:
         axes[ax2].plot(Evals,Tvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
         totals = np.sum(Tvals, axis = 1) + np.sum(Rvals, axis = 1);
         #axes[1].plot(Evals, totals, color="red", label = "total ");
-        axes[2].plot(Evals,Rvals[:,flipi], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
-        axes[3].plot(Evals,Rvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
+        #axes[2].plot(Evals,Rvals[:,flipi], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
+        #axes[3].plot(Evals,Rvals[:,sourcei], color = mycolors[Jvali], marker = mymarkers[Jvali], markevery = mymarkevery, linewidth = mylinewidth);
         
         # continuum results
         lower_y = 0.08;

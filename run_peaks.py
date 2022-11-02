@@ -31,7 +31,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
 real = True;
@@ -99,17 +99,16 @@ if True:
 
     # show
     if not real: xdatadelta = convert*abs(peaks1[0,indE]-peaks1[1,indE])/2;
-    else: xdatadelta = convert*0.001/2;
+    xdatadelta = convert*0.001/2;
     myxlabel = '$\Delta E$ (meV)';
     axes[-1,0].set_xlabel(myxlabel, fontsize = myfontsize);
     for yaxi in range(np.shape(axes)[0]): 
+        axes[yaxi,1].set_title(mypanels[yaxi], x=0.5, y = 0.7, fontsize = myfontsize);
         if not real:
-            axes[yaxi,0].set_title(mypanels[yaxi], x=0.07, y = 0.7, fontsize = myfontsize);
             axes[yaxi,0].set_xlim(convert*-0.004-xdatadelta,convert*0.004+xdatadelta);
             axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
             axes[yaxi,1].set_xticks([0.02*convert]);
         else:
-            axes[yaxi,1].set_title(mypanels[yaxi], x=0.4, y = 0.7, fontsize = myfontsize);
             axes[yaxi,0].set_xlim(convert*0.0-xdatadelta,convert*0.008+xdatadelta);
             axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
             axes[yaxi,1].set_xticks([0.02*convert]);
@@ -117,20 +116,21 @@ if True:
         axes[yaxi,1].spines['left'].set_visible(False);
         axes[yaxi,1].yaxis.set_visible(False);
         # break axes
-        break_size = 0.12; # in display coordinates
-        break_offset = (-1,-5)
+        break_size = 0.1; # in display coordinates
+        break_lw = 0.8;
+        break_offset = (-1,-5);
         break_kw = dict(transform=axes[yaxi,1].transAxes, color='black', clip_on=False);
-        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
-        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth, **break_kw);
-        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth, **break_kw);
-        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth, **break_kw);
+        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth*break_lw, **break_kw);
+        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(-break_size,+break_size),linewidth = mylinewidth*break_lw, **break_kw);
+        axes[yaxi,1].plot((break_offset[0]*break_size-break_size,break_offset[0]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth*break_lw, **break_kw);
+        axes[yaxi,1].plot((break_offset[1]*break_size-break_size,break_offset[1]*break_size+break_size),(1-break_size,1+break_size),linewidth = mylinewidth*break_lw, **break_kw);
         # connect to breaks
         #axes[yaxi,1].plot((break_offset[0]*break_size-break_size,0),(0,0),linewidth = mylinewidth, **break_kw);
     plt.subplots_adjust(wspace = 10.0);
     plt.tight_layout();
     fname = 'figs/peaks.pdf';
     if real: fname = 'figs/peaks_real.pdf'
-    #plt.savefig(fname);
+    plt.savefig(fname);
     plt.show();
 
 
