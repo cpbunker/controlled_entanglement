@@ -36,13 +36,101 @@ plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 # tight binding params
 tl = 1.0;
 
-#################################################################
-#### replication of continuum solution
-
 if True:
 
     # inelastic ?
-    Delta = 0.001; # inelastic splitting
+    Delta = 0.0; # inelastic splitting
+    num_plots = 1
+    fig, axes = plt.subplots(num_plots, sharex = True);
+    if num_plots == 1: axes = [axes];
+    fig.set_size_inches(7/2,3*num_plots/2);
+    
+    # non contact interaction
+    Msites = 1; 
+
+    # iter over effective J
+    for sourcei in [0,1]:
+        Jval = -0.005;
+        
+        # 2nd qu'd operator for S dot s
+        h1e = np.zeros((4,4))
+        g2e = wfm.utils.h_kondo_2e(Jval, 0.5); # J, spin
+        states_1p = [[0,1],[2,3]]; # [e up, down], [imp up, down]
+        hSR = fci_mod.single_to_det(h1e, g2e, np.array([1,1]), states_1p); # to determinant form
+
+        # zeeman splitting
+        hzeeman = np.array([[0, 0, 0, 0],
+                        [0,Delta, 0, 0],
+                        [0, 0, 0, 0], # spin flip gains PE delta
+                        [0, 0, 0, Delta]]);
+        hSR += hzeeman;
+
+        # truncate to coupled channels
+
+        # leads
+        hLL = np.copy(hzeeman);
+        hRL = np.copy(hzeeman)
+
+        # source = up electron, down impurity
+        source = np.zeros(np.shape(hSR)[0]);
+        source[sourcei] = 1;
+
+        # package together hamiltonian blocks
+        hblocks = [hLL];
+        for _ in range(Msites): hblocks.append(np.copy(hSR));
+        hblocks.append(hRL);
+        hblocks = np.array(hblocks);
+
+        # hopping
+        tnn = [];
+        for _ in range(len(hblocks)-1): tnn.append(-tl*np.eye(*np.shape(hSR)));
+        tnn = np.array(tnn);
+        tnnn = np.zeros_like(tnn)[:-1];
+        if(verbose and sourcei == 0): print("\nhblocks:\n", hblocks, "\ntnn:\n", tnn,"\ntnnn:\n",tnnn);
+
+        # sweep over range of energies
+        # def range
+        logElims = -7,-4
+        Evals = np.logspace(*logElims,myxvals, dtype=complex);
+        kavals = np.arccos((Evals-2*tl)/(-2*tl));
+        jprimevals = Jval/(4*tl*kavals);
+        menez_Tf = jprimevals*jprimevals/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        menez_Tnf = (1+jprimevals*jprimevals/4)/(1+(5/2)*jprimevals*jprimevals+(9/16)*np.power(jprimevals,4));
+        Rvals = np.empty((len(Evals),len(source)), dtype = float);
+        Tvals = np.empty((len(Evals),len(source)), dtype = float); 
+        for Evali in range(len(Evals)):
+
+            # energy
+            Eval = Evals[Evali]; # Eval > 0 always, what I call K in paper
+            Energy = Eval - 2*tl; # -2t < Energy < 2t, what I call E in paper
+
+            if(Evali < 1): # verbose
+                Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False, verbose = verbose);
+            else: # not verbose
+                 Rdum, Tdum = wfm.kernel(hblocks, tnn, tnnn, tl, Energy, source, all_debug = False);
+            Rvals[Evali] = Rdum;
+            Tvals[Evali] = Tdum;
+
+        # plot tight binding results
+        ax0, ax1, ax2, ax3 = 0,1,2,3;
+        axes[ax0].plot(Evals,np.sum(Tvals, axis=1), color = mycolors[sourcei+1], marker = mymarkers[sourcei], markevery = mymarkevery, linewidth = mylinewidth);
+        axes[ax0].set_ylabel('$T_\sigma$', fontsize = myfontsize)
+    # show
+    axes[-1].set_xscale('log', subs = []);
+    axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
+    axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
+    axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.065, y = 0.65, fontsize = myfontsize); 
+    plt.tight_layout();
+    plt.savefig('dummy.pdf')
+
+#################################################################
+#### replication of continuum solution
+
+if False:
+
+    # inelastic ?
+    Delta = 0.0; # inelastic splitting
     inelastic = False
     if Delta > 0.0: inelastic = True
     num_plots = 4;
