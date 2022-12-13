@@ -8,8 +8,6 @@ general formalism: all sites map to all the different
 degrees of freedom of the system
 '''
 
-from code import fci_mod
-
 import numpy as np
 
 ##################################################################################
@@ -205,7 +203,7 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
 
     return Hp;
 
-def convert_to_4d(mat, n_loc_dof):
+def mat_2d_to_4d(mat, n_loc_dof):
     '''
     Take a 2d matrix (ie with spatial and spin dofs mixed)
     to a 4d matrix (ie with spatial and spin dofs separated)
@@ -228,7 +226,39 @@ def convert_to_4d(mat, n_loc_dof):
                     ovi = sitei*n_loc_dof + loci;
                     ovj = sitej*n_loc_dof + locj;
 
+                    # update
                     new_mat[sitei, sitej, loci, locj] = mat[ovi,ovj];
+
+    return new_mat;
+
+def mat_4d_to_2d(mat):
+    '''
+    Take a 4d matrix (ie with spatial and spin dofs separated)
+    to a 2d matrix (ie with spatial and spin dofs mixed)
+    '''
+    if( not isinstance(mat, np.ndarray)): raise TypeError;
+    if( np.shape(mat)[0] != np.shape(mat)[1]): raise ValueError;
+    if( np.shape(mat)[2] != np.shape(mat)[3]): raise ValueError;
+
+    # unpack
+    n_loc_dof = np.shape(mat)[-1];
+    n_spatial_dof = np.shape(mat)[0];
+    n_ov_dof = n_loc_dof*n_spatial_dof;
+    new_mat = np.zeros((n_ov_dof,n_ov_dof), dtype=complex);
+
+    # convert
+    for sitei in range(n_spatial_dof): # iter site dof only
+        for sitej in range(n_spatial_dof): # same
+                
+            for loci in range(n_loc_dof): # iter over local dofs
+                for locj in range(n_loc_dof):
+
+                    # site, loc indices -> overall indices
+                    ovi = sitei*n_loc_dof + loci;
+                    ovj = sitej*n_loc_dof + locj;
+
+                    # update
+                    new_mat[ovi,ovj] = mat[sitei, sitej, loci, locj];
 
     return new_mat;
 
@@ -256,7 +286,7 @@ def Green(h, tnn, tnnn, tl, E, verbose = 0):
     Gmat = np.linalg.inv( E*np.eye(*np.shape(Hp)) - Hp );
 
     # make 4d
-    Gmat = convert_to_4d(Gmat, n_loc_dof); # separates spatial and spin indices
+    Gmat = mat_2d_to_4d(Gmat, n_loc_dof); # separates spatial and spin indices
     return Gmat;
 
 
