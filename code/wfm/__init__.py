@@ -58,6 +58,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
     ka_R = np.arccos((E-np.diagonal(h[-1]))/(-2*tl));
     v_L = 2*tl*np.sin(ka_L); # vector with sigma components
     v_R = 2*tl*np.sin(ka_R); # a, hbar defined as 1
+    assert(v_L == v_R);
 
     # green's function
     if(verbose): print("\nEnergy = {:.6f}".format(np.real(E+2*tl))); # start printouts
@@ -203,6 +204,36 @@ def Hprime(h, tnn, tnnn, tl, E, verbose = 0):
 
     return Hp;
 
+def Green(h, tnn, tnnn, tl, E, verbose = 0):
+    '''
+    Greens function for system described by
+    Args
+    -h, array, on site blocks at each of the N+2 sites of the system
+    -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
+    -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
+    -tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
+    -E, float, incident energy
+
+    returns 4d array with spatial and spin indices separate
+    '''
+
+    # unpack
+    N = len(h) - 2; # num scattering region sites
+    n_loc_dof = np.shape(h[0])[0];
+
+    # get 2d green's function matrix
+    Hp = Hprime(h, tnn, tnnn, tl, E, verbose=verbose); # for easy inversion, 2d array with spatial and spin indices mixed
+    #if(verbose): print(">>> H' = \n", Hp );
+    #if(verbose): print(">>> EI - H' = \n", E*np.eye(np.shape(Hp)[0]) - Hp );
+    Gmat = np.linalg.inv( E*np.eye(*np.shape(Hp)) - Hp );
+
+    # make 4d
+    Gmat = mat_2d_to_4d(Gmat, n_loc_dof); # separates spatial and spin indices
+    return Gmat;
+
+##################################################################################
+#### utils
+
 def mat_2d_to_4d(mat, n_loc_dof):
     '''
     Take a 2d matrix (ie with spatial and spin dofs mixed)
@@ -261,35 +292,6 @@ def mat_4d_to_2d(mat):
                     new_mat[ovi,ovj] = mat[sitei, sitej, loci, locj];
 
     return new_mat;
-
-def Green(h, tnn, tnnn, tl, E, verbose = 0):
-    '''
-    Greens function for system described by
-    Args
-    -h, array, on site blocks at each of the N+2 sites of the system
-    -tnn, array, nearest neighbor hopping btwn sites, N-1 blocks
-    -tnnn, array, next nearest neighbor hopping btwn sites, N-2 blocks
-    -tl, float, hopping in leads, distinct from hopping within SR def'd by above arrays
-    -E, float, incident energy
-
-    returns 4d array with spatial and spin indices separate
-    '''
-
-    # unpack
-    N = len(h) - 2; # num scattering region sites
-    n_loc_dof = np.shape(h[0])[0];
-
-    # get 2d green's function matrix
-    Hp = Hprime(h, tnn, tnnn, tl, E, verbose=verbose); # for easy inversion, 2d array with spatial and spin indices mixed
-    #if(verbose): print(">>> H' = \n", Hp );
-    #if(verbose): print(">>> EI - H' = \n", E*np.eye(np.shape(Hp)[0]) - Hp );
-    Gmat = np.linalg.inv( E*np.eye(*np.shape(Hp)) - Hp );
-
-    # make 4d
-    Gmat = mat_2d_to_4d(Gmat, n_loc_dof); # separates spatial and spin indices
-    return Gmat;
-
-
 
 ##################################################################################
 #### test code
