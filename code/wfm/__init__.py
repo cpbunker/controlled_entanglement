@@ -58,7 +58,6 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
     ka_R = np.arccos((E-np.diagonal(h[-1]))/(-2*tl));
     v_L = 2*tl*np.sin(ka_L); # vector with sigma components
     v_R = 2*tl*np.sin(ka_R); # a, hbar defined as 1
-    assert(v_L == v_R);
 
     # green's function
     if(verbose): print("\nEnergy = {:.6f}".format(np.real(E+2*tl))); # start printouts
@@ -77,7 +76,7 @@ def kernel(h, tnn, tnnn, tl, E, Ajsigma, verbose = 0, all_debug = True):
         r_el = r_flux/i_flux;
         Rs[sigma] = np.real(r_el*np.conjugate(r_el));
         # sqrt of t flux, numerator of eq:Tcoef in manuscript
-        t_flux = np.complex(0,1)*np.dot(Gmat[N+1,0,sigma], Ajsigma*v_L)*np.sqrt(np.real(v_L[sigma]));
+        t_flux = np.complex(0,1)*np.dot(Gmat[N+1,0,sigma], Ajsigma*v_L)*np.sqrt(np.real(v_R[sigma]));
         t_el = t_flux/i_flux;
         Ts[sigma] = np.real(t_el*np.conjugate(t_el));
     
