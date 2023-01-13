@@ -32,7 +32,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -86,10 +86,10 @@ def reduced_ham(params, S):
 #### effects of Ki and Delta E
 
 if False: # T+ at different Delta E by changing D
-    myspinS = 4.5;
+    myspinS = 1;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
-    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
-    #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
+    #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
+    Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
         Dval = Dvals[Dvali];
@@ -208,6 +208,7 @@ if True:
         #mainax.plot(xvals, totals, color="red");
         Tpmax = np.max(Tvals[pair[0]])
         print(">>> T+ max = ",Tpmax," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
+        print(">>> T- max = ",np.max(Tvals[pair[1]])," at Ki = ",xvals[np.argmax(Tvals[pair[1]])]);
 
         # plot analytical FOM
         axes[1].plot(xvals, np.sqrt(Tvals[sourcei]*Tvals[pair[0]]), color = mycolors[fi], marker=mymarkers[fi],markevery=mymarkevery(datafs[fi], np.sqrt(Tvals[sourcei]*Tvals[pair[0]])), linewidth = mylinewidth)
@@ -223,8 +224,8 @@ if True:
     # sort and save peaks
     peaks = peaks[peaks[:,0].argsort()]
     peaksfname = folder+"peaks.npy";
-    print("Saving peaks data to "+peaksfname);
-    np.save(peaksfname, peaks);    
+    #print("Saving peaks data to "+peaksfname);
+    #np.save(peaksfname, peaks);    
         
     # format
     lower_y = 0.08;
