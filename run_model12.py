@@ -89,7 +89,7 @@ if False: # compare T vs rhoJa for N not fixed
     np.save(fname, data);
 
 
-if True: # compare T vs rhoJa for N=2 fixed
+if False: # compare T vs rhoJa for N=2 fixed
     Jval = -0.5*tl/100;
     Esplit = 0.0;
     Delta = -Esplit;
@@ -198,6 +198,7 @@ if True:
         if sigmas[sigmai] == pair[1]: factor = 10**5; # blow up T-
         axes[0].plot(xvals, factor*Tvals[sigmas[sigmai]],color = mycolors[sigmai],marker = mymarkers[sigmai],markevery=mymarkevery,linewidth = mylinewidth);
     print(">>> T+ max = ",np.max(Tvals[pair[0]])," at Ki = ",xvals[np.argmax(Tvals[pair[0]])]);
+    print(">>> T- max = ",np.max(Tvals[pair[1]])," at Ki = ",xvals[np.argmax(Tvals[pair[1]])]);
     axes[0].set_ylim(-lower_y,1.0);
     axes[0].set_ylabel('$T_\sigma$', fontsize = myfontsize);
     
