@@ -58,7 +58,8 @@ peaks92_real = np.array([
 peaks6_real = np.array([        
     [ 0.003, 0.021, 0.138 ]]);  # Mn3
 
-if real: peaks12, peaks1, peaks32, peaks72, peaks4, peaks92, peaks6 = peaks12_real, peaks1_real, peaks32_real, peaks72_real, peaks4_real, peaks92_real, peaks6_real;
+if real: 
+    peaks12, peaks1, peaks32, peaks72, peaks4, peaks92, peaks6 = peaks12_real, peaks1_real, peaks32_real, peaks72_real, peaks4_real, peaks92_real, peaks6_real;
 
 #### plot T+ and p2 vs Delta E
 if True:
@@ -100,7 +101,7 @@ if True:
     # show
     if not real: xdatadelta = convert*abs(peaks1[0,indE]-peaks1[1,indE])/2;
     xdatadelta = convert*0.001/2;
-    myxlabel = '$\Delta E$ (meV)';
+    myxlabel = '$\Delta E/t$';
     axes[-1,0].set_xlabel(myxlabel, fontsize = myfontsize);
     for yaxi in range(np.shape(axes)[0]): 
         axes[yaxi,1].set_title(mypanels[yaxi], x=0.5, y = 0.7, fontsize = myfontsize);
