@@ -85,7 +85,7 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
+if True: # T+ at different Delta E by changing D
     myspinS = 1;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
     #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
@@ -134,6 +134,9 @@ if False: # T+ at different Delta E by changing D
         # iter over E, getting T
         logElims = -6,-2
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
+        #mypeak = np.argmin(abs(Evals-0.001));
+        #print(Evals[mypeak], Evals[mypeak+1], Evals[mypeak+1]-Evals[mypeak]);
+        #assert False
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
