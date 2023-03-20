@@ -33,17 +33,6 @@ mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
 #plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
-svals = ['1/2','1','3/2','4','9/2','6'];
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots();
-fig.set_size_inches(12,12);
-for i in range(len(svals)):
-    ax.plot([1],color=mycolors[i],marker=mymarkers[i],label='s='+svals[i])
-plt.legend(loc='upper center', fontsize='x-large');
-#plt.show();
-plt.savefig('legend.pdf');
-assert False
-
 #### data
 real = True;
 
