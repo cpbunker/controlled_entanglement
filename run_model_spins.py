@@ -32,7 +32,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -85,7 +85,7 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if True: # T+ at different Delta E by changing D
+if False: # T+ at different Delta E by changing D
     myspinS = 1;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
     #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
@@ -242,8 +242,8 @@ if True:
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    #for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    #plt.savefig('figs/model1.pdf');
-    plt.show();
+    plt.savefig('../transport/figs/double/model1.pdf');
+    #plt.show();
 

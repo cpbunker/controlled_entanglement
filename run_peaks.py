@@ -22,7 +22,7 @@ verbose = 5;
 # fig standardizing
 myxvals = 199;
 myfontsize = 14;
-mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan","darkgray","darkmagenta"];
+mycolors = ["black","darkblue","darkgreen","darkred", "darkcyan","darkmagenta","darkgray"];
 mymarkers = ["o","^","s","d","*","P","X"];
 def mymarkevery(fname,yvalues):
     if '-' in fname or '0.0.npy' in fname:
@@ -31,10 +31,10 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### data
-real = True;
+real = False;
 
 peaks12 = np.array([ [ 0.00 , 0.222 , 0.298 ]]);
 peaks1 = np.load("data/model1/peaks.npy");
@@ -104,7 +104,7 @@ if True:
     myxlabel = '$\Delta E/t$';
     axes[-1,0].set_xlabel(myxlabel, fontsize = myfontsize);
     for yaxi in range(np.shape(axes)[0]): 
-        axes[yaxi,1].set_title(mypanels[yaxi], x=0.5, y = 0.7, fontsize = myfontsize);
+        #axes[yaxi,1].set_title(mypanels[yaxi], x=0.5, y = 0.7, fontsize = myfontsize);
         if not real:
             axes[yaxi,0].set_xlim(convert*-0.004-xdatadelta,convert*0.004+xdatadelta);
             axes[yaxi,1].set_xlim(convert*0.02-xdatadelta, convert*0.02+xdatadelta);
@@ -129,10 +129,9 @@ if True:
         #axes[yaxi,1].plot((break_offset[0]*break_size-break_size,0),(0,0),linewidth = mylinewidth, **break_kw);
     plt.subplots_adjust(wspace = 10.0);
     plt.tight_layout();
-    fname = 'figs/peaks.pdf';
-    if real: fname = 'figs/peaks_real.pdf'
+    fname = '../transport/figs/double/peaks_real.pdf'
     plt.savefig(fname);
-    plt.show();
+    #plt.show();
 
 
 
