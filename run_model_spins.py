@@ -32,7 +32,7 @@ def mymarkevery(fname,yvalues):
         return [np.argmax(yvalues)];
 mylinewidth = 1.0;
 mypanels = ["(a)","(b)","(c)"];
-plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
+#plt.rcParams.update({"text.usetex": True,"font.family": "Times"})
 
 #### setup
 
@@ -66,17 +66,12 @@ if(verbose):
         print(pair_str);
         pair_strs.append(pair_str);
 
-tl = 1.0;
-tp = 1.0;
-JK = -0.5*tl/100;
-J12 = tl/100;
-
 # constructing the hamiltonian
 def reduced_ham(params, S):
     D1, D2, J12, JK1, JK2 = params;
     assert(D1 == D2);
     ham = np.array([[S*S*D1+(S-1)*(S-1)*D2+S*(S-1)*J12+(JK1/2)*S+(JK2/2)*(S-1), S*J12, np.sqrt(2*S)*(JK2/2) ], # up, s, s-1
-                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*S + (JK2/2)*(S-1), np.sqrt(2*S)*(JK1/2) ], # up, s-1, s
+                    [S*J12, (S-1)*(S-1)*D1+S*S*D2+S*(S-1)*J12+(JK1/2)*(S-1) + (JK2/2)*S, np.sqrt(2*S)*(JK1/2) ], # up, s-1, s
                     [np.sqrt(2*S)*(JK2/2), np.sqrt(2*S)*(JK1/2),S*S*D1+S*S*D2+S*S*J12+(-JK1/2)*S +(-JK2/2)*S]], # down, s, s
                    dtype = complex);
 
@@ -85,10 +80,17 @@ def reduced_ham(params, S):
 #########################################################
 #### effects of Ki and Delta E
 
-if False: # T+ at different Delta E by changing D
+# top level and TB params
+save_fig = False;
+save_peaks = False; # whether to save height and location of highest T+, p^2
+tl = 1.0;
+tp = 1.0;
+JK = -0.5*tl/100;
+J12 = tl/100;
+
+if True: # T+ at different Delta E by changing D
     myspinS = 1;
     # Evals should be order of D (0.1 meV for Mn to 1 meV for MnPc)
-    #Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0,0.001,0.002,0.003,0.004,0.02]);
     Esplitvals = (1)*np.array([-0.004,-0.003,-0.002,-0.001,0.0]);
     Dvals = Esplitvals/(1-2*myspinS);
     for Dvali in range(len(Dvals)):
@@ -106,6 +108,7 @@ if False: # T+ at different Delta E by changing D
             if(j == impis[0]): JK1 = JK;
             elif(j == impis[1]): JK2 = JK;
             params = Dval, Dval, J12, JK1, JK2;
+            
             # construct h_SR (determinant basis)
             hSR = reduced_ham(params,S=myspinS);           
             # transform to eigenbasis
@@ -123,10 +126,7 @@ if False: # T+ at different Delta E by changing D
         for hb in hblocks:
             hb += -E_shift*np.eye(np.shape(hblocks[0])[0]);
         if(verbose > 3 ): print("Delta E / t = ", (hblocks[0][0,0] - hblocks[0][2,2])/tl);
-
-        # constant shift in right lead to bring transmitted |+> on resonance
-        #hblocks[-1] += -1*Esplitvals[Dvali]*np.eye(np.shape(hblocks[0])[0]);
-
+        
         # hopping
         tnn = np.array([-tl*np.eye(len(source)),-tp*np.eye(len(source)),-tl*np.eye(len(source))]);
         tnnn = np.zeros_like(tnn)[:-1]; # no next nearest neighbor hopping
@@ -134,9 +134,6 @@ if False: # T+ at different Delta E by changing D
         # iter over E, getting T
         logElims = -6,-2
         Evals = np.logspace(*logElims,myxvals, dtype = complex);
-        #mypeak = np.argmin(abs(Evals-0.001));
-        #print(Evals[mypeak], Evals[mypeak+1], Evals[mypeak+1]-Evals[mypeak]);
-        #assert False
         Rvals = np.empty((len(Evals),len(source)), dtype = float);
         Tvals = np.empty((len(Evals),len(source)), dtype = float);
         for Evali in range(len(Evals)):
@@ -196,6 +193,7 @@ def FOM(Ti,Tp, grid=100000):
 
 #### plot T+ and p2 vs Ki at different Delta E
 if True:
+
     num_plots = 2;
     fig, axes = plt.subplots(num_plots, sharex=True);
     if num_plots == 1: axes = [axes];
@@ -225,10 +223,11 @@ if True:
         # record peaks
         peaks[fi,:] = [Esplit,Tpmax,p2max];
     # sort and save peaks
-    peaks = peaks[peaks[:,0].argsort()]
-    peaksfname = folder+"peaks.npy";
-    #print("Saving peaks data to "+peaksfname);
-    #np.save(peaksfname, peaks);    
+    if(save_peaks):
+        peaks = peaks[peaks[:,0].argsort()]
+        peaksfname = folder+"peaks.npy";
+        print("Saving peaks data to "+peaksfname);
+        np.save(peaksfname, peaks);    
         
     # format
     lower_y = 0.08;
@@ -242,8 +241,11 @@ if True:
     axes[-1].set_xlim(10**(logElims[0]), 10**(logElims[1]));
     axes[-1].set_xticks([10**(logElims[0]), 10**(logElims[1])]);
     axes[-1].set_xlabel('$K_i/t$',fontsize = myfontsize);
-    #for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
+    for axi in range(len(axes)): axes[axi].set_title(mypanels[axi], x=0.07, y = 0.7, fontsize = myfontsize);
     plt.tight_layout();
-    plt.savefig('../transport/figs/double/model1.pdf');
-    #plt.show();
+    if(save_fig):
+        fname = "figs/model1.pdf";
+        print("Saving figure to "+fname);
+        plt.savefig(fname);
+    else: plt.show();
 
